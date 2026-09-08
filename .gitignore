@@ -1,21 +1,21 @@
-## ---------- .NET / Backend ----------
-backend/**/bin/
-backend/**/obj/
-backend/**/*.user
-backend/**/appsettings.Development.json
-backend/**/appsettings.Local.json
+## ---------- .NET / Server ----------
+server/**/bin/
+server/**/obj/
+server/**/*.user
+server/**/appsettings.Development.json
+server/**/appsettings.Local.json
 *.suo
 *.user
 .vs/
 
-## ---------- Node / React Frontend ----------
-frontend/node_modules/
-frontend/build/
-frontend/dist/
-frontend/.env
-frontend/.env.local
-frontend/npm-debug.log*
-frontend/yarn-error.log*
+## ---------- Node / React Client ----------
+client/node_modules/
+client/build/
+client/dist/
+client/.env
+client/.env.local
+client/npm-debug.log*
+client/yarn-error.log*
 
 ## ---------- OS / Editor ----------
 .DS_Store
