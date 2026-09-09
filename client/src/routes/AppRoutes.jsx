@@ -7,6 +7,7 @@ const ProtectedRoute = lazy(() => import('./ProtectedRoute'));
 const SuperAdminRoute = lazy(() => import('./SuperAdminRoute'));
 const SuperAdminLayout = lazy(() => import('../layouts/SuperAdminLayout'));
 const SuperAdminDashboard = lazy(() => import('../pages/superadmin/SuperAdminDashboard'));
+const SuperAdminViewFeatures = lazy(() => import('../pages/superadmin/SuperAdminViewFeatures'));
 
 // Fallback page
 const NotFound = lazy(() => import('../pages/common/NotFound'));
@@ -53,6 +54,7 @@ export default function AppRoutes() {
             <Route path="/superadmin" element={<SuperAdminLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<SuperAdminDashboard />} />
+              <Route path="features" element={<SuperAdminViewFeatures />} />
             </Route>
           </Route>
         </Route>
