@@ -42,7 +42,7 @@ export const ToastProvider = ({ children }) => {
                     >
                         <div className="flex flex-col">
                             <span className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-70">
-                                {toast.type}
+                                {toast.type === 'error' ? 'Error' : 'Success'}
                             </span>
                             <span className="text-sm font-medium">{toast.message}</span>
                         </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { featureApi } from '../../api/featureApi';
 import { validateFeatureForm } from '../../validators/featureFormValidator';
 import { useToast } from '../../utils/Toast';
+import Breadcrumb from '../../components/common/Breadcrumb';
 
 export default function SuperAdminViewFeatures() {
     const [features, setFeatures] = useState([]);
@@ -39,38 +40,44 @@ export default function SuperAdminViewFeatures() {
         return () => { document.body.style.overflow = 'unset'; };
     }, [isCreateModalOpen, isViewModalOpen]);
 
+    // Debounce search input
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
     useEffect(() => {
-        const fetchFeatures = async () => {
-            try {
-                setLoading(true);
-                const response = await featureApi.getFeatures({ 
-                    pageNumber, 
-                    pageSize,
-                    searchTerm: searchTerm || undefined,
-                    status: statusFilter || undefined
-                });
-                
-                if (response?.data?.items) {
-                    setFeatures(response.data.items);
-                    setTotalCount(response.data.totalCount || 0);
-                } else if (response?.data) { // fallback
-                    setFeatures(response.data);
-                    setTotalCount(response.data.length || 0);
-                }
-            } catch (err) {
-                console.error("Error fetching features:", err);
-                setError("Failed to load features.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         const timer = setTimeout(() => {
-            fetchFeatures();
-        }, 400); // 400ms debounce
-
+            setDebouncedSearchTerm(searchTerm);
+        }, 350);
         return () => clearTimeout(timer);
-    }, [pageNumber, pageSize, searchTerm, statusFilter, refreshTrigger]);
+    }, [searchTerm]);
+
+    // Fetch when page, size, filter, debounced search, or refresh trigger changes
+    useEffect(() => {
+        fetchFeatures();
+    }, [pageNumber, pageSize, statusFilter, debouncedSearchTerm, refreshTrigger]);
+
+    async function fetchFeatures() {
+        try {
+            setLoading(true);
+            const response = await featureApi.getFeatures({ 
+                pageNumber, 
+                pageSize,
+                searchTerm: debouncedSearchTerm || undefined,
+                status: statusFilter || undefined
+            });
+            
+            if (response?.data?.items) {
+                setFeatures(response.data.items);
+                setTotalCount(response.data.totalCount || 0);
+            } else if (response?.data) {
+                setFeatures(response.data);
+                setTotalCount(response.data.length || 0);
+            }
+        } catch (err) {
+            console.error("Error fetching features:", err);
+            setError("Failed to load features.");
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const handleCreateFeature = async (e) => {
         e.preventDefault();
@@ -123,18 +130,12 @@ export default function SuperAdminViewFeatures() {
     const getStatusBadge = (status) => {
         // Enums mapping: 1=Active, 2=Inactive, 3=Draft, 4=Archived, 5=Deleted
         switch (status) {
-            case 1:
-                return <span className="text-sm font-medium text-emerald-600">Active</span>;
-            case 2:
-                return <span className="text-sm font-medium text-red-600">Inactive</span>;
-            case 3:
-                return <span className="text-sm font-medium text-gray-600">Draft</span>;
-            case 4:
-                return <span className="text-sm font-medium text-yellow-600">Archived</span>;
-            case 5:
-                return <span className="text-sm font-medium text-red-700">Deleted</span>;
-            default:
-                return <span className="text-sm font-medium text-gray-600">Unknown</span>;
+            case 1: return <span className="text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">Active</span>;
+            case 2: return <span className="text-xs font-semibold text-red-700 bg-red-100 px-2 py-1 rounded-full">Inactive</span>;
+            case 3: return <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">Draft</span>;
+            case 4: return <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">Archived</span>;
+            case 5: return <span className="text-xs font-semibold text-red-700 bg-red-100 px-2 py-1 rounded-full">Deleted</span>;
+            default: return <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">Unknown</span>;
         }
     };
 
@@ -143,7 +144,11 @@ export default function SuperAdminViewFeatures() {
             {/* Page header */}
             <div className="bg-white rounded border border-gray-200 p-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Manage Features</h1>
+                    <Breadcrumb items={[
+                        { label: 'Home', to: '/superadmin/dashboard' },
+                        { label: 'Features' }
+                    ]} />
+                    <h1 className="text-2xl font-bold text-gray-800 mt-2">Manage Features</h1>
                     <p className="text-sm text-gray-400 mt-1">Define the capabilities available in the system and control which plans unlock them.</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -153,7 +158,7 @@ export default function SuperAdminViewFeatures() {
                     </button>
                     <button 
                         onClick={() => setIsCreateModalOpen(true)}
-                        className="flex items-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded shadow-sm transition"
+                        className="flex items-center gap-2 text-sm font-semibold text-white bg-[#141824] hover:bg-[#252c40] px-4 py-2 rounded shadow-sm transition"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
                         Create New Feature
@@ -163,27 +168,27 @@ export default function SuperAdminViewFeatures() {
 
             {/* Summary strip */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white border border-gray-200 rounded p-4">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Features</p>
-                    <p className="text-2xl font-extrabold text-gray-800 mt-1">{features.length}</p>
-                    <p className="text-xs text-gray-400 mt-1">
+                <div className="bg-[#141824] border border-[#252c40] rounded p-4">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Features</p>
+                    <p className="text-2xl font-extrabold text-white mt-1">{features.length}</p>
+                    <p className="text-xs text-slate-400 mt-1">
                         {features.filter(f => f.status === 1).length} active &middot; {features.filter(f => f.status === 3).length} draft
                     </p>
                 </div>
-                <div className="bg-white border border-gray-200 rounded p-4">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Categories</p>
-                    <p className="text-2xl font-extrabold text-gray-800 mt-1">5</p>
-                    <p className="text-xs text-gray-400 mt-1">Core HR, Security, Support...</p>
+                <div className="bg-[#141824] border border-[#252c40] rounded p-4">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Categories</p>
+                    <p className="text-2xl font-extrabold text-white mt-1">5</p>
+                    <p className="text-xs text-slate-400 mt-1">Core HR, Security, Support...</p>
                 </div>
-                <div className="bg-white border border-gray-200 rounded p-4">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mapped to Plans</p>
-                    <p className="text-2xl font-extrabold text-gray-800 mt-1">16</p>
-                    <p className="text-xs text-emerald-600 font-medium mt-1">2 unmapped</p>
+                <div className="bg-[#141824] border border-[#252c40] rounded p-4">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Mapped to Plans</p>
+                    <p className="text-2xl font-extrabold text-white mt-1">16</p>
+                    <p className="text-xs text-emerald-400 font-medium mt-1">2 unmapped</p>
                 </div>
-                <div className="bg-white border border-gray-200 rounded p-4">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Most Gated Feature</p>
-                    <p className="text-2xl font-extrabold text-gray-800 mt-1">SSO</p>
-                    <p className="text-xs text-gray-400 mt-1">Enterprise only</p>
+                <div className="bg-[#141824] border border-[#252c40] rounded p-4">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Most Gated Feature</p>
+                    <p className="text-2xl font-extrabold text-white mt-1">SSO</p>
+                    <p className="text-xs text-slate-400 mt-1">Enterprise only</p>
                 </div>
             </div>
 
@@ -244,12 +249,12 @@ export default function SuperAdminViewFeatures() {
                     <table className="w-full text-left text-sm min-w-[980px]">
                         <thead>
                             <tr className="border-b border-gray-200 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                                <th className="py-2.5 px-6 w-[20%]">NAME</th>
-                                <th className="py-2.5 px-6 w-[15%]">CODE</th>
-                                <th className="py-2.5 px-6 w-[25%]">DESCRIPTION</th>
-                                <th className="py-2.5 px-6 w-[15%]">CREATED AT</th>
-                                <th className="py-2.5 px-6 w-[15%]">STATUS</th>
-                                <th className="py-2.5 px-6 w-[10%] text-center">ACTION</th>
+                                <th className="py-3 px-6 w-[20%]">NAME</th>
+                                <th className="py-3 px-6 w-[15%]">CODE</th>
+                                <th className="py-3 px-6 w-[25%]">DESCRIPTION</th>
+                                <th className="py-3 px-6 w-[15%]">CREATED AT</th>
+                                <th className="py-3 px-6 w-[15%]">STATUS</th>
+                                <th className="py-3 px-6 w-[10%] text-center">ACTION</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -268,34 +273,34 @@ export default function SuperAdminViewFeatures() {
                             ) : (
                                 features.map((feature) => (
                                     <tr key={feature.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="py-2.5 px-6 text-gray-800 font-medium text-[13px]">
+                                        <td className="py-3 px-6 text-gray-800 font-medium text-[13px]">
                                             <div className="truncate w-full max-w-[200px]" title={feature.name}>
                                                 {feature.name}
                                             </div>
                                         </td>
-                                        <td className="py-2.5 px-6 text-gray-600 text-[13px]">
+                                        <td className="py-3 px-6 text-gray-600 text-[13px]">
                                             <div className="truncate w-full max-w-[150px]" title={feature.code}>
                                                 {feature.code}
                                             </div>
                                         </td>
-                                        <td className="py-2.5 px-6 text-gray-600 text-[13px]">
+                                        <td className="py-3 px-6 text-gray-600 text-[13px]">
                                             <div className="truncate w-full max-w-[250px]" title={feature.description || 'N/A'}>
                                                 {feature.description || 'N/A'}
                                             </div>
                                         </td>
-                                        <td className="py-2.5 px-6 text-gray-500 text-[13px]">
+                                        <td className="py-3 px-6 text-gray-500 text-[13px]">
                                             {new Date(feature.createdAt).toLocaleDateString()}
                                         </td>
-                                        <td className="py-2.5 px-6">{getStatusBadge(feature.status)}</td>
-                                        <td className="py-2.5 px-6 text-center">
-                                            <div className="flex items-center justify-center gap-2">
+                                        <td className="py-3 px-6">{getStatusBadge(feature.status)}</td>
+                                        <td className="py-3 px-6 text-center">
+                                            <div className="flex items-center justify-center gap-3">
                                                 <button 
                                                     onClick={() => handleViewFeature(feature.id)}
-                                                    className="text-[12px] font-medium text-emerald-600 border border-emerald-200 bg-emerald-50 px-3 py-1.5 rounded hover:bg-emerald-100 transition-colors"
+                                                    className="text-[12px] font-medium text-emerald-600 hover:underline"
                                                 >
                                                     View
                                                 </button>
-                                                <button className="text-[12px] font-medium text-blue-600 border border-blue-200 bg-blue-50 px-3 py-1.5 rounded hover:bg-blue-100 transition-colors">
+                                                <button className="text-[12px] font-medium text-blue-600 hover:underline">
                                                     Edit
                                                 </button>
                                             </div>
@@ -377,7 +382,7 @@ export default function SuperAdminViewFeatures() {
                                 <button 
                                     type="submit" 
                                     disabled={isSubmitting}
-                                    className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded shadow-sm disabled:opacity-50 transition"
+                                    className="px-4 py-2 text-sm font-semibold text-white bg-[#141824] hover:bg-[#252c40] rounded shadow-sm disabled:opacity-50 transition"
                                 >
                                     {isSubmitting ? 'Creating...' : 'Create Feature'}
                                 </button>

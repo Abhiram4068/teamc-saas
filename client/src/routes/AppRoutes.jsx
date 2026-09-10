@@ -8,6 +8,9 @@ const SuperAdminRoute = lazy(() => import('./SuperAdminRoute'));
 const SuperAdminLayout = lazy(() => import('../layouts/SuperAdminLayout'));
 const SuperAdminDashboard = lazy(() => import('../pages/superadmin/SuperAdminDashboard'));
 const SuperAdminViewFeatures = lazy(() => import('../pages/superadmin/SuperAdminViewFeatures'));
+const SuperAdminViewPlans = lazy(() => import('../pages/superadmin/SuperAdminViewPlans'));
+const SuperAdminViewDetailedPlan = lazy(() => import('../pages/superadmin/SuperAdminViewDetailedPlan'));
+const SuperAdminCreatePlan = lazy(() => import('../pages/superadmin/SuperAdminCreatePlan'));
 
 // Fallback page
 const NotFound = lazy(() => import('../pages/common/NotFound'));
@@ -55,6 +58,9 @@ export default function AppRoutes() {
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<SuperAdminDashboard />} />
               <Route path="features" element={<SuperAdminViewFeatures />} />
+              <Route path="plans" element={<SuperAdminViewPlans />} />
+              <Route path="create-plan" element={<SuperAdminCreatePlan />} />
+              <Route path="plans/:id" element={<SuperAdminViewDetailedPlan />} />
             </Route>
           </Route>
         </Route>
