@@ -20,7 +20,7 @@ export default function SuperAdminNavbar() {
           <div className="w-7 h-7 flex items-center justify-center font-black text-white text-sm">
             T
           </div>
-          <span className="text-lg font-black tracking-tight text-white">teamo</span>
+          <span className="text-lg font-black tracking-tight text-white">Teamo</span>
         </Link>
 
         {/* Search Input */}

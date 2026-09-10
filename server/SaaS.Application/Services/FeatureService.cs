@@ -42,10 +42,14 @@ public class FeatureService : IFeatureService
             return ApiResponse<FeatureResponseDto>.FailureResponse($"Feature with code '{normalizedCode}' already exists.", 409);
         }
 
+        // Capitalize the first letter of each word
+        var words = request.Name.Trim().ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var formattedName = string.Join(" ", words.Select(w => char.ToUpper(w[0]) + w.Substring(1)));
+
         // 3. Map DTO to Entity
         var feature = new Feature
         {
-            Name = request.Name.Trim(),
+            Name = formattedName,
             Code = normalizedCode,
             Description = request.Description?.Trim(),
             Status = request.Status,
@@ -61,7 +65,7 @@ public class FeatureService : IFeatureService
         var responseDto = new FeatureResponseDto
         {
             Id = feature.Id,
-            Name = feature.Name,
+            Name = formattedName,
             Code = feature.Code,
             Description = feature.Description,
             Status = feature.Status,
@@ -71,6 +75,29 @@ public class FeatureService : IFeatureService
         };
 
         return ApiResponse<FeatureResponseDto>.SuccessResponse(responseDto, "Feature created successfully.", 201);
+    }
+
+    public async Task<ApiResponse<FeatureResponseDto>> GetFeatureByIdAsync(int id)
+    {
+        var feature = await _featureRepository.GetByIdAsync(id);
+        if (feature == null)
+        {
+            return ApiResponse<FeatureResponseDto>.FailureResponse($"Feature with ID {id} not found.", 404);
+        }
+
+        var responseDto = new FeatureResponseDto
+        {
+            Id = feature.Id,
+            Name = feature.Name,
+            Code = feature.Code,
+            Description = feature.Description,
+            Status = feature.Status,
+            CreatedAt = feature.CreatedAt,
+            CreatedBy = feature.CreatedBy,
+            UpdatedAt = feature.UpdatedAt
+        };
+
+        return ApiResponse<FeatureResponseDto>.SuccessResponse(responseDto, "Feature retrieved successfully.", 200);
     }
 
     public async Task<ApiResponse<PaginatedResponseDto<FeatureResponseDto>>> GetFeaturesAsync(GetFeaturesRequestDto request)

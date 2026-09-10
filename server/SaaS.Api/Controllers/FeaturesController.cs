@@ -52,6 +52,22 @@ public class FeaturesController : ControllerBase
     }
 
     /// <summary>
+    /// Retrieves a specific system feature by ID. SuperAdmin (Role = 1) required.
+    /// </summary>
+    /// <param name="id">The ID of the feature.</param>
+    /// <returns>An <see cref="IActionResult"/> containing the feature details.</returns>
+    [HttpGet("{id}")]
+    [Authorize(Roles = "1")]
+    public async Task<IActionResult> GetFeatureById(int id)
+    {
+        _logger.LogInformation("Get feature by ID {FeatureId} request received.", id);
+
+        var response = await _featureService.GetFeatureByIdAsync(id);
+
+        return StatusCode(response.StatusCode, response);
+    }
+
+    /// <summary>
     /// Retrieves a paginated list of system features with optional filtering. SuperAdmin (Role = 1) required.
     /// </summary>
     /// <param name="request">The parameters for pagination and filtering.</param>
@@ -60,15 +76,7 @@ public class FeaturesController : ControllerBase
     [Authorize(Roles = "1")]
     public async Task<IActionResult> GetFeatures([FromQuery] GetFeaturesRequestDto request)
     {
-        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                        ?? User.FindFirst("sub")?.Value;
-
-        if (string.IsNullOrEmpty(userIdStr))
-        {
-            return Unauthorized();
-        }
-
-        _logger.LogInformation("Get features request received by User: {UserId}.", userIdStr);
+        _logger.LogInformation("Get features request received.");
 
         var response = await _featureService.GetFeaturesAsync(request);
 

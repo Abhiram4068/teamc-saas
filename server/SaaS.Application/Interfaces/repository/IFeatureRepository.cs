@@ -11,11 +11,6 @@ public interface IFeatureRepository
     Task<Feature?> GetByCodeAsync(string code);
     Task<bool> ExistsByCodeAsync(string code);
     Task AddAsync(Feature feature);
-    Task SaveChangesAsync();
-    
-    Task<(IEnumerable<Feature> Items, int TotalCount)> GetFeaturesAsync(
-        string? searchTerm, 
-        SaaS.Domain.Enums.FeatureStatus? status, 
-        int pageNumber, 
-        int pageSize);
+    Task SaveChangesAsync();    
+    Task<(IEnumerable<Feature> Items, int TotalCount)> GetFeaturesAsync(string? searchTerm, SaaS.Domain.Enums.FeatureStatus? status, int pageNumber, int pageSize);
 }

@@ -10,5 +10,6 @@ namespace SaaS.Application.Interfaces.Service;
 public interface IFeatureService
 {
     Task<ApiResponse<FeatureResponseDto>> CreateFeatureAsync(CreateFeatureRequestDto request, string? createdBy = null);
+    Task<ApiResponse<FeatureResponseDto>> GetFeatureByIdAsync(int id);
     Task<ApiResponse<PaginatedResponseDto<FeatureResponseDto>>> GetFeaturesAsync(GetFeaturesRequestDto request);
 }

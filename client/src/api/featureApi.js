@@ -9,5 +9,10 @@ export const featureApi = {
     createFeature: async (data) => {
         const response = await axiosClient.post('/features', data);
         return response.data;
+    },
+    
+    getFeatureById: async (id) => {
+        const response = await axiosClient.get(`/features/${id}`);
+        return response.data;
     }
 };
