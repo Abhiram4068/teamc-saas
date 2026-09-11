@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SaaS.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SaaS.Infrastructure.Data;
 namespace SaaS.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260909103330_CreateFeatureTable")]
+    partial class CreateFeatureTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -194,34 +197,17 @@ namespace SaaS.Infrastructure.Migrations
 
             modelBuilder.Entity("SaaS.Domain.Entities.PlanFeature", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("PlanId")
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("FeatureId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsEnabled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<int>("PlanId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
+                    b.HasKey("PlanId", "FeatureId");
 
                     b.HasIndex("FeatureId");
 
-                    b.HasIndex("PlanId", "FeatureId")
-                        .IsUnique();
-
-                    b.ToTable("PlanFeatures", (string)null);
+                    b.ToTable("PlanFeatures");
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Subscription", b =>

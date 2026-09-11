@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SaaS.Domain.Entities;
 
 namespace SaaS.Infrastructure.Data;
@@ -19,19 +19,10 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // ---- PlanFeature: composite key for the many-to-many join ----
-        modelBuilder.Entity<PlanFeature>()
-            .HasKey(pf => new { pf.PlanId, pf.FeatureId });
+        // Apply all IEntityTypeConfiguration classes in Infrastructure assembly
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        modelBuilder.Entity<PlanFeature>()
-            .HasOne(pf => pf.Plan)
-            .WithMany(p => p.PlanFeatures)
-            .HasForeignKey(pf => pf.PlanId);
 
-        modelBuilder.Entity<PlanFeature>()
-            .HasOne(pf => pf.Feature)
-            .WithMany(f => f.PlanFeatures)
-            .HasForeignKey(pf => pf.FeatureId);
 
         // ---- Tenant → Users (one-to-many, nullable FK for SuperAdmin) ----
         modelBuilder.Entity<User>()
@@ -90,7 +81,11 @@ public class AppDbContext : DbContext
 
         // ---- Decimal precision for money fields ----
         modelBuilder.Entity<Plan>()
-            .Property(p => p.Price)
+            .Property(p => p.MonthlyPrice)
+            .HasPrecision(10, 2);
+
+        modelBuilder.Entity<Plan>()
+            .Property(p => p.YearlyPrice)
             .HasPrecision(10, 2);
 
         modelBuilder.Entity<Payment>()
