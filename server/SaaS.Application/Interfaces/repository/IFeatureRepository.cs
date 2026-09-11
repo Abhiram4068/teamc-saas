@@ -8,6 +8,7 @@ namespace SaaS.Application.Interfaces.Repository;
 public interface IFeatureRepository
 {
     Task<Feature?> GetByIdAsync(int id);
+    Task<List<Feature>> GetByIdsAsync(IEnumerable<int> ids);
     Task<Feature?> GetByCodeAsync(string code);
     Task<bool> ExistsByCodeAsync(string code);
     Task AddAsync(Feature feature);

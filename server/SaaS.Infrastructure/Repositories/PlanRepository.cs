@@ -16,12 +16,16 @@ public class PlanRepository : IPlanRepository
 
     public async Task<Plan?> GetByIdAsync(int id)
     {
-        return await _context.Plans.FirstOrDefaultAsync(p => p.Id == id);
+        return await _context.Plans
+            .Include(p => p.PlanFeatures)
+            .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<Plan?> GetByCodeAsync(string code)
     {
-        return await _context.Plans.FirstOrDefaultAsync(p => p.Code.ToLower() == code.ToLower());
+        return await _context.Plans
+            .Include(p => p.PlanFeatures)
+            .FirstOrDefaultAsync(p => p.Code.ToLower() == code.ToLower());
     }
 
     public async Task<bool> ExistsByCodeAsync(string code)
@@ -63,6 +67,7 @@ public class PlanRepository : IPlanRepository
         var totalCount = await query.CountAsync();
 
         var items = await query
+            .Include(p => p.PlanFeatures)
             .OrderByDescending(p => p.CreatedAt) 
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)

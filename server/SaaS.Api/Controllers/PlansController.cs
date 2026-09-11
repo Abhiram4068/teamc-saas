@@ -58,4 +58,38 @@ public class PlansController : ControllerBase
 
         return StatusCode(response.StatusCode, response);
     }
+
+    [HttpPost("map-features")]
+    [Authorize(Roles = "1")]
+    public async Task<IActionResult> MapFeaturesToPlan([FromBody] MapPlanFeatureRequestDto request)
+    {
+        _logger.LogInformation("Map features to plan request received for PlanId: {PlanId}.", request.PlanId);
+
+        var response = await _planService.MapFeaturesToPlanAsync(request);
+
+        return StatusCode(response.StatusCode, response);
+    }
+
+
+    [HttpGet("{planId}/features")]
+    [Authorize(Roles = "1")]
+    public async Task<IActionResult> GetFeaturesForPlan(int planId)
+    {
+        _logger.LogInformation("Get features for plan ID {PlanId} request received.", planId);
+
+        var response = await _planService.GetFeaturesForPlanAsync(planId);
+
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpDelete("{planId}/features/{featureId}")]
+    [Authorize(Roles = "1")]
+    public async Task<IActionResult> RemoveFeatureFromPlan(int planId, int featureId)
+    {
+        _logger.LogInformation("Remove feature {FeatureId} from plan {PlanId} request received.", featureId, planId);
+
+        var response = await _planService.RemoveFeatureFromPlanAsync(planId, featureId);
+
+        return StatusCode(response.StatusCode, response);
+    }
 }

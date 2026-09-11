@@ -22,4 +22,6 @@ public class PlanResponseDto
     public DateTime CreatedAt { get; set; }
     public string? CreatedBy { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    public int FeatureCount { get; set; }
 }

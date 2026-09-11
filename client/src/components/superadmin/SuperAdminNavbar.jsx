@@ -23,7 +23,7 @@ export default function SuperAdminNavbar() {
           <span className="text-lg font-black tracking-tight text-white">Teamo</span>
         </Link>
 
-        {/* Search Input */}
+        {/* Search Input
         <div className="relative hidden sm:block w-72">
           <svg
             className="w-4 h-4 absolute left-3 top-2.5 text-slate-400"
@@ -43,7 +43,7 @@ export default function SuperAdminNavbar() {
             placeholder="Search..."
             className="w-full bg-[#1e2330] text-xs text-slate-200 placeholder-slate-400 rounded-md pl-9 pr-3 py-2 border border-slate-700/60 focus:outline-none focus:border-blue-500"
           />
-        </div>
+        </div> */}
       </div>
 
       {/* Right Profile Controls */}

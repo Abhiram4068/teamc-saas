@@ -22,6 +22,13 @@ public class FeatureRepository : IFeatureRepository
         return await _context.Features.FirstOrDefaultAsync(f => f.Id == id);
     }
 
+    public async Task<List<Feature>> GetByIdsAsync(IEnumerable<int> ids)
+    {
+        return await _context.Features
+            .Where(f => ids.Contains(f.Id))
+            .ToListAsync();
+    }
+
     public async Task<Feature?> GetByCodeAsync(string code)
     {
         return await _context.Features.FirstOrDefaultAsync(f => f.Code.ToLower() == code.ToLower());

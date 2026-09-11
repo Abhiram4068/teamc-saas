@@ -11,6 +11,7 @@ const SuperAdminViewFeatures = lazy(() => import('../pages/superadmin/SuperAdmin
 const SuperAdminViewPlans = lazy(() => import('../pages/superadmin/SuperAdminViewPlans'));
 const SuperAdminViewDetailedPlan = lazy(() => import('../pages/superadmin/SuperAdminViewDetailedPlan'));
 const SuperAdminCreatePlan = lazy(() => import('../pages/superadmin/SuperAdminCreatePlan'));
+const SuperAdminViewPlanFeatures = lazy(() => import('../pages/superadmin/SuperAdminViewPlanFeatures'));
 
 // Fallback page
 const NotFound = lazy(() => import('../pages/common/NotFound'));
@@ -61,6 +62,7 @@ export default function AppRoutes() {
               <Route path="plans" element={<SuperAdminViewPlans />} />
               <Route path="create-plan" element={<SuperAdminCreatePlan />} />
               <Route path="plans/:id" element={<SuperAdminViewDetailedPlan />} />
+              <Route path="plans/:id/features" element={<SuperAdminViewPlanFeatures />} />
             </Route>
           </Route>
         </Route>
