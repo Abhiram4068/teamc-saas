@@ -75,4 +75,14 @@ public class PlanRepository : IPlanRepository
 
         return (items, totalCount);
     }
+
+    public async Task<IEnumerable<Plan>> GetActivePublicPlansAsync()
+    {
+        return await _context.Plans
+            .Where(p => p.Status == SaaS.Domain.Enums.PlanStatus.Active)
+            .Include(p => p.PlanFeatures.Where(pf => pf.IsEnabled))
+                .ThenInclude(pf => pf.Feature)
+            .OrderBy(p => p.MonthlyPrice)
+            .ToListAsync();
+    }
 }

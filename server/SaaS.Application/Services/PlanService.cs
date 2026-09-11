@@ -261,6 +261,39 @@ public class PlanService : IPlanService
         return ApiResponse<bool>.SuccessResponse(true, "Feature mapping removed successfully.", 200);
     }
 
+    public async Task<ApiResponse<List<PublicPlanResponseDto>>> PublicPlanGetAsync()
+    {
+        var plans = await _planRepository.GetActivePublicPlansAsync();
+
+        var responseDtos = plans.Select(plan => new PublicPlanResponseDto
+        {
+            Id = plan.Id,
+            Name = plan.Name,
+            Code = plan.Code,
+            Description = plan.Description,
+            MonthlyPrice = plan.MonthlyPrice,
+            YearlyPrice = plan.YearlyPrice,
+            Currency = plan.Currency,
+            TrialPeriodDays = plan.TrialPeriodDays,
+            Features = plan.PlanFeatures
+                .Where(pf => pf.IsEnabled && pf.Feature != null)
+                .OrderBy(pf => pf.Feature.Name)
+                .Select(pf => new PublicPlanFeatureDto
+                {
+                    Id = pf.Id,
+                    FeatureId = pf.FeatureId,
+                    Name = pf.Feature.Name,
+                    Description = pf.Feature.Description,
+                    IsEnabled = pf.IsEnabled
+                }).ToList()
+        }).ToList();
+
+        return ApiResponse<List<PublicPlanResponseDto>>.SuccessResponse(
+            responseDtos,
+            "Public plans retrieved successfully.",
+            200);
+    }
+
     private static PlanResponseDto MapToDto(Plan plan)
     {
         return new PlanResponseDto
