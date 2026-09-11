@@ -12,4 +12,5 @@ public interface IPlanRepository
     Task SaveChangesAsync();
     
     Task<(IEnumerable<Plan> Items, int TotalCount)> GetPlansAsync(string? searchTerm, SaaS.Domain.Enums.PlanStatus? status, int pageNumber, int pageSize);
+    Task<IEnumerable<Plan>> GetActivePublicPlansAsync();
 }

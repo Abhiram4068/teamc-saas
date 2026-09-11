@@ -2,6 +2,8 @@ import React, { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 
 // Lazy loading all route components
+const PublicLayout = lazy(() => import('../layouts/PublicLayout'));
+const PublicViewPlan = lazy(() => import('../pages/public/PublicViewPlan'));
 const SuperAdminLogin = lazy(() => import('../pages/public/SuperAdminLogin'));
 const ProtectedRoute = lazy(() => import('./ProtectedRoute'));
 const SuperAdminRoute = lazy(() => import('./SuperAdminRoute'));
@@ -48,6 +50,13 @@ export default function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
+        {/* Public Routes with PublicLayout */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Navigate to="/price" replace />} />
+          <Route path="/price" element={<PublicViewPlan />} />
+          <Route path="/pricing" element={<PublicViewPlan />} />
+        </Route>
+
         <Route path="/login" element={<SuperAdminLogin />} />
         <Route path="/superadmin/login" element={<SuperAdminLogin />} />
 

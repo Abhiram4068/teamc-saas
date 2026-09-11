@@ -29,5 +29,10 @@ export const planApi = {
     removePlanFeature: async (planId, featureId) => {
         const response = await axiosClient.delete(`/plans/${planId}/features/${featureId}`);
         return response.data;
+    },
+
+    getPublicPlans: async () => {
+        const response = await axiosClient.get('/public/plans');
+        return response.data;
     }
 };
