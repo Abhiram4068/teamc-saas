@@ -17,12 +17,17 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
-        return await _context.Users.FirstOrDefaultAsync(x => x.Email == email && x.Status != UserStatus.Deactivated);
+        return await _context.Users.FirstOrDefaultAsync(x => x.Email == email && x.Status != UserStatus.Deleted);
     }
 
     public async Task<User?> GetByIdAsync(int id)
     {
-        return await _context.Users.FirstOrDefaultAsync(x => x.Id == id && x.Status != UserStatus.Deactivated);
+        return await _context.Users.FirstOrDefaultAsync(x => x.Id == id && x.Status != UserStatus.Deleted);
+    }
+
+    public async Task AddAsync(User user)
+    {
+        await _context.Users.AddAsync(user);
     }
 
     public async Task SaveChangesAsync()

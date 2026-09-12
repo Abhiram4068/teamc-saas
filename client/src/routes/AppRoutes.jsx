@@ -5,7 +5,9 @@ import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 const PublicLayout = lazy(() => import('../layouts/PublicLayout'));
 const PublicViewPlan = lazy(() => import('../pages/public/PublicViewPlan'));
 const SuperAdminLogin = lazy(() => import('../pages/public/SuperAdminLogin'));
-const ProtectedRoute = lazy(() => import('./ProtectedRoute'));
+const SuperAdminProtectedRoute = lazy(() => import('./SuperAdminProtectedRoute'));
+const TenantProtectedRoute = lazy(() => import('./TenantProtectedRoute'));
+const Checkout = lazy(() => import('../pages/tenant/Checkout'));
 const SuperAdminRoute = lazy(() => import('./SuperAdminRoute'));
 const SuperAdminLayout = lazy(() => import('../layouts/SuperAdminLayout'));
 const SuperAdminDashboard = lazy(() => import('../pages/superadmin/SuperAdminDashboard'));
@@ -14,6 +16,9 @@ const SuperAdminViewPlans = lazy(() => import('../pages/superadmin/SuperAdminVie
 const SuperAdminViewDetailedPlan = lazy(() => import('../pages/superadmin/SuperAdminViewDetailedPlan'));
 const SuperAdminCreatePlan = lazy(() => import('../pages/superadmin/SuperAdminCreatePlan'));
 const SuperAdminViewPlanFeatures = lazy(() => import('../pages/superadmin/SuperAdminViewPlanFeatures'));
+
+const TenantRegistration = lazy(() => import('../pages/public/Register'));
+const Login = lazy(() => import('../pages/public/Login'));
 
 // Fallback page
 const NotFound = lazy(() => import('../pages/common/NotFound'));
@@ -55,13 +60,14 @@ export default function AppRoutes() {
           <Route path="/" element={<Navigate to="/price" replace />} />
           <Route path="/price" element={<PublicViewPlan />} />
           <Route path="/pricing" element={<PublicViewPlan />} />
+          <Route path="/sign-up" element={<TenantRegistration />} />
         </Route>
 
-        <Route path="/login" element={<SuperAdminLogin />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/superadmin/login" element={<SuperAdminLogin />} />
 
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
+        {/* SuperAdmin Protected Routes */}
+        <Route element={<SuperAdminProtectedRoute />}>
           {/* SuperAdmin Specific Role Guard */}
           <Route element={<SuperAdminRoute />}>
             <Route path="/superadmin" element={<SuperAdminLayout />}>
@@ -74,6 +80,11 @@ export default function AppRoutes() {
               <Route path="plans/:id/features" element={<SuperAdminViewPlanFeatures />} />
             </Route>
           </Route>
+        </Route>
+
+        {/* Tenant Protected Routes */}
+        <Route element={<TenantProtectedRoute />}>
+          <Route path="/checkout/:planId" element={<Checkout />} />
         </Route>
 
         {/* Fallback Redirection */}

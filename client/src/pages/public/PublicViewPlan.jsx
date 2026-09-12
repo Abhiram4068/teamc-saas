@@ -295,7 +295,7 @@ export default function PublicViewPlan() {
 
                       {/* CTA Button (Now perfectly aligned across all cards) */}
                       <Link
-                        to="/login"
+                        to={`/checkout/${plan.id}`}
                         className={`block text-center w-full text-sm font-semibold py-2.5 rounded-md transition mb-6 shadow-xs cursor-pointer ${
                           isEnterprise
                             ? 'bg-white hover:bg-gray-100 text-brand-800'

@@ -1,11 +1,27 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { authApi } from '../../api/authApi';
 
 export default function PublicNavbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isPriceActive = location.pathname === '/price' || location.pathname === '/pricing';
+
+  useEffect(() => {
+    const currentUser = authApi.getCurrentUser();
+    setUser(currentUser);
+  }, [location.pathname]);
+
+  const handleLogout = () => {
+    authApi.logout();
+    setUser(null);
+    navigate('/');
+  };
 
   return (
     <>
@@ -46,20 +62,53 @@ export default function PublicNavbar() {
             </nav>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons / User Profile */}
           <div className="hidden sm:flex items-center space-x-4">
-            <Link
-              to="/login"
-              className="text-sm font-semibold text-gray-700 hover:text-brand-600 transition"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/price"
-              className="bg-brand-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition duration-150 shadow-xs cursor-pointer"
-            >
-              Get Started Free
-            </Link>
+            {user ? (
+              <div 
+                className="relative"
+                onMouseEnter={() => setIsProfileMenuOpen(true)}
+                onMouseLeave={() => setIsProfileMenuOpen(false)}
+              >
+                <button className="flex items-center justify-center w-9 h-9 rounded-full bg-[#091E42] text-white text-sm font-bold shadow-md hover:bg-blue-900 transition-colors">
+                  {user.initials}
+                </button>
+                
+                {/* Dropdown Menu */}
+                {isProfileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-50">
+                    <Link
+                      to="/dashboard"
+                      className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium"
+                    >
+                      Access My Tenant Portal
+                    </Link>
+                    <div className="border-t border-slate-100 my-1"></div>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm font-semibold text-gray-700 hover:text-brand-600 transition"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/sign-up"
+                  className="bg-[#091E42] hover:bg-[#091E42]/90 text-white text-sm font-semibold px-4 py-2 rounded-md transition duration-150 shadow-xs cursor-pointer"
+                >
+                  Get Started Free
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -109,20 +158,43 @@ export default function PublicNavbar() {
               Comparison
             </a>
             <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
-              <Link
-                to="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-center py-2 text-gray-700 hover:text-brand-600 font-semibold"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/price"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-center bg-brand-600 hover:bg-blue-700 text-white py-2 rounded-md font-semibold"
-              >
-                Get Started Free
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-center py-2 text-brand-600 font-semibold"
+                  >
+                    Access My Tenant Portal
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="text-center py-2 text-red-600 font-semibold"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-center py-2 text-gray-700 hover:text-brand-600 font-semibold"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/price"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-center bg-brand-600 hover:bg-blue-700 text-white py-2 rounded-md font-semibold"
+                  >
+                    Get Started Free
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

@@ -25,7 +25,7 @@ export default function SuperAdminLogin() {
     setLoading(true);
 
     try {
-      const result = await authApi.login(email, password);
+      const result = await authApi.superAdminLogin(email, password);
 
       if (result.success) {
         navigate('/superadmin/dashboard');

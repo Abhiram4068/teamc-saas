@@ -28,16 +28,33 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Authenticates a user with credentials and returns access and refresh tokens.
+    /// Authenticates a SuperAdmin user with credentials and returns access and refresh tokens.
     /// </summary>
     /// <param name="request">The user login credentials request DTO.</param>
     /// <returns>An <see cref="IActionResult"/> containing the API response with authentication tokens.</returns>
     [HttpPost("admin/login")]
     [ProducesResponseType(typeof(ApiResponse<LoginResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<LoginResponseDto>), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SuperAdminLogin([FromBody] LoginRequestDto request)
+    {
+        _logger.LogInformation("SuperAdmin login request received for email {Email}.", request.Email);
+
+        var response = await _authService.SuperAdminLoginAsync(request);
+
+        return StatusCode(response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Authenticates a normal user with credentials and returns access and refresh tokens.
+    /// </summary>
+    /// <param name="request">The user login credentials request DTO.</param>
+    /// <returns>An <see cref="IActionResult"/> containing the API response with authentication tokens.</returns>
+    [HttpPost("login")]
+    [ProducesResponseType(typeof(ApiResponse<LoginResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<LoginResponseDto>), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
-        _logger.LogInformation("Login request received for email {Email}.", request.Email);
+        _logger.LogInformation("Public login request received for email {Email}.", request.Email);
 
         var response = await _authService.LoginAsync(request);
 
@@ -58,6 +75,37 @@ public class AuthController : ControllerBase
 
         var response = await _authService.RefreshTokenAsync(request);
 
+        return StatusCode(response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Verifies the CIN with the external mock registry.
+    /// </summary>
+    /// <param name="cinVerificationService">The CIN verification service.</param>
+    /// <param name="cin">The CIN to verify.</param>
+    /// <returns>The company name if valid, 404 otherwise.</returns>
+    [HttpGet("tenant/verify-cin")]
+    public async Task<IActionResult> VerifyCin([FromServices] ICinVerificationService cinVerificationService, [FromQuery] string cin)
+    {
+        // calls from saas.infrastructre since it communicates with outside 
+        var companyName = await cinVerificationService.VerifyCinAsync(cin);
+        if (companyName == null)
+        {
+            return NotFound(new { success = false, message = "Entered CIN not found." });
+        }
+
+        return Ok(new { success = true, companyName });
+    }
+
+    /// <summary>
+    /// Registers a new tenant and its initial admin user.
+    /// </summary>
+    /// <param name="request">The tenant registration request.</param>
+    /// <returns>Success or failure message.</returns>
+    [HttpPost("tenant/register")]
+    public async Task<IActionResult> RegisterTenant([FromBody] RegisterTenantRequestDto request)
+    {
+        var response = await _authService.RegisterTenantAsync(request);
         return StatusCode(response.StatusCode, response);
     }
 }

@@ -33,5 +33,4 @@ public class Plan
 
     // Navigation Properties
     public ICollection<PlanFeature> PlanFeatures { get; set; } = new List<PlanFeature>();
-    public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
 }
