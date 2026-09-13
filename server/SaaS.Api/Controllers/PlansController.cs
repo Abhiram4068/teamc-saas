@@ -38,12 +38,19 @@ public class PlansController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "1")]
+    [Authorize(Roles = "1, 2")]
     public async Task<IActionResult> GetPlanById(int id)
     {
         _logger.LogInformation("Get plan by ID {PlanId} request received.", id);
 
-        var response = await _planService.GetPlanByIdAsync(id);
+        var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        int? role = null;
+        if (int.TryParse(roleClaim, out var r))
+        {
+            role = r;
+        }
+
+        var response = await _planService.GetPlanByIdAsync(id, role);
 
         return StatusCode(response.StatusCode, response);
     }
@@ -72,12 +79,19 @@ public class PlansController : ControllerBase
 
 
     [HttpGet("{planId}/features")]
-    [Authorize(Roles = "1")]
+    [Authorize(Roles = "1, 2")]
     public async Task<IActionResult> GetFeaturesForPlan(int planId)
     {
         _logger.LogInformation("Get features for plan ID {PlanId} request received.", planId);
 
-        var response = await _planService.GetFeaturesForPlanAsync(planId);
+        var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        int? role = null;
+        if (int.TryParse(roleClaim, out var r))
+        {
+            role = r;
+        }
+
+        var response = await _planService.GetFeaturesForPlanAsync(planId, role);
 
         return StatusCode(response.StatusCode, response);
     }

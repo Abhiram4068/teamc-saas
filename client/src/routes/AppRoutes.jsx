@@ -8,6 +8,7 @@ const SuperAdminLogin = lazy(() => import('../pages/public/SuperAdminLogin'));
 const SuperAdminProtectedRoute = lazy(() => import('./SuperAdminProtectedRoute'));
 const TenantProtectedRoute = lazy(() => import('./TenantProtectedRoute'));
 const Checkout = lazy(() => import('../pages/tenant/Checkout'));
+const TenantCheckoutLayout = lazy(() => import('../layouts/TenantCheckoutLayout'));
 const SuperAdminRoute = lazy(() => import('./SuperAdminRoute'));
 const SuperAdminLayout = lazy(() => import('../layouts/SuperAdminLayout'));
 const SuperAdminDashboard = lazy(() => import('../pages/superadmin/SuperAdminDashboard'));
@@ -84,7 +85,9 @@ export default function AppRoutes() {
 
         {/* Tenant Protected Routes */}
         <Route element={<TenantProtectedRoute />}>
-          <Route path="/checkout/:planId" element={<Checkout />} />
+          <Route element={<TenantCheckoutLayout />}>
+            <Route path="/checkout/:planId" element={<Checkout />} />
+          </Route>
         </Route>
 
         {/* Fallback Redirection */}

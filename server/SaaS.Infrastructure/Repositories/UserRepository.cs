@@ -17,7 +17,9 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
-        return await _context.Users.FirstOrDefaultAsync(x => x.Email == email && x.Status != UserStatus.Deleted);
+        return await _context.Users
+            .Include(x => x.Tenant)
+            .FirstOrDefaultAsync(x => x.Email == email && x.Status != UserStatus.Deleted);
     }
 
     public async Task<User?> GetByIdAsync(int id)
