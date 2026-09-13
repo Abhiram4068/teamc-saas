@@ -38,7 +38,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://teamc-saas.vercel.app")
+        policy.WithOrigins("https://useteamo.vercel.app")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
