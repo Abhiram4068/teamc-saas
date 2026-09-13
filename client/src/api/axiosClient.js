@@ -46,7 +46,7 @@ axiosClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
 
       // Prevent infinite loops if the login/refresh APIs themselves fail with 401
-      if (originalRequest.url.includes('/auth/refresh') || originalRequest.url.includes('/auth/login')) {
+      if (originalRequest.url.includes('/auth/refresh') || originalRequest.url.includes('/login')) {
         return Promise.reject(error);
       }
 
