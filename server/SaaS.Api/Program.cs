@@ -14,6 +14,7 @@ using SaaS.Application.Validators;
 using SaaS.Domain.Entities;
 using SaaS.Infrastructure.Data;
 using SaaS.Infrastructure.Repositories;
+using SaaS.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,10 +75,12 @@ builder.Services.AddAuthentication(options =>
 
 // Register Services and Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 builder.Services.AddScoped<IFeatureRepository, FeatureRepository>();
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();
 builder.Services.AddScoped<IPlanFeatureRepository, PlanFeatureRepository>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ICinVerificationService, CinVerificationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IFeatureService, FeatureService>();
 builder.Services.AddScoped<IPlanService, PlanService>();

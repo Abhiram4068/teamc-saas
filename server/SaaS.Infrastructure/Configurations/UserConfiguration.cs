@@ -2,28 +2,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SaaS.Domain.Entities;
 
-namespace SaaS.Infrastructure.Configurations;
+namespace SaaS.Infrastructure.Persistence.Configurations;
 
-/// <summary>
-/// Entity Framework Core configuration for the <see cref="User"/> entity.
-/// </summary>
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.ToTable("Users");
+        builder.ToTable("User");
 
         builder.HasKey(u => u.Id);
 
-        // Required & Unique Email
-        builder.Property(u => u.Email)
-            .IsRequired()
-            .HasMaxLength(256);
+        builder.Property(u => u.Id)
+            .ValueGeneratedOnAdd();
 
-        builder.HasIndex(u => u.Email)
-            .IsUnique();
-
-        // User Names & Password
         builder.Property(u => u.FirstName)
             .IsRequired()
             .HasMaxLength(100);
@@ -32,27 +23,53 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(u => u.PasswordHash)
+        builder.Property(u => u.Email)
             .IsRequired()
-            .HasMaxLength(500);
+            .HasMaxLength(255);
+
+        // Unique email.
+        builder.HasIndex(u => u.Email)
+            .IsUnique();
+
+        builder.Property(u => u.PasswordHash)
+            .HasMaxLength(500)
+            .IsRequired(false);
 
         builder.Property(u => u.PhoneNumber)
-            .HasMaxLength(20);
+            .HasMaxLength(20)
+            .IsRequired(false);
+
+        // Nullable FK.
+        // NULL = system-level user such as SuperAdmin.
+        builder.Property(u => u.TenantId)
+            .IsRequired(false);
+
+        builder.HasIndex(u => u.TenantId);
 
         builder.Property(u => u.Role)
-            .IsRequired();
+            .IsRequired()
+            .HasConversion<int>();
 
         builder.Property(u => u.Status)
-            .IsRequired();
+            .IsRequired()
+            .HasConversion<int>();
 
         builder.Property(u => u.CreatedAt)
             .IsRequired();
 
-        // Relationship: User -> Tenant (optional for SuperAdmin)
+        builder.Property(u => u.UpdatedAt)
+            .IsRequired(false);
+
+        // Tenant 1 → many Users
         builder.HasOne(u => u.Tenant)
             .WithMany(t => t.Users)
             .HasForeignKey(u => u.TenantId)
-            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // User 1 → 0..1 Employee
+        builder.HasOne(u => u.Employee)
+            .WithOne(e => e.User)
+            .HasForeignKey<Employee>(e => e.UserId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

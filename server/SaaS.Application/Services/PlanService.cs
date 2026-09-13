@@ -85,12 +85,17 @@ public class PlanService : IPlanService
         return ApiResponse<PlanResponseDto>.SuccessResponse(responseDto, "Plan created successfully.", 201);
     }
 
-    public async Task<ApiResponse<PlanResponseDto>> GetPlanByIdAsync(int id)
+    public async Task<ApiResponse<PlanResponseDto>> GetPlanByIdAsync(int id, int? role = null)
     {
         var plan = await _planRepository.GetByIdAsync(id);
         if (plan == null)
         {
             return ApiResponse<PlanResponseDto>.FailureResponse($"Plan with ID {id} not found.", 404);
+        }
+
+        if (role == 2 && (int)plan.Status != 1)
+        {
+            return ApiResponse<PlanResponseDto>.FailureResponse($"Plan not found..", 404);
         }
 
         return ApiResponse<PlanResponseDto>.SuccessResponse(MapToDto(plan), "Plan retrieved successfully.", 200);
@@ -219,12 +224,17 @@ public class PlanService : IPlanService
             201);
     }
 
-    public async Task<ApiResponse<List<PlanFeatureResponseDto>>> GetFeaturesForPlanAsync(int planId)
+    public async Task<ApiResponse<List<PlanFeatureResponseDto>>> GetFeaturesForPlanAsync(int planId, int? role = null)
     {
         var plan = await _planRepository.GetByIdAsync(planId);
         if (plan == null)
         {
             return ApiResponse<List<PlanFeatureResponseDto>>.FailureResponse($"Plan with ID {planId} not found.", 404);
+        }
+
+        if (role == 2 && (int)plan.Status != 1)
+        {
+            return ApiResponse<List<PlanFeatureResponseDto>>.FailureResponse($"Plan not found..", 404);
         }
 
         var planFeatures = await _planFeatureRepository.GetByPlanIdAsync(planId);

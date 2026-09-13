@@ -21,3 +21,13 @@ export const parseJwt = (token) => {
     return null;
   }
 };
+
+export const getRole = () => {
+  const token = getToken();
+  if (!token) return null;
+  const decoded = parseJwt(token);
+  // Extract role claim (standard 'role' or Microsoft identity claim URI)
+  const roleClaim = decoded?.role || decoded?.Role || decoded?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+  const userRole = typeof roleClaim === 'string' ? parseInt(roleClaim, 10) : roleClaim;
+  return userRole;
+};
