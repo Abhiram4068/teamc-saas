@@ -2,6 +2,7 @@ using FluentValidation;
 using SaaS.Application.DTOs.Common;
 using SaaS.Application.DTOs.Requests;
 using SaaS.Application.DTOs.Response;
+using SaaS.Application.Interfaces.Payments;
 using SaaS.Application.Interfaces.Repository;
 using SaaS.Application.Interfaces.Service;
 using SaaS.Domain.Entities;
@@ -15,19 +16,22 @@ public class PlanService : IPlanService
     private readonly IPlanFeatureRepository _planFeatureRepository;
     private readonly IValidator<CreatePlanRequestDto> _validator;
     private readonly IValidator<MapPlanFeatureRequestDto> _mapValidator;
+    private readonly IStripeProductService _stripeProductService;
 
     public PlanService(
         IPlanRepository planRepository,
         IFeatureRepository featureRepository,
         IPlanFeatureRepository planFeatureRepository,
         IValidator<CreatePlanRequestDto> validator,
-        IValidator<MapPlanFeatureRequestDto> mapValidator)
+        IValidator<MapPlanFeatureRequestDto> mapValidator,
+        IStripeProductService stripeProductService)
     {
         _planRepository = planRepository;
         _featureRepository = featureRepository;
         _planFeatureRepository = planFeatureRepository;
         _validator = validator;
         _mapValidator = mapValidator;
+        _stripeProductService = stripeProductService;
     }
 
     public async Task<ApiResponse<PlanResponseDto>> CreatePlanAsync(CreatePlanRequestDto request, string? createdBy = null)
@@ -57,6 +61,14 @@ public class PlanService : IPlanService
         var words = normalizedName.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var formattedName = string.Join(" ", words.Select(w => char.ToUpper(w[0]) + w.Substring(1)));
 
+        // Create Stripe Product & Prices
+        var (monthlyPriceId, yearlyPriceId) = await _stripeProductService.CreateStripeProductAndPricesAsync(
+            formattedName,
+            request.MonthlyPrice,
+            request.YearlyPrice,
+            request.Currency.ToString()
+        );
+
         // 3. Map DTO to Entity
         var plan = new Plan
         {
@@ -72,7 +84,9 @@ public class PlanService : IPlanService
             EffectiveTo = request.EffectiveTo,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = createdBy,
-            Version = 1
+            Version = 1,
+            StripeMonthlyPriceId = monthlyPriceId,
+            StripeYearlyPriceId = yearlyPriceId
         };
 
         // 4. Persistence via Repository

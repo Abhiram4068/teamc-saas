@@ -1,4 +1,4 @@
-﻿using SaaS.Domain.Enums;
+using SaaS.Domain.Enums;
 
 namespace SaaS.Domain.Entities;
 

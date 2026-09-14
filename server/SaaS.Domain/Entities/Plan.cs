@@ -31,6 +31,10 @@ public class Plan
     public string? CreatedBy { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
+    // Stripe
+    public string? StripeMonthlyPriceId { get; set; }
+    public string? StripeYearlyPriceId { get; set; }
+
     // Navigation Properties
     public ICollection<PlanFeature> PlanFeatures { get; set; } = new List<PlanFeature>();
     public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
