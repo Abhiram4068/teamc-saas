@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SaaS.Application.DTOs.Requests;
-using SaaS.Application.Interfaces.Repository;
 using SaaS.Application.Interfaces.Service;
 
 namespace SaaS.Api.Controllers;
@@ -13,43 +12,51 @@ namespace SaaS.Api.Controllers;
 public class SubscriptionsController : ControllerBase
 {
     private readonly ISubscriptionService _subscriptionService;
-    private readonly IUserRepository _userRepository;
     private readonly ILogger<SubscriptionsController> _logger;
 
     public SubscriptionsController(
         ISubscriptionService subscriptionService,
-        IUserRepository userRepository,
         ILogger<SubscriptionsController> logger)
     {
         _subscriptionService = subscriptionService;
-        _userRepository = userRepository;
         _logger = logger;
     }
 
     [HttpPost("checkout")]
+    [Authorize(Roles = "2")] 
     public async Task<IActionResult> CreateCheckoutSession([FromBody] CreateCheckoutRequestDto request)
     {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+        var tenantIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
                         ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
                         
-        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
         {
-            _logger.LogWarning("Checkout failed: User ID not found in token or invalid.");
-            return Unauthorized(new { Message = "User ID not found in token." });
+            _logger.LogWarning("Checkout failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
         }
 
-        var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null || user.TenantId == null)
+        _logger.LogInformation("Creating checkout session for Tenant: {TenantId}, Plan: {PlanId}", tenantId, request.PlanId);
+
+        var response = await _subscriptionService.CreateCheckoutSessionAsync(request, tenantId, tenantId);
+        
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "2")] 
+    public async Task<IActionResult> GetCurrentSubscription()
+    {
+        var tenantIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                        ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
         {
-            _logger.LogWarning("Checkout failed: User {UserId} or Tenant not found.", userId);
-            return BadRequest(new { Message = "User or Tenant not found." });
+            _logger.LogWarning("Get Subscription failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
         }
 
-        int tenantId = (int)user.TenantId.Value;
-
-        _logger.LogInformation("Creating checkout session for User: {UserId}, Tenant: {TenantId}, Plan: {PlanId}", userId, tenantId, request.PlanId);
-
-        var response = await _subscriptionService.CreateCheckoutSessionAsync(request, userId, tenantId);
+        _logger.LogInformation("Getting subscription for Tenant: {TenantId}", tenantId);
+        var response = await _subscriptionService.GetCurrentSubscriptionAsync(tenantId);
         
         return StatusCode(response.StatusCode, response);
     }

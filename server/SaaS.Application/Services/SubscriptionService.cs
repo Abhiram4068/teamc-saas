@@ -1,4 +1,4 @@
-﻿using SaaS.Application.DTOs.Common;
+using SaaS.Application.DTOs.Common;
 using SaaS.Application.DTOs.Requests;
 using SaaS.Application.DTOs.Response;
 using SaaS.Application.Interfaces.Payment;
@@ -12,13 +12,19 @@ public class SubscriptionService : ISubscriptionService
 {
     private readonly IPlanRepository _planRepository;
     private readonly IStripePaymentGateway _stripePaymentGateway;
+    private readonly ISubscriptionRepository _subscriptionRepository;
+    private readonly IUserRepository _userRepository;
 
     public SubscriptionService(
         IPlanRepository planRepository,
-        IStripePaymentGateway stripePaymentGateway)
+        IStripePaymentGateway stripePaymentGateway,
+        ISubscriptionRepository subscriptionRepository,
+        IUserRepository userRepository)
     {
         _planRepository = planRepository;
         _stripePaymentGateway = stripePaymentGateway;
+        _subscriptionRepository = subscriptionRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<ApiResponse<CheckoutResponseDto>> CreateCheckoutSessionAsync(
@@ -75,5 +81,35 @@ public class SubscriptionService : ISubscriptionService
         };
 
         return ApiResponse<CheckoutResponseDto>.SuccessResponse(response);
+    }
+
+    public async Task<ApiResponse<SubscriptionResponseDto>> GetCurrentSubscriptionAsync(int tenantId)
+    {
+        var user = await _userRepository.GetByIdAsync(tenantId);
+
+        if (user == null)
+        {
+        return ApiResponse<SubscriptionResponseDto>.FailureResponse("Tenant not found.");
+        }
+
+        var subscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);
+        
+        if (subscription == null)
+        {
+            return ApiResponse<SubscriptionResponseDto>.FailureResponse("No active subscription found.");
+        }
+
+        var dto = new SubscriptionResponseDto
+        {
+            Id = subscription.Id,
+            PlanId = subscription.PlanId,
+            PlanName = subscription.Plan?.Name ?? "Unknown Plan",
+            Status = subscription.Status,
+            SubscribedOn = subscription.CreatedAt,
+            CurrentPeriodStart = subscription.StartDate,
+            CurrentPeriodEnd = subscription.EndDate
+        };
+
+        return ApiResponse<SubscriptionResponseDto>.SuccessResponse(dto);
     }
 }
