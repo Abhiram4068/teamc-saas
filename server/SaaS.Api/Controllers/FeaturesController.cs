@@ -57,7 +57,7 @@ public class FeaturesController : ControllerBase
     /// <param name="id">The ID of the feature.</param>
     /// <returns>An <see cref="IActionResult"/> containing the feature details.</returns>
     [HttpGet("{id}")]
-    [Authorize(Roles = "1")]
+    [Authorize(Roles = "1, 2")]
     public async Task<IActionResult> GetFeatureById(int id)
     {
         _logger.LogInformation("Get feature by ID {FeatureId} request received.", id);

@@ -1,4 +1,4 @@
-﻿using SaaS.Application.DTOs.Common;
+using SaaS.Application.DTOs.Common;
 using SaaS.Application.DTOs.Requests;
 using SaaS.Application.DTOs.Response;
 
@@ -10,4 +10,8 @@ public interface ISubscriptionService
         CreateCheckoutRequestDto request,
         int userId,
         int tenantId);
+
+    Task<ApiResponse<SubscriptionResponseDto>> GetCurrentSubscriptionAsync(int tenantId);
+
+    Task<ApiResponse<IEnumerable<PlanFeatureResponseDto>>> GetMyPlanFeaturesAsync(int tenantId);
 }

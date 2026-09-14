@@ -14,6 +14,7 @@ public class PlanService : IPlanService
     private readonly IPlanRepository _planRepository;
     private readonly IFeatureRepository _featureRepository;
     private readonly IPlanFeatureRepository _planFeatureRepository;
+    private readonly ISubscriptionRepository _subscriptionRepository;
     private readonly IValidator<CreatePlanRequestDto> _validator;
     private readonly IValidator<MapPlanFeatureRequestDto> _mapValidator;
     private readonly IStripeProductService _stripeProductService;
@@ -22,6 +23,7 @@ public class PlanService : IPlanService
         IPlanRepository planRepository,
         IFeatureRepository featureRepository,
         IPlanFeatureRepository planFeatureRepository,
+        ISubscriptionRepository subscriptionRepository,
         IValidator<CreatePlanRequestDto> validator,
         IValidator<MapPlanFeatureRequestDto> mapValidator,
         IStripeProductService stripeProductService)
@@ -29,6 +31,7 @@ public class PlanService : IPlanService
         _planRepository = planRepository;
         _featureRepository = featureRepository;
         _planFeatureRepository = planFeatureRepository;
+        _subscriptionRepository = subscriptionRepository;
         _validator = validator;
         _mapValidator = mapValidator;
         _stripeProductService = stripeProductService;
@@ -339,5 +342,25 @@ public class PlanService : IPlanService
             UpdatedAt = plan.UpdatedAt,
             FeatureCount = plan.PlanFeatures?.Count ?? 0
         };
+    }
+
+    public async Task<ApiResponse<List<PublicPlanResponseDto>>> GetAvailablePlansForTenantAsync(int tenantId)
+    {
+        var publicPlansResponse = await PublicPlanGetAsync();
+        if (!publicPlansResponse.Success)
+        {
+            return publicPlansResponse;
+        }
+
+        var activeSubscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);
+        
+        var availablePlans = publicPlansResponse.Data;
+        
+        if (activeSubscription != null)
+        {
+            availablePlans = availablePlans.Where(p => p.Id != activeSubscription.PlanId).ToList();
+        }
+
+        return ApiResponse<List<PublicPlanResponseDto>>.SuccessResponse(availablePlans, "Available plans retrieved successfully.");
     }
 }

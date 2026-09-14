@@ -9,6 +9,10 @@ const SuperAdminProtectedRoute = lazy(() => import('./SuperAdminProtectedRoute')
 const TenantProtectedRoute = lazy(() => import('./TenantProtectedRoute'));
 const Checkout = lazy(() => import('../pages/tenant/Checkout'));
 const TenantCheckoutLayout = lazy(() => import('../layouts/TenantCheckoutLayout'));
+const TenantLayout = lazy(() => import('../layouts/TenantLayout'));
+const TenantDashboard = lazy(() => import('../pages/tenant/TenantDashboard'));
+const TenantMyPlan = lazy(() => import('../pages/tenant/TenantMyPlan'));
+const TenantViewPlans = lazy(() => import('../pages/tenant/TenantViewPlans'));
 const SuperAdminRoute = lazy(() => import('./SuperAdminRoute'));
 const SuperAdminLayout = lazy(() => import('../layouts/SuperAdminLayout'));
 const SuperAdminDashboard = lazy(() => import('../pages/superadmin/SuperAdminDashboard'));
@@ -85,6 +89,15 @@ export default function AppRoutes() {
 
         {/* Tenant Protected Routes */}
         <Route element={<TenantProtectedRoute />}>
+          {/* Main Tenant Portal */}
+          <Route path="/tenant" element={<TenantLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<TenantDashboard />} />
+            <Route path="my-plan" element={<TenantMyPlan />} />
+            <Route path="plans" element={<TenantViewPlans />} />
+          </Route>
+
+          {/* Checkout */}
           <Route element={<TenantCheckoutLayout />}>
             <Route path="/checkout/:planId" element={<Checkout />} />
           </Route>

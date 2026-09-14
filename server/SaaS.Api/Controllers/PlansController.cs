@@ -14,11 +14,16 @@ namespace SaaS.Api.Controllers;
 public class PlansController : ControllerBase
 {
     private readonly IPlanService _planService;
+    private readonly ISubscriptionService _subscriptionService;
     private readonly ILogger<PlansController> _logger;
 
-    public PlansController(IPlanService planService, ILogger<PlansController> logger)
+    public PlansController(
+        IPlanService planService, 
+        ISubscriptionService subscriptionService,
+        ILogger<PlansController> logger)
     {
         _planService = planService;
+        _subscriptionService = subscriptionService;
         _logger = logger;
     }
 
@@ -104,6 +109,46 @@ public class PlansController : ControllerBase
 
         var response = await _planService.RemoveFeatureFromPlanAsync(planId, featureId);
 
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpGet("myfeatures")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> GetMyPlanFeatures()
+    {
+        var tenantIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                        ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("Get MyPlan Features failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        _logger.LogInformation("Getting plan features for Tenant: {TenantId}", tenantId);
+
+        var response = await _subscriptionService.GetMyPlanFeaturesAsync(tenantId);
+        
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpGet("available")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> GetAvailablePlans()
+    {
+        var tenantIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                        ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("Get Available Plans failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        _logger.LogInformation("Getting available plans for Tenant: {TenantId}", tenantId);
+
+        var response = await _planService.GetAvailablePlansForTenantAsync(tenantId);
+        
         return StatusCode(response.StatusCode, response);
     }
 }
