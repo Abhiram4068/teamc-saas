@@ -14,17 +14,20 @@ public class SubscriptionService : ISubscriptionService
     private readonly IStripePaymentGateway _stripePaymentGateway;
     private readonly ISubscriptionRepository _subscriptionRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IPlanFeatureRepository _planFeatureRepository;
 
     public SubscriptionService(
         IPlanRepository planRepository,
         IStripePaymentGateway stripePaymentGateway,
         ISubscriptionRepository subscriptionRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IPlanFeatureRepository planFeatureRepository)
     {
         _planRepository = planRepository;
         _stripePaymentGateway = stripePaymentGateway;
         _subscriptionRepository = subscriptionRepository;
         _userRepository = userRepository;
+        _planFeatureRepository = planFeatureRepository;
     }
 
     public async Task<ApiResponse<CheckoutResponseDto>> CreateCheckoutSessionAsync(
@@ -89,18 +92,22 @@ public class SubscriptionService : ISubscriptionService
 
         if (user == null)
         {
-        return ApiResponse<SubscriptionResponseDto>.FailureResponse("Tenant not found.");
+            return ApiResponse<SubscriptionResponseDto>.FailureResponse("Tenant not found.");
         }
 
         var subscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);
         
         if (subscription == null)
         {
-            return ApiResponse<SubscriptionResponseDto>.FailureResponse("No active subscription found.");
+            return ApiResponse<SubscriptionResponseDto>.SuccessResponse(new SubscriptionResponseDto 
+            { 
+                HasActiveSubscription = false 
+            }, "No active subscription found.");
         }
 
         var dto = new SubscriptionResponseDto
         {
+            HasActiveSubscription = true,
             Id = subscription.Id,
             PlanId = subscription.PlanId,
             PlanName = subscription.Plan?.Name ?? "Unknown Plan",
@@ -111,5 +118,33 @@ public class SubscriptionService : ISubscriptionService
         };
 
         return ApiResponse<SubscriptionResponseDto>.SuccessResponse(dto);
+    }
+
+    public async Task<ApiResponse<IEnumerable<PlanFeatureResponseDto>>> GetMyPlanFeaturesAsync(int tenantId)
+    {
+        var subscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);
+        
+        if (subscription == null)
+        {
+            return ApiResponse<IEnumerable<PlanFeatureResponseDto>>.FailureResponse("No active subscription found.");
+        }
+
+        var planFeatures = await _planFeatureRepository.GetByPlanIdAsync(subscription.PlanId);
+
+        var dto = planFeatures.Select(pf => new PlanFeatureResponseDto
+        {
+            Id = pf.Id,
+            PlanId = pf.PlanId,
+            PlanName = pf.Plan?.Name ?? string.Empty,
+            PlanCode = pf.Plan?.Code ?? string.Empty,
+            FeatureId = pf.FeatureId,
+            FeatureName = pf.Feature?.Name ?? string.Empty,
+            FeatureCode = pf.Feature?.Code ?? string.Empty,
+            FeatureDescription = pf.Feature?.Description,
+            IsEnabled = pf.IsEnabled,
+            CreatedAt = pf.CreatedAt
+        }).ToList();
+
+        return ApiResponse<IEnumerable<PlanFeatureResponseDto>>.SuccessResponse(dto);
     }
 }

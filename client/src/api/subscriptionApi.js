@@ -6,6 +6,11 @@ export const subscriptionApi = {
     return response.data;
   },
   
+  getMyPlanFeatures: async () => {
+    const response = await axiosInstance.get('/Plans/myfeatures');
+    return response.data;
+  },
+  
   createCheckoutSession: async (data) => {
     const response = await axiosInstance.post('/Subscriptions/checkout', data);
     return response.data;

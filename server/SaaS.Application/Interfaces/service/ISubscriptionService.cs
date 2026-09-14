@@ -12,4 +12,6 @@ public interface ISubscriptionService
         int tenantId);
 
     Task<ApiResponse<SubscriptionResponseDto>> GetCurrentSubscriptionAsync(int tenantId);
+
+    Task<ApiResponse<IEnumerable<PlanFeatureResponseDto>>> GetMyPlanFeaturesAsync(int tenantId);
 }

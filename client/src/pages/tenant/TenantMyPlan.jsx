@@ -14,26 +14,38 @@ const STATUS_CONFIG = {
 export default function TenantMyPlan() {
   const { showToast } = useToast();
   const [subscription, setSubscription] = useState(null);
+  const [features, setFeatures] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [featuresLoading, setFeaturesLoading] = useState(true);
 
   useEffect(() => {
-    fetchSubscription();
+    fetchData();
   }, []);
 
-  async function fetchSubscription() {
+  async function fetchData() {
     try {
       setLoading(true);
-      const response = await subscriptionApi.getCurrentSubscription();
-      if (response?.success && response?.data) {
-        setSubscription(response.data);
+      setFeaturesLoading(true);
+      
+      const subPromise = subscriptionApi.getCurrentSubscription();
+      const featPromise = subscriptionApi.getMyPlanFeatures();
+      
+      const [subRes, featRes] = await Promise.allSettled([subPromise, featPromise]);
+
+      if (subRes.status === 'fulfilled' && subRes.value?.success && subRes.value?.data?.hasActiveSubscription) {
+        setSubscription(subRes.value.data);
       } else {
         showToast('No active subscription found.', 'warning');
       }
+
+      if (featRes.status === 'fulfilled' && featRes.value?.success && featRes.value?.data) {
+        setFeatures(featRes.value.data);
+      }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to load subscription details.';
-      showToast(msg, 'error');
+      showToast('Failed to load plan details.', 'error');
     } finally {
       setLoading(false);
+      setFeaturesLoading(false);
     }
   }
 
@@ -199,6 +211,43 @@ export default function TenantMyPlan() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Features Section */}
+          <div className="bg-white rounded-md border border-slate-200/80 shadow-sm overflow-hidden mt-6">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Features Included</h2>
+            </div>
+            <div className="p-6">
+              {featuresLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="w-8 h-8 border-4 border-slate-800 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : features && features.length > 0 ? (
+                <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {features.map((feat) => {
+                    const desc = feat.featureDescription && feat.featureDescription !== feat.featureName && feat.featureDescription !== feat.featureCode
+                                  ? feat.featureDescription
+                                  : `${feat.featureName} capability included in this plan.`;
+                    return (
+                      <li key={feat.id || feat.featureId} className="flex items-start gap-3">
+                        <svg className="w-5 h-5 shrink-0 mt-0.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <div>
+                          <span className="font-semibold text-slate-900 block text-sm">{feat.featureName}</span>
+                          <span className="text-slate-500 text-xs mt-1 block">{desc}</span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-sm text-slate-500 italic">No features listed for this plan.</p>
+                </div>
+              )}
             </div>
           </div>
         </>

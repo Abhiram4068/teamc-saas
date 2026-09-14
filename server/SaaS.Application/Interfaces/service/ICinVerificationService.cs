@@ -1,3 +1,5 @@
+using SaaS.Application.DTOs.Common;
+
 namespace SaaS.Application.Interfaces.Service;
 
 public interface ICinVerificationService
@@ -8,5 +10,5 @@ public interface ICinVerificationService
     /// </summary>
     /// <param name="cin">The CIN to verify.</param>
     /// <returns>The company name or null.</returns>
-    Task<string?> VerifyCinAsync(string cin);
+    Task<ApiResponse<string>> VerifyCinAsync(string cin);
 }

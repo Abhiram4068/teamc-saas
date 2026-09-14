@@ -22,7 +22,7 @@ export default function TenantSidebar() {
       title: 'Subscription',
       items: [
         { to: '/tenant/my-plan', label: 'My Plan', icon: 'fa-solid fa-crown' },
-        { to: '/tenant/explore', label: 'Explore Plans', icon: 'fa-solid fa-compass' },
+        { to: '/tenant/plans', label: 'Explore Plans', icon: 'fa-solid fa-compass' },
         { to: '/tenant/history', label: 'Payment History', icon: 'fa-solid fa-clock-rotate-left' },
         { to: '/tenant/billing', label: 'Billing Information', icon: 'fa-solid fa-file-invoice-dollar' },
         { to: '/tenant/invoices', label: 'Invoices', icon: 'fa-solid fa-receipt' },
@@ -46,7 +46,7 @@ export default function TenantSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-[#052e64] text-white flex-shrink-0 border-r border-gray-200 flex flex-col py-4 select-none h-screen">
+    <aside className="w-64 bg-[#030D4A] text-white flex-shrink-0 border-r border-gray-200 flex flex-col pt-14 pb-4 select-none h-screen">
       <div className="flex-1 overflow-y-auto px-4 custom-scrollbar space-y-6">
         {navGroups.map((group, index) => (
           <div key={index}>

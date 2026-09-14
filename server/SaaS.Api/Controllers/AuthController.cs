@@ -88,13 +88,14 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> VerifyCin([FromServices] ICinVerificationService cinVerificationService, [FromQuery] string cin)
     {
         // calls from saas.infrastructre since it communicates with outside 
-        var companyName = await cinVerificationService.VerifyCinAsync(cin);
-        if (companyName == null)
+        var response = await cinVerificationService.VerifyCinAsync(cin);
+        
+        if (!response.Success)
         {
-            return NotFound(new { success = false, message = "Entered CIN not found." });
+            return StatusCode(response.StatusCode, new { success = false, message = response.Message });
         }
 
-        return Ok(new { success = true, companyName });
+        return Ok(new { success = true, companyName = response.Data });
     }
 
     /// <summary>

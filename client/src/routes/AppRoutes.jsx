@@ -12,6 +12,7 @@ const TenantCheckoutLayout = lazy(() => import('../layouts/TenantCheckoutLayout'
 const TenantLayout = lazy(() => import('../layouts/TenantLayout'));
 const TenantDashboard = lazy(() => import('../pages/tenant/TenantDashboard'));
 const TenantMyPlan = lazy(() => import('../pages/tenant/TenantMyPlan'));
+const TenantViewPlans = lazy(() => import('../pages/tenant/TenantViewPlans'));
 const SuperAdminRoute = lazy(() => import('./SuperAdminRoute'));
 const SuperAdminLayout = lazy(() => import('../layouts/SuperAdminLayout'));
 const SuperAdminDashboard = lazy(() => import('../pages/superadmin/SuperAdminDashboard'));
@@ -93,6 +94,7 @@ export default function AppRoutes() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<TenantDashboard />} />
             <Route path="my-plan" element={<TenantMyPlan />} />
+            <Route path="plans" element={<TenantViewPlans />} />
           </Route>
 
           {/* Checkout */}

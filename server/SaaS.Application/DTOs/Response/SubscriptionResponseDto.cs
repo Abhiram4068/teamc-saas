@@ -4,6 +4,7 @@ namespace SaaS.Application.DTOs.Response;
 
 public class SubscriptionResponseDto
 {
+    public bool HasActiveSubscription { get; set; }
     public Guid Id { get; set; }
     public int PlanId { get; set; }
     public string PlanName { get; set; } = string.Empty;

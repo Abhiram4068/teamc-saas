@@ -13,4 +13,5 @@ public interface IPlanService
     Task<ApiResponse<List<PlanFeatureResponseDto>>> GetFeaturesForPlanAsync(int planId, int? role = null);
     Task<ApiResponse<bool>> RemoveFeatureFromPlanAsync(int planId, int featureId);
     Task<ApiResponse<List<PublicPlanResponseDto>>> PublicPlanGetAsync();
+    Task<ApiResponse<List<PublicPlanResponseDto>>> GetAvailablePlansForTenantAsync(int tenantId);
 }
