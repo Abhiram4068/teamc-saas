@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SaaS.Domain.Entities;
 
@@ -30,6 +30,22 @@ public class SubscriptionConfiguration
 
         builder.Property(x => x.StripeSubscriptionId)
             .HasMaxLength(100);
+
+        builder.Property(x => x.OrganizationName)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        builder.Property(x => x.Address)
+            .HasMaxLength(500);
+
+        builder.Property(x => x.City)
+            .HasMaxLength(100);
+
+        builder.Property(x => x.State)
+            .HasMaxLength(100);
+
+        builder.Property(x => x.Pincode)
+            .HasMaxLength(10);
 
         builder.Property(x => x.CreatedAt)
             .IsRequired();
