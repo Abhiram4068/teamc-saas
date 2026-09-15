@@ -113,6 +113,68 @@ namespace SaaS.Infrastructure.Migrations
                     b.ToTable("Features", (string)null);
                 });
 
+            modelBuilder.Entity("SaaS.Domain.Entities.Payment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StripeCheckoutSessionId")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("StripeInvoiceId")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("StripePaymentIntentId")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<Guid>("SubscriptionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("TenantId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StripeCheckoutSessionId")
+                        .IsUnique();
+
+                    b.HasIndex("StripeInvoiceId");
+
+                    b.HasIndex("StripePaymentIntentId");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Payments", (string)null);
+                });
+
             modelBuilder.Entity("SaaS.Domain.Entities.Plan", b =>
                 {
                     b.Property<int>("Id")
@@ -161,6 +223,12 @@ namespace SaaS.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(1);
+
+                    b.Property<string>("StripeMonthlyPriceId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("StripeYearlyPriceId")
+                        .HasColumnType("text");
 
                     b.Property<int?>("TrialPeriodDays")
                         .HasColumnType("integer");
@@ -215,6 +283,78 @@ namespace SaaS.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("PlanFeatures", (string)null);
+                });
+
+            modelBuilder.Entity("SaaS.Domain.Entities.Subscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("BillingCycle")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("OrganizationName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Pincode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<int>("PlanId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StripeCustomerId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("StripeSubscriptionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<long>("TenantId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("StripeSubscriptionId")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId")
+                        .IsUnique();
+
+                    b.ToTable("Subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Tenant", b =>
@@ -345,6 +485,33 @@ namespace SaaS.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SaaS.Domain.Entities.Payment", b =>
+                {
+                    b.HasOne("SaaS.Domain.Entities.Subscription", "Subscription")
+                        .WithMany("Payments")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SaaS.Domain.Entities.Tenant", "Tenant")
+                        .WithMany("Payments")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SaaS.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Subscription");
+
+                    b.Navigation("Tenant");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SaaS.Domain.Entities.PlanFeature", b =>
                 {
                     b.HasOne("SaaS.Domain.Entities.Feature", "Feature")
@@ -362,6 +529,25 @@ namespace SaaS.Infrastructure.Migrations
                     b.Navigation("Feature");
 
                     b.Navigation("Plan");
+                });
+
+            modelBuilder.Entity("SaaS.Domain.Entities.Subscription", b =>
+                {
+                    b.HasOne("SaaS.Domain.Entities.Plan", "Plan")
+                        .WithMany("Subscriptions")
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SaaS.Domain.Entities.Tenant", "Tenant")
+                        .WithOne("Subscription")
+                        .HasForeignKey("SaaS.Domain.Entities.Subscription", "TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.User", b =>
@@ -387,11 +573,22 @@ namespace SaaS.Infrastructure.Migrations
             modelBuilder.Entity("SaaS.Domain.Entities.Plan", b =>
                 {
                     b.Navigation("PlanFeatures");
+
+                    b.Navigation("Subscriptions");
+                });
+
+            modelBuilder.Entity("SaaS.Domain.Entities.Subscription", b =>
+                {
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Tenant", b =>
                 {
                     b.Navigation("Employees");
+
+                    b.Navigation("Payments");
+
+                    b.Navigation("Subscription");
 
                     b.Navigation("Users");
                 });

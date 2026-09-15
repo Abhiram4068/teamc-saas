@@ -2,10 +2,9 @@ namespace SaaS.Domain.Enums;
 
 public enum SubscriptionStatus
 {
-    Trialing = 1,
+    Pending = 1,
     Active = 2,
     PastDue = 3,
     Cancelled = 4,
-    Expired = 5,
-    Paused = 6
+    Expired = 5
 }

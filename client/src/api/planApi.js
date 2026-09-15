@@ -34,5 +34,10 @@ export const planApi = {
     getPublicPlans: async () => {
         const response = await axiosClient.get('/public/plans');
         return response.data;
+    },
+
+    getAvailablePlans: async () => {
+        const response = await axiosClient.get('/plans/available');
+        return response.data;
     }
 };

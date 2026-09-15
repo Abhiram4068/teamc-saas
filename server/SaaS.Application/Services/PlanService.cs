@@ -2,6 +2,7 @@ using FluentValidation;
 using SaaS.Application.DTOs.Common;
 using SaaS.Application.DTOs.Requests;
 using SaaS.Application.DTOs.Response;
+using SaaS.Application.Interfaces.Payments;
 using SaaS.Application.Interfaces.Repository;
 using SaaS.Application.Interfaces.Service;
 using SaaS.Domain.Entities;
@@ -13,21 +14,27 @@ public class PlanService : IPlanService
     private readonly IPlanRepository _planRepository;
     private readonly IFeatureRepository _featureRepository;
     private readonly IPlanFeatureRepository _planFeatureRepository;
+    private readonly ISubscriptionRepository _subscriptionRepository;
     private readonly IValidator<CreatePlanRequestDto> _validator;
     private readonly IValidator<MapPlanFeatureRequestDto> _mapValidator;
+    private readonly IStripeProductService _stripeProductService;
 
     public PlanService(
         IPlanRepository planRepository,
         IFeatureRepository featureRepository,
         IPlanFeatureRepository planFeatureRepository,
+        ISubscriptionRepository subscriptionRepository,
         IValidator<CreatePlanRequestDto> validator,
-        IValidator<MapPlanFeatureRequestDto> mapValidator)
+        IValidator<MapPlanFeatureRequestDto> mapValidator,
+        IStripeProductService stripeProductService)
     {
         _planRepository = planRepository;
         _featureRepository = featureRepository;
         _planFeatureRepository = planFeatureRepository;
+        _subscriptionRepository = subscriptionRepository;
         _validator = validator;
         _mapValidator = mapValidator;
+        _stripeProductService = stripeProductService;
     }
 
     public async Task<ApiResponse<PlanResponseDto>> CreatePlanAsync(CreatePlanRequestDto request, string? createdBy = null)
@@ -57,6 +64,14 @@ public class PlanService : IPlanService
         var words = normalizedName.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var formattedName = string.Join(" ", words.Select(w => char.ToUpper(w[0]) + w.Substring(1)));
 
+        // Create Stripe Product & Prices
+        var (monthlyPriceId, yearlyPriceId) = await _stripeProductService.CreateStripeProductAndPricesAsync(
+            formattedName,
+            request.MonthlyPrice,
+            request.YearlyPrice,
+            request.Currency.ToString()
+        );
+
         // 3. Map DTO to Entity
         var plan = new Plan
         {
@@ -72,7 +87,9 @@ public class PlanService : IPlanService
             EffectiveTo = request.EffectiveTo,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = createdBy,
-            Version = 1
+            Version = 1,
+            StripeMonthlyPriceId = monthlyPriceId,
+            StripeYearlyPriceId = yearlyPriceId
         };
 
         // 4. Persistence via Repository
@@ -85,12 +102,17 @@ public class PlanService : IPlanService
         return ApiResponse<PlanResponseDto>.SuccessResponse(responseDto, "Plan created successfully.", 201);
     }
 
-    public async Task<ApiResponse<PlanResponseDto>> GetPlanByIdAsync(int id)
+    public async Task<ApiResponse<PlanResponseDto>> GetPlanByIdAsync(int id, int? role = null)
     {
         var plan = await _planRepository.GetByIdAsync(id);
         if (plan == null)
         {
             return ApiResponse<PlanResponseDto>.FailureResponse($"Plan with ID {id} not found.", 404);
+        }
+
+        if (role == 2 && (int)plan.Status != 1)
+        {
+            return ApiResponse<PlanResponseDto>.FailureResponse($"Plan not found..", 404);
         }
 
         return ApiResponse<PlanResponseDto>.SuccessResponse(MapToDto(plan), "Plan retrieved successfully.", 200);
@@ -219,12 +241,17 @@ public class PlanService : IPlanService
             201);
     }
 
-    public async Task<ApiResponse<List<PlanFeatureResponseDto>>> GetFeaturesForPlanAsync(int planId)
+    public async Task<ApiResponse<List<PlanFeatureResponseDto>>> GetFeaturesForPlanAsync(int planId, int? role = null)
     {
         var plan = await _planRepository.GetByIdAsync(planId);
         if (plan == null)
         {
             return ApiResponse<List<PlanFeatureResponseDto>>.FailureResponse($"Plan with ID {planId} not found.", 404);
+        }
+
+        if (role == 2 && (int)plan.Status != 1)
+        {
+            return ApiResponse<List<PlanFeatureResponseDto>>.FailureResponse($"Plan not found..", 404);
         }
 
         var planFeatures = await _planFeatureRepository.GetByPlanIdAsync(planId);
@@ -315,5 +342,25 @@ public class PlanService : IPlanService
             UpdatedAt = plan.UpdatedAt,
             FeatureCount = plan.PlanFeatures?.Count ?? 0
         };
+    }
+
+    public async Task<ApiResponse<List<PublicPlanResponseDto>>> GetAvailablePlansForTenantAsync(int tenantId)
+    {
+        var publicPlansResponse = await PublicPlanGetAsync();
+        if (!publicPlansResponse.Success)
+        {
+            return publicPlansResponse;
+        }
+
+        var activeSubscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);
+        
+        var availablePlans = publicPlansResponse.Data;
+        
+        if (activeSubscription != null)
+        {
+            availablePlans = availablePlans.Where(p => p.Id != activeSubscription.PlanId).ToList();
+        }
+
+        return ApiResponse<List<PublicPlanResponseDto>>.SuccessResponse(availablePlans, "Available plans retrieved successfully.");
     }
 }

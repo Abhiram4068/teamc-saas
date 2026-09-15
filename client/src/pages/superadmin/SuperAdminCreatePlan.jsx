@@ -156,7 +156,7 @@ export default function SuperAdminCreatePlan() {
           />
           <div className="flex items-center gap-3 mt-2">
             <h1 className="text-2xl font-bold text-gray-800">Create New Subscription Plan</h1>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60">
+            <span className="text-xs font-semibold px-2.5 py-0.5  text-amber-700 ">
               Draft Mode
             </span>
           </div>

@@ -1,4 +1,4 @@
-﻿using SaaS.Domain.Enums;
+using SaaS.Domain.Enums;
 
 namespace SaaS.Domain.Entities;
 
@@ -24,4 +24,8 @@ public class Tenant
     public ICollection<User> Users { get; set; } = new List<User>();
 
     public ICollection<Employee> Employees { get; set; } = new List<Employee>();
+
+    public Subscription? Subscription { get; set; }
+
+    public ICollection<Payment> Payments { get; set; }= new List<Payment>();
 }

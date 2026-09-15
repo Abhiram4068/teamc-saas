@@ -40,9 +40,15 @@ public class JwtService : IJwtService
             new Claim(ClaimTypes.GivenName, user.FirstName ?? ""),
             new Claim(ClaimTypes.Surname, user.LastName ?? ""),
             new Claim(ClaimTypes.Role, ((int)user.Role).ToString()),
+            new Claim("CompanyName", user.Tenant?.CompanyName ?? ""),
             new Claim("token_type", "access"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        if (user.TenantId.HasValue)
+        {
+            claims.Add(new Claim("TenantId", user.TenantId.Value.ToString()));
+        }
 
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_jwtSettings.Key));
@@ -79,6 +85,11 @@ public class JwtService : IJwtService
             new Claim("token_type", "refresh"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        if (user.TenantId.HasValue)
+        {
+            claims.Add(new Claim("TenantId", user.TenantId.Value.ToString()));
+        }
 
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_jwtSettings.Key));

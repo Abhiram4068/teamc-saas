@@ -80,6 +80,7 @@ public class FeatureService : IFeatureService
     public async Task<ApiResponse<FeatureResponseDto>> GetFeatureByIdAsync(int id)
     {
         var feature = await _featureRepository.GetByIdAsync(id);
+
         if (feature == null)
         {
             return ApiResponse<FeatureResponseDto>.FailureResponse($"Feature with ID {id} not found.", 404);

@@ -1,4 +1,3 @@
-using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,14 +6,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SaaS.Application.Configurations;
 using SaaS.Application.DTOs.Requests;
+using SaaS.Application.Interfaces.Payment;
+using SaaS.Application.Interfaces.Payments;
 using SaaS.Application.Interfaces.Repository;
 using SaaS.Application.Interfaces.Service;
 using SaaS.Application.Services;
 using SaaS.Application.Validators;
 using SaaS.Domain.Entities;
 using SaaS.Infrastructure.Data;
+using SaaS.Infrastructure.Payments.Stripe;
 using SaaS.Infrastructure.Repositories;
 using SaaS.Infrastructure.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,17 +76,31 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+var stripeSection = builder.Configuration.GetSection("Stripe");
+builder.Services.Configure<StripeOptions>(stripeSection);
+
+var stripeOptions = stripeSection.Get<StripeOptions>();
+if (stripeOptions != null && !string.IsNullOrEmpty(stripeOptions.SecretKey))
+{
+    Stripe.StripeConfiguration.ApiKey = stripeOptions.SecretKey;
+}
+
 // Register Services and Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
-builder.Services.AddScoped<IFeatureRepository, FeatureRepository>();
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();
 builder.Services.AddScoped<IPlanFeatureRepository, PlanFeatureRepository>();
+builder.Services.AddScoped<IFeatureRepository, FeatureRepository>();
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICinVerificationService, CinVerificationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IFeatureService, FeatureService>();
 builder.Services.AddScoped<IPlanService, PlanService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<IFeatureService, FeatureService>();
+builder.Services.AddScoped<IStripePaymentGateway, StripePaymentGateway>();
+builder.Services.AddScoped<IStripeProductService, StripeProductService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 var app = builder.Build();
