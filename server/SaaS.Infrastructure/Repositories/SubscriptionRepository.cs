@@ -20,6 +20,22 @@ public class SubscriptionRepository : ISubscriptionRepository
         return await _context.Subscriptions
             .Include(s => s.Plan)
             .OrderByDescending(s => s.CreatedAt)
-            .FirstOrDefaultAsync(s => s.TenantId == tenantId && s.Status == SubscriptionStatus.Active);
+            .FirstOrDefaultAsync(s => s.TenantId == tenantId);
+    }
+
+    public async Task AddAsync(Subscription subscription)
+    {
+        await _context.Subscriptions.AddAsync(subscription);
+    }
+
+    public Task UpdateAsync(Subscription subscription)
+    {
+        _context.Subscriptions.Update(subscription);
+        return Task.CompletedTask;
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }

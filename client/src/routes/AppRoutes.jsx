@@ -8,6 +8,8 @@ const SuperAdminLogin = lazy(() => import('../pages/public/SuperAdminLogin'));
 const SuperAdminProtectedRoute = lazy(() => import('./SuperAdminProtectedRoute'));
 const TenantProtectedRoute = lazy(() => import('./TenantProtectedRoute'));
 const Checkout = lazy(() => import('../pages/tenant/Checkout'));
+const PaymentSuccess = lazy(() => import('../pages/tenant/PaymentSuccess'));
+const PaymentCancel = lazy(() => import('../pages/tenant/PaymentCancel'));
 const TenantCheckoutLayout = lazy(() => import('../layouts/TenantCheckoutLayout'));
 const TenantLayout = lazy(() => import('../layouts/TenantLayout'));
 const TenantDashboard = lazy(() => import('../pages/tenant/TenantDashboard'));
@@ -97,9 +99,11 @@ export default function AppRoutes() {
             <Route path="plans" element={<TenantViewPlans />} />
           </Route>
 
-          {/* Checkout */}
+          {/* Checkout & Payment */}
           <Route element={<TenantCheckoutLayout />}>
             <Route path="/checkout/:planId" element={<Checkout />} />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
+            <Route path="/payment/cancel" element={<PaymentCancel />} />
           </Route>
         </Route>
 

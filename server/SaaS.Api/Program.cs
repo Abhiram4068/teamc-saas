@@ -88,10 +88,11 @@ if (stripeOptions != null && !string.IsNullOrEmpty(stripeOptions.SecretKey))
 // Register Services and Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
-builder.Services.AddScoped<IFeatureRepository, FeatureRepository>();
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();
-builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IPlanFeatureRepository, PlanFeatureRepository>();
+builder.Services.AddScoped<IFeatureRepository, FeatureRepository>();
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICinVerificationService, CinVerificationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();

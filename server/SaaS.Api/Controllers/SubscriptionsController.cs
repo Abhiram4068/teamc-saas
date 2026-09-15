@@ -26,18 +26,20 @@ public class SubscriptionsController : ControllerBase
     [Authorize(Roles = "2")] 
     public async Task<IActionResult> CreateCheckoutSession([FromBody] CreateCheckoutRequestDto request)
     {
-        var tenantIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
                         ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
                         
-        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId) ||
+            string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
         {
-            _logger.LogWarning("Checkout failed: Tenant ID not found in token or invalid.");
-            return Unauthorized(new { Message = "Tenant ID not found in token." });
+            _logger.LogWarning("Checkout failed: Tenant ID or User ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID or User ID not found in token." });
         }
 
         _logger.LogInformation("Creating checkout session for Tenant: {TenantId}, Plan: {PlanId}", tenantId, request.PlanId);
 
-        var response = await _subscriptionService.CreateCheckoutSessionAsync(request, tenantId, tenantId);
+        var response = await _subscriptionService.CreateCheckoutSessionAsync(request, userId, tenantId);
         
         return StatusCode(response.StatusCode, response);
     }
@@ -46,8 +48,7 @@ public class SubscriptionsController : ControllerBase
     [Authorize(Roles = "2")] 
     public async Task<IActionResult> GetCurrentSubscription()
     {
-        var tenantIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                        ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
                         
         if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
         {

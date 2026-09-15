@@ -22,6 +22,13 @@ public class StripePaymentGateway : IStripePaymentGateway
         int userId,
         string stripePriceId)
     {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration! Please verify it is in User Secrets as 'Stripe:SecretKey'.");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+
         var options = new SessionCreateOptions
         {
             Mode = "subscription",
@@ -47,8 +54,10 @@ public class StripePaymentGateway : IStripePaymentGateway
             }
         };
 
+        // This comes from the official Stripe.NET package
         var service = new SessionService();
 
+        // This line sends the HTTP POST request to Stripe's servers
         var session = await service.CreateAsync(options);
 
         return new StripeCheckoutResult
