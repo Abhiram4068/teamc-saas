@@ -130,7 +130,7 @@ export default function TenantLogin() {
               Welcome back! Please enter your corporate credentials to continue.
             </p>
             {loginError && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+              <div className="mt-4 p-3 text-xs text-red-700">
                 {loginError}
               </div>
             )}

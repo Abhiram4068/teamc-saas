@@ -152,7 +152,7 @@ public class AuthService : IAuthService
         // Without normalize per user request
         var user = await _userRepository.GetByEmailAsync(request.Email);
 
-        if (user is null)
+        if (user is null || user.Role == Role.SuperAdmin)
         {
             _logger.LogWarning(
                 "Login failed. User with email {Email} was not found.",
