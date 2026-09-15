@@ -144,7 +144,7 @@ public class SubscriptionService : ISubscriptionService
         return ApiResponse<CheckoutResponseDto>.SuccessResponse(response);
     }
 
-    public async Task<ApiResponse<string>> CompleteCheckoutAsync(string sessionId)
+    public async Task<ApiResponse<string>> CompleteCheckoutAsync(string sessionId, string customerId, string subscriptionId)
     {
         var payment = await _paymentRepository.GetByStripeSessionIdAsync(sessionId);
         
@@ -168,6 +168,8 @@ public class SubscriptionService : ISubscriptionService
 
         // Update Subscription
         subscription.Status = SubscriptionStatus.Active;
+        subscription.StripeCustomerId = customerId;
+        subscription.StripeSubscriptionId = subscriptionId;
         subscription.UpdatedAt = DateTime.UtcNow;
         await _subscriptionRepository.UpdateAsync(subscription);
 
