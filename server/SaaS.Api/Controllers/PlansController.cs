@@ -116,18 +116,17 @@ public class PlansController : ControllerBase
     [Authorize(Roles = "2")]
     public async Task<IActionResult> GetMyPlanFeatures()
     {
-        var tenantIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                        ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
-                        
-        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        var tenantId = User.FindFirst("TenantId")?.Value;
+
+        if (string.IsNullOrEmpty(tenantId) || !int.TryParse(tenantId, out var id))
         {
             _logger.LogWarning("Get MyPlan Features failed: Tenant ID not found in token or invalid.");
             return Unauthorized(new { Message = "Tenant ID not found in token." });
         }
 
-        _logger.LogInformation("Getting plan features for Tenant: {TenantId}", tenantId);
+        _logger.LogInformation("Getting plan features for Tenant: {TenantId}", id);
 
-        var response = await _subscriptionService.GetMyPlanFeaturesAsync(tenantId);
+        var response = await _subscriptionService.GetMyPlanFeaturesAsync(id);
         
         return StatusCode(response.StatusCode, response);
     }
