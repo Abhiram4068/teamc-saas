@@ -22,7 +22,8 @@ export default function SuperAdminViewFeatures() {
         name: '',
         code: '',
         description: '',
-        status: 1
+        status: 1,
+        type: 1
     });
     
     // View Modal state
@@ -360,6 +361,17 @@ export default function SuperAdminViewFeatures() {
                                 {formErrors.description && <p className="text-red-500 text-xs mt-1">{formErrors.description}</p>}
                             </div>
                             <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Feature Type</label>
+                                <select 
+                                    value={newFeature.type}
+                                    onChange={(e) => setNewFeature({...newFeature, type: Number(e.target.value)})}
+                                    className="w-full px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm bg-white border-gray-200"
+                                >
+                                    <option value={1}>Access Based (Allow/Deny access)</option>
+                                    <option value={2}>Limit Based (Limit usage for a plan)</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
                                 <select 
                                     value={newFeature.status}
@@ -420,6 +432,14 @@ export default function SuperAdminViewFeatures() {
                                     <div className="grid grid-cols-[120px_1fr] gap-4 border-b border-gray-50 pb-4">
                                         <div className="text-gray-500 font-medium">Status</div>
                                         <div>{getStatusBadge(selectedFeature.status)}</div>
+                                    </div>
+                                    <div className="grid grid-cols-[120px_1fr] gap-4 border-b border-gray-50 pb-4">
+                                        <div className="text-gray-500 font-medium">Type</div>
+                                        <div>
+                                            <span className="px-2 py-1 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 rounded">
+                                                {selectedFeature.type === 2 ? 'Limit-Based' : 'Access-Based'}
+                                            </span>
+                                        </div>
                                     </div>
                                     <div className="grid grid-cols-[120px_1fr] gap-4 border-b border-gray-50 pb-4">
                                         <div className="text-gray-500 font-medium">Description</div>

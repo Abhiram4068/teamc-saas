@@ -23,6 +23,19 @@ public class SubscriptionRepository : ISubscriptionRepository
             .FirstOrDefaultAsync(s => s.TenantId == tenantId);
     }
 
+    public async Task<Subscription?> GetActiveSubscriptionWithFeaturesAsync(int tenantId)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.Plan)
+            .ThenInclude(p => p.PlanFeatures)
+            .ThenInclude(pf => pf.Feature)
+            .Include(s => s.Plan)
+            .ThenInclude(p => p.PlanFeatures)
+            .ThenInclude(pf => pf.Config)
+            .Where(s => s.TenantId == tenantId && s.Status == SubscriptionStatus.Active && s.Plan.Status == PlanStatus.Active)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task AddAsync(Subscription subscription)
     {
         await _context.Subscriptions.AddAsync(subscription);

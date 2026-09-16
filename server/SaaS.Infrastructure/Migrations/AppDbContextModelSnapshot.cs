@@ -102,6 +102,9 @@ namespace SaaS.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(1);
 
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -283,6 +286,37 @@ namespace SaaS.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("PlanFeatures", (string)null);
+                });
+
+            modelBuilder.Entity("SaaS.Domain.Entities.PlanFeatureConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool?>("AccessValue")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("LimitValue")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PlanFeatureId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanFeatureId")
+                        .IsUnique();
+
+                    b.ToTable("PlanFeatureConfigs");
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Subscription", b =>
@@ -531,6 +565,17 @@ namespace SaaS.Infrastructure.Migrations
                     b.Navigation("Plan");
                 });
 
+            modelBuilder.Entity("SaaS.Domain.Entities.PlanFeatureConfig", b =>
+                {
+                    b.HasOne("SaaS.Domain.Entities.PlanFeature", "PlanFeature")
+                        .WithOne("Config")
+                        .HasForeignKey("SaaS.Domain.Entities.PlanFeatureConfig", "PlanFeatureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PlanFeature");
+                });
+
             modelBuilder.Entity("SaaS.Domain.Entities.Subscription", b =>
                 {
                     b.HasOne("SaaS.Domain.Entities.Plan", "Plan")
@@ -575,6 +620,11 @@ namespace SaaS.Infrastructure.Migrations
                     b.Navigation("PlanFeatures");
 
                     b.Navigation("Subscriptions");
+                });
+
+            modelBuilder.Entity("SaaS.Domain.Entities.PlanFeature", b =>
+                {
+                    b.Navigation("Config");
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Subscription", b =>

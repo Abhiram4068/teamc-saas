@@ -10,8 +10,9 @@ public class MapPlanFeatureRequestValidator : AbstractValidator<MapPlanFeatureRe
         RuleFor(x => x.PlanId)
             .GreaterThan(0).WithMessage("Plan ID is required and must be greater than 0.");
 
-        RuleFor(x => x.FeatureIds)
-            .NotEmpty().WithMessage("At least one Feature ID must be provided.")
-            .Must(ids => ids != null && ids.All(id => id > 0)).WithMessage("All Feature IDs must be greater than 0.");
+        RuleFor(x => x.Features)
+            .NotEmpty().WithMessage("At least one Feature must be provided.")
+            .Must(features => features != null && features.All(f => f.FeatureId > 0))
+            .WithMessage("All Feature IDs must be greater than 0.");
     }
 }

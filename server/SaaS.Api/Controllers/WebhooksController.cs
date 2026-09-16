@@ -45,7 +45,10 @@ public class WebhooksController : ControllerBase
                 {
                     _logger.LogInformation("Processing successful checkout session: {SessionId}", session.Id);
                     
-                    var result = await _subscriptionService.CompleteCheckoutAsync(session.Id);
+                    var result = await _subscriptionService.CompleteCheckoutAsync(
+                        session.Id, 
+                        session.CustomerId, 
+                        session.SubscriptionId);
                     
                     if (result.Success)
                     {

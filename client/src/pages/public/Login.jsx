@@ -130,14 +130,14 @@ export default function TenantLogin() {
               Welcome back! Please enter your corporate credentials to continue.
             </p>
             {loginError && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+              <div className="mt-4 p-3 text-xs text-red-700">
                 {loginError}
               </div>
             )}
           </div>
 
           {isNewlyRegistered && (
-            <div className="mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-700">
+            <div className="mb-6 p-3 text-xs text-emerald-700">
               Registration successful! Please sign in using your newly configured admin credentials.
             </div>
           )}

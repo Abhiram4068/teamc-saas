@@ -29,6 +29,8 @@ public class PaymentRepository : IPaymentRepository
     public async Task<IEnumerable<Payment>> GetByTenantIdAsync(long tenantId)
     {
         return await _context.Payments
+            .Include(p => p.Subscription)
+            .ThenInclude(s => s.Plan)
             .Where(p => p.TenantId == tenantId)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();

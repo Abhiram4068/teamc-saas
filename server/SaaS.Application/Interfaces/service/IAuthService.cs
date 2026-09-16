@@ -33,4 +33,12 @@ public interface IAuthService
     /// <param name="request">The registration request DTO.</param>
     /// <returns>A task returning an <see cref="ApiResponse{T}"/> containing a success message.</returns>
     Task<ApiResponse<string>> RegisterTenantAsync(RegisterTenantRequestDto request);
+
+    /// <summary>
+    /// Creates a new tenant admin under a specific tenant.
+    /// </summary>
+    /// <param name="tenantId">The ID of the tenant.</param>
+    /// <param name="request">The request DTO containing admin details.</param>
+    /// <returns>A task returning an <see cref="ApiResponse{T}"/> containing <see cref="TenantCreateTenantAdminResponseDto"/>.</returns>
+    Task<ApiResponse<TenantCreateTenantAdminResponseDto>> CreateTenantAdminAsync(int tenantId, TenantCreateTenantAdminRequestDto request);
 }

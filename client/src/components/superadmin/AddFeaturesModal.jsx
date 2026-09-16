@@ -31,6 +31,8 @@ export default function AddFeaturesModal({
   // Confirmation Popup State
   const [confirmFeature, setConfirmFeature] = useState(null);
   const [isSubmittingFeature, setIsSubmittingFeature] = useState(false);
+  const [accessValue, setAccessValue] = useState(true);
+  const [limitValue, setLimitValue] = useState('');
 
   // Sync mappedFeatureIds prop with internal state
   useEffect(() => {
@@ -95,11 +97,21 @@ export default function AddFeaturesModal({
 
   async function handleAddFeatureConfirm() {
     if (!confirmFeature) return;
+
+    if (confirmFeature.type === 2 && (limitValue === '' || limitValue === null)) {
+      showToast('Limit value is required for this feature.', 'error');
+      return;
+    }
+
     try {
       setIsSubmittingFeature(true);
       const payload = {
         planId: parseInt(planId, 10),
-        featureIds: [confirmFeature.id],
+        features: [{
+            featureId: confirmFeature.id,
+            accessValue: confirmFeature.type === 1 ? accessValue : null,
+            limitValue: confirmFeature.type === 2 ? Number(limitValue) : null
+        }],
       };
       const response = await planApi.mapFeaturesToPlan(payload);
       if (response?.success) {
@@ -313,28 +325,44 @@ export default function AddFeaturesModal({
                 </svg>
               </div>
               <div className="flex-1">
-                <h4 className="text-base font-bold text-gray-900">Confirm Feature Addition</h4>
-                <p className="text-xs text-amber-800 mt-2 leading-relaxed">
-                  Are you sure that you want to add this feature? This will be seen by the tenants while visiting this feature/plan.
+                <h4 className="text-base font-bold text-gray-900">Configure Feature for Plan</h4>
+                <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                  Configure access settings for this feature before adding it to the plan.
                 </p>
               </div>
             </div>
 
             {/* Feature details card */}
-            <div className="p-3 text-xs space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Feature Name:</span>
+            <div className="p-3 text-sm space-y-3 border border-gray-100 rounded-lg bg-gray-50">
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-500 font-semibold text-xs">Feature Name</span>
                 <span className="font-bold text-gray-800">{confirmFeature.name}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Code Identifier:</span>
-                <span className="font-mono text-slate-700 bg-white px-1.5 py-0.5 rx ">
-                  {confirmFeature.code}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Target Plan:</span>
-                <span className="font-semibold text-indigo-600">{planName}</span>
+              
+              <div className="pt-2 border-t border-gray-200">
+                  {confirmFeature.type === 2 ? (
+                      <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">Limit Value</label>
+                          <input 
+                              type="number"
+                              min="0"
+                              required
+                              value={limitValue}
+                              onChange={(e) => setLimitValue(e.target.value)}
+                              placeholder="Enter numeric limit (e.g. 5)"
+                              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-indigo-500 text-sm"
+                          />
+                      </div>
+                  ) : (
+                      <div className="flex items-center gap-2">
+                          <label className="text-xs font-semibold text-gray-700">Access Enabled</label>
+                          <div className="relative inline-flex items-center cursor-pointer" onClick={() => setAccessValue(!accessValue)}>
+                              <div className={`w-9 h-5 rounded-full transition-colors ${accessValue ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+                                  <div className={`absolute top-0.5 left-0.5 bg-white border border-gray-300 rounded-full h-4 w-4 transition-transform ${accessValue ? 'translate-x-4 border-white' : ''}`}></div>
+                              </div>
+                          </div>
+                      </div>
+                  )}
               </div>
             </div>
 
@@ -343,7 +371,7 @@ export default function AddFeaturesModal({
               <button
                 type="button"
                 disabled={isSubmittingFeature}
-                onClick={() => setConfirmFeature(null)}
+                onClick={() => { setConfirmFeature(null); setLimitValue(''); setAccessValue(true); }}
                 className="px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition disabled:opacity-50 cursor-pointer"
               >
                 Cancel

@@ -11,7 +11,7 @@ export default function PaymentSuccess() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          navigate('/tenant/dashboard');
+          navigate('/tenant/invoices');
           return 0;
         }
         return prev - 1;
