@@ -1,29 +1,34 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SaaS.Api.Policies.Features;
+using SaaS.Application.DTOs.Requests;
 using SaaS.Application.Interfaces.Features;
+using SaaS.Application.Interfaces.Service;
 
 namespace SaaS.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles ="2")] 
+[Authorize] 
 public class AdminUserController : ControllerBase
 {
     private readonly ITenantFeatureService _tenantFeatureService;
+    private readonly IAuthService _authService;
     private readonly ILogger<AdminUserController> _logger;
 
     public AdminUserController(
         ITenantFeatureService tenantFeatureService,
+        IAuthService authService,
         ILogger<AdminUserController> logger)
     {
         _tenantFeatureService = tenantFeatureService;
+        _authService = authService;
         _logger = logger;
     }
 
     [HttpPost("tenant/add-tenantadmin")]
     [RequireFeature("ADMIN_LIMIT")]
-    public async Task<IActionResult> AddTenantAdmin()
+    public async Task<IActionResult> AddTenantAdmin([FromBody] TenantCreateTenantAdminRequestDto request)
     {
         // If the policy passess the feature check, we can proceed to check the limit 
         var tenantIdString = User.FindFirst("TenantId")?.Value;
@@ -51,8 +56,13 @@ public class AdminUserController : ControllerBase
             }
         }
 
-        // Mock success response
-        // Actual logic to create the admin user would go here
-        return Ok(new { success = true, message = "hi" });
+        var response = await _authService.CreateTenantAdminAsync(tenantId, request);
+
+        if (!response.Success)
+        {
+            return BadRequest(response);
+        }
+
+        return StatusCode(response.StatusCode, response);
     }
 }

@@ -342,4 +342,46 @@ public class AuthService : IAuthService
 
         return ApiResponse<string>.SuccessResponse("Tenant registered successfully", "Tenant registered successfully.", 201);
     }
+
+    public async Task<ApiResponse<TenantCreateTenantAdminResponseDto>> CreateTenantAdminAsync(int tenantId, TenantCreateTenantAdminRequestDto request)
+    {
+        var normalizedEmail = request.Email?.Trim().ToLowerInvariant();
+        
+        var existingUser = await _userRepository.GetByEmailAsync(normalizedEmail!);
+        if (existingUser != null)
+        {
+            return ApiResponse<TenantCreateTenantAdminResponseDto>.FailureResponse("User with this email already exists.", 400);
+        }
+
+        string CapitalizeFirst(string? s) => string.IsNullOrWhiteSpace(s) ? string.Empty : char.ToUpper(s[0]) + s.Substring(1).ToLowerInvariant();
+
+        var user = new User
+        {
+            Email = normalizedEmail!,
+            FirstName = CapitalizeFirst(request.FirstName),
+            LastName = CapitalizeFirst(request.LastName),
+            PhoneNumber = request.PhoneNumber?.Trim(),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = Role.TenantAdmin,
+            Status = UserStatus.Active,
+            CreatedAt = DateTime.UtcNow,
+            TenantId = tenantId
+        };
+
+        await _userRepository.AddAsync(user);
+        await _userRepository.SaveChangesAsync();
+
+        var response = new TenantCreateTenantAdminResponseDto
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Role = user.Role.ToString(),
+            CreatedAt = user.CreatedAt
+        };
+
+        return ApiResponse<TenantCreateTenantAdminResponseDto>.SuccessResponse(response, "Tenant Admin created successfully.", 201);
+    }
 }
