@@ -27,6 +27,13 @@ public class UserRepository : IUserRepository
         return await _context.Users.FirstOrDefaultAsync(x => x.Id == id && x.Status != UserStatus.Deleted);
     }
 
+    public async Task<int> GetCountByRoleAsync(int tenantId)
+    {
+        return await _context.Users
+            .Where(u => u.TenantId == tenantId && u.Role == Role.TenantAdmin && u.Status == UserStatus.Active)
+            .CountAsync();
+    }
+
     public async Task AddAsync(User user)
     {
         await _context.Users.AddAsync(user);
