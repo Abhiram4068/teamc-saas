@@ -12,6 +12,7 @@ public class Feature
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
     public FeatureStatus Status { get; set; } = FeatureStatus.Active;
+    public FeatureType Type { get; set; } = FeatureType.AccessBased;
 
     // Audit Logging
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

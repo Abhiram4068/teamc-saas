@@ -154,7 +154,8 @@ public class PlanService : IPlanService
         }
 
         var planId = request.PlanId;
-        var featureIds = request.FeatureIds.Distinct().ToList();
+        var requestedFeatures = request.Features;
+        var featureIds = requestedFeatures.Select(f => f.FeatureId).Distinct().ToList();
 
         if (!featureIds.Any())
         {
@@ -202,13 +203,25 @@ public class PlanService : IPlanService
         }
 
         // Store the records in C# objects 
-        var newPlanFeatures = featureIds.Select(featureId => new PlanFeature
+        var newPlanFeatures = new List<PlanFeature>();
+        
+        foreach (var reqFeature in requestedFeatures)
         {
-            PlanId = planId,
-            FeatureId = featureId,
-            IsEnabled = true,
-            CreatedAt = DateTime.UtcNow
-        }).ToList();
+            var planFeature = new PlanFeature
+            {
+                PlanId = planId,
+                FeatureId = reqFeature.FeatureId,
+                IsEnabled = true,
+                CreatedAt = DateTime.UtcNow,
+                Config = new PlanFeatureConfig
+                {
+                    AccessValue = reqFeature.AccessValue,
+                    LimitValue = reqFeature.LimitValue,
+                    CreatedAt = DateTime.UtcNow
+                }
+            };
+            newPlanFeatures.Add(planFeature);
+        }
 
         // Persist the new mappings to the database
         await _planFeatureRepository.AddRangeAsync(newPlanFeatures);

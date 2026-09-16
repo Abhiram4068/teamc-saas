@@ -33,6 +33,7 @@ public class PlanFeatureRepository : IPlanFeatureRepository
         return await _context.PlanFeatures
             .Include(pf => pf.Plan)
             .Include(pf => pf.Feature)
+            .Include(pf => pf.Config)
             .FirstOrDefaultAsync(pf => pf.PlanId == planId && pf.FeatureId == featureId);
     }
 
@@ -41,6 +42,7 @@ public class PlanFeatureRepository : IPlanFeatureRepository
         return await _context.PlanFeatures
             .Include(pf => pf.Plan)
             .Include(pf => pf.Feature)
+            .Include(pf => pf.Config)
             .Where(pf => pf.PlanId == planId)
             .OrderBy(pf => pf.Feature.Name)
             .ToListAsync();

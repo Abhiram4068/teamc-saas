@@ -12,6 +12,7 @@ public class FeatureResponseDto
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
     public FeatureStatus Status { get; set; }
+    public FeatureType Type { get; set; }
     public DateTime CreatedAt { get; set; }
     public string? CreatedBy { get; set; }
     public DateTime? UpdatedAt { get; set; }
