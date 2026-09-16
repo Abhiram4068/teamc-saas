@@ -10,7 +10,10 @@ public class PlanFeatureResponseDto
     public string FeatureName { get; set; } = string.Empty;
     public string FeatureCode { get; set; } = string.Empty;
     public string? FeatureDescription { get; set; }
+    public SaaS.Domain.Enums.FeatureType FeatureType { get; set; }
     public bool IsEnabled { get; set; }
+    public bool? AccessValue { get; set; }
+    public int? LimitValue { get; set; }
     public DateTime CreatedAt { get; set; }
     public int TotalFeatures { get; set; }
 }

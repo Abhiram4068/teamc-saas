@@ -15,4 +15,6 @@ public class PlanFeature
 
     public bool IsEnabled { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public PlanFeatureConfig? Config { get; set; }
 }

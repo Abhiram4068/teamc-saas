@@ -53,6 +53,7 @@ public class FeatureService : IFeatureService
             Code = normalizedCode,
             Description = request.Description?.Trim(),
             Status = request.Status,
+            Type = request.Type,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = createdBy
         };
@@ -69,6 +70,7 @@ public class FeatureService : IFeatureService
             Code = feature.Code,
             Description = feature.Description,
             Status = feature.Status,
+            Type = feature.Type,
             CreatedAt = feature.CreatedAt,
             CreatedBy = feature.CreatedBy,
             UpdatedAt = feature.UpdatedAt
@@ -93,6 +95,7 @@ public class FeatureService : IFeatureService
             Code = feature.Code,
             Description = feature.Description,
             Status = feature.Status,
+            Type = feature.Type,
             CreatedAt = feature.CreatedAt,
             CreatedBy = feature.CreatedBy,
             UpdatedAt = feature.UpdatedAt
@@ -120,6 +123,7 @@ public class FeatureService : IFeatureService
             Code = feature.Code,
             Description = feature.Description,
             Status = feature.Status,
+            Type = feature.Type,
             CreatedAt = feature.CreatedAt,
             CreatedBy = feature.CreatedBy,
             UpdatedAt = feature.UpdatedAt
