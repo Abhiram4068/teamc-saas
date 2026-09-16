@@ -46,7 +46,7 @@ export default function TenantSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-[#030D4A] text-white flex-shrink-0 border-r border-gray-200 flex flex-col pt-14 pb-4 select-none h-screen">
+    <aside className="w-64 bg-[#1A1E29] text-white flex-shrink-0 border-r border-gray-200 flex flex-col pt-14 pb-4 select-none h-screen">
       <div className="flex-1 overflow-y-auto px-4 custom-scrollbar space-y-6">
         {navGroups.map((group, index) => (
           <div key={index}>
@@ -61,13 +61,13 @@ export default function TenantSidebar() {
                   className={({ isActive }) =>
                     `flex items-center py-2 px-3 rounded-md transition-colors duration-200 ${
                       isActive
-                        ? 'text-white font-semibold bg-white/10'
-                        : 'text-blue-100 hover:text-white hover:bg-white/5 font-medium'
+                        ? 'text-white font-semibold '
+                        : 'text-white hover:text-white font-medium'
                     }`
                   }
                 >
-                  <i className={`${item.icon} w-5 text-center text-[13px] mr-2`}></i>
-                  <span className="text-[13px]">{item.label}</span>
+                  <i className={`${item.icon} w-5 text-center text-[13px] mr-2 text-gray-400`}></i>
+                  <span className="text-[12px] text-gray-400">{item.label}</span>
                 </NavLink>
               ))}
             </div>

@@ -17,6 +17,10 @@ using SaaS.Infrastructure.Data;
 using SaaS.Infrastructure.Payments.Stripe;
 using SaaS.Infrastructure.Repositories;
 using SaaS.Infrastructure.Services;
+using SaaS.Application.Interfaces.Features;
+using SaaS.Application.Services.Features;
+using SaaS.Api.Policies.Features;
+using Microsoft.AspNetCore.Authorization;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +28,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpContextAccessor();
 
 #region FluentValidation
 
@@ -99,9 +104,15 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPlanService, PlanService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<IFeatureService, FeatureService>();
+builder.Services.AddScoped<IBillingService, BillingService>();
 builder.Services.AddScoped<IStripePaymentGateway, StripePaymentGateway>();
 builder.Services.AddScoped<IStripeProductService, StripeProductService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<ITenantFeatureService, TenantFeatureService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, FeaturePolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, FeatureAuthorizationHandler>();
 
 var app = builder.Build();
 

@@ -49,7 +49,7 @@ export default function SuperAdminLogin() {
           
           {/* Form Header */}
           <div className="mb-6 text-center">
-            <h1 className="text-xl font-bold text-slate-800 tracking-tight">System Administrator TeamC</h1>
+            <h1 className="text-xl font-bold text-slate-800 tracking-tight">System Administrator Teamo</h1>
             <p className="text-xs text-slate-400 mt-1">Enter your credentials to access management console</p>
           </div>
 

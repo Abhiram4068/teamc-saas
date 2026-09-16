@@ -15,6 +15,8 @@ const TenantLayout = lazy(() => import('../layouts/TenantLayout'));
 const TenantDashboard = lazy(() => import('../pages/tenant/TenantDashboard'));
 const TenantMyPlan = lazy(() => import('../pages/tenant/TenantMyPlan'));
 const TenantViewPlans = lazy(() => import('../pages/tenant/TenantViewPlans'));
+const TenantInvoices = lazy(() => import('../pages/tenant/TenantInvoices'));
+const TenantAddAdmin = lazy(() => import('../pages/tenant/TenantAddAdmin'));
 const SuperAdminRoute = lazy(() => import('./SuperAdminRoute'));
 const SuperAdminLayout = lazy(() => import('../layouts/SuperAdminLayout'));
 const SuperAdminDashboard = lazy(() => import('../pages/superadmin/SuperAdminDashboard'));
@@ -23,6 +25,7 @@ const SuperAdminViewPlans = lazy(() => import('../pages/superadmin/SuperAdminVie
 const SuperAdminViewDetailedPlan = lazy(() => import('../pages/superadmin/SuperAdminViewDetailedPlan'));
 const SuperAdminCreatePlan = lazy(() => import('../pages/superadmin/SuperAdminCreatePlan'));
 const SuperAdminViewPlanFeatures = lazy(() => import('../pages/superadmin/SuperAdminViewPlanFeatures'));
+const SuperAdminTenantsList = lazy(() => import('../pages/superadmin/SuperAdminTenantsList'));
 
 const TenantRegistration = lazy(() => import('../pages/public/Register'));
 const Login = lazy(() => import('../pages/public/Login'));
@@ -80,6 +83,7 @@ export default function AppRoutes() {
             <Route path="/superadmin" element={<SuperAdminLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<SuperAdminDashboard />} />
+              <Route path="tenants" element={<SuperAdminTenantsList />} />
               <Route path="features" element={<SuperAdminViewFeatures />} />
               <Route path="plans" element={<SuperAdminViewPlans />} />
               <Route path="create-plan" element={<SuperAdminCreatePlan />} />
@@ -89,7 +93,6 @@ export default function AppRoutes() {
           </Route>
         </Route>
 
-        {/* Tenant Protected Routes */}
         <Route element={<TenantProtectedRoute />}>
           {/* Main Tenant Portal */}
           <Route path="/tenant" element={<TenantLayout />}>
@@ -97,6 +100,8 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<TenantDashboard />} />
             <Route path="my-plan" element={<TenantMyPlan />} />
             <Route path="plans" element={<TenantViewPlans />} />
+            <Route path="invoices" element={<TenantInvoices />} />
+            <Route path="add-admin" element={<TenantAddAdmin />} />
           </Route>
 
           {/* Checkout & Payment */}
