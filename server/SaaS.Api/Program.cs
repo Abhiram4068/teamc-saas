@@ -109,6 +109,7 @@ builder.Services.AddScoped<IStripePaymentGateway, StripePaymentGateway>();
 builder.Services.AddScoped<IStripeProductService, StripeProductService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ITenantFeatureService, TenantFeatureService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
 
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, FeaturePolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, FeatureAuthorizationHandler>();

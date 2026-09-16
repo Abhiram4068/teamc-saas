@@ -28,6 +28,7 @@ public class AdminUserController : ControllerBase
 
     [HttpPost("tenant/add-tenantadmin")]
     [RequireFeature("ADMIN_LIMIT")]
+    [Authorize(Roles ="2")]
     public async Task<IActionResult> AddTenantAdmin([FromBody] TenantCreateTenantAdminRequestDto request)
     {
         // If the policy passess the feature check, we can proceed to check the limit 
