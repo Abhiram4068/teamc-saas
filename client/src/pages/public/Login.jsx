@@ -137,7 +137,7 @@ export default function TenantLogin() {
           </div>
 
           {isNewlyRegistered && (
-            <div className="mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-700">
+            <div className="mb-6 p-3 text-xs text-emerald-700">
               Registration successful! Please sign in using your newly configured admin credentials.
             </div>
           )}
