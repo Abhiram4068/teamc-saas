@@ -25,6 +25,7 @@ const SuperAdminViewPlans = lazy(() => import('../pages/superadmin/SuperAdminVie
 const SuperAdminViewDetailedPlan = lazy(() => import('../pages/superadmin/SuperAdminViewDetailedPlan'));
 const SuperAdminCreatePlan = lazy(() => import('../pages/superadmin/SuperAdminCreatePlan'));
 const SuperAdminViewPlanFeatures = lazy(() => import('../pages/superadmin/SuperAdminViewPlanFeatures'));
+const SuperAdminTenantsList = lazy(() => import('../pages/superadmin/SuperAdminTenantsList'));
 
 const TenantRegistration = lazy(() => import('../pages/public/Register'));
 const Login = lazy(() => import('../pages/public/Login'));
@@ -82,6 +83,7 @@ export default function AppRoutes() {
             <Route path="/superadmin" element={<SuperAdminLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<SuperAdminDashboard />} />
+              <Route path="tenants" element={<SuperAdminTenantsList />} />
               <Route path="features" element={<SuperAdminViewFeatures />} />
               <Route path="plans" element={<SuperAdminViewPlans />} />
               <Route path="create-plan" element={<SuperAdminCreatePlan />} />
