@@ -22,21 +22,35 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(x => x.Email == email && x.Status != UserStatus.Deleted);
     }
 
-    public async Task<User?> GetByIdAsync(int id)
+    public async Task<User?> GetByIdAsync(long id)
     {
         return await _context.Users.FirstOrDefaultAsync(x => x.Id == id && x.Status != UserStatus.Deleted);
     }
 
-    public async Task<int> GetCountByRoleAsync(int tenantId)
+    public async Task<int> GetCountByRoleAsync(long tenantId)
     {
         return await _context.Users
             .Where(u => u.TenantId == tenantId && u.Role == Role.TenantAdmin && u.Status == UserStatus.Active)
             .CountAsync();
     }
 
+    public async Task<IEnumerable<User>> GetTenantAdminsAsync(long tenantId)
+    {
+        return await _context.Users
+            .Where(u => u.TenantId == tenantId && u.Role == Role.TenantAdmin && u.Status != UserStatus.Deleted)
+            .OrderByDescending(u => u.CreatedAt)
+            .ToListAsync();
+    }
+
     public async Task AddAsync(User user)
     {
         await _context.Users.AddAsync(user);
+    }
+
+    public Task UpdateAsync(User user)
+    {
+        _context.Users.Update(user);
+        return Task.CompletedTask;
     }
 
     public async Task SaveChangesAsync()
