@@ -99,7 +99,7 @@ public class AuthService : IAuthService
         {
             var passwordVerificationResult = _passwordHasher.VerifyHashedPassword(
                 user,
-                user.PasswordHash,
+                user.PasswordHash ?? string.Empty,
                 request.Password);
 
             isPasswordValid = passwordVerificationResult != PasswordVerificationResult.Failed;
@@ -152,7 +152,7 @@ public class AuthService : IAuthService
         // Without normalize per user request
         var user = await _userRepository.GetByEmailAsync(request.Email);
 
-        if (user is null || user.Role == Role.SuperAdmin)
+        if (user is null || user.Role != Role.Tenant)
         {
             _logger.LogWarning(
                 "Login failed. User with email {Email} was not found.",
@@ -180,7 +180,7 @@ public class AuthService : IAuthService
         {
             var passwordVerificationResult = _passwordHasher.VerifyHashedPassword(
                 user,
-                user.PasswordHash,
+                user.PasswordHash ?? string.Empty,
                 request.Password);
 
             isPasswordValid = passwordVerificationResult != PasswordVerificationResult.Failed;
