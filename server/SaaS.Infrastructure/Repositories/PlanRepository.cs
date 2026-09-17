@@ -43,6 +43,12 @@ public class PlanRepository : IPlanRepository
         await _context.Plans.AddAsync(plan);
     }
 
+    public Task UpdateAsync(Plan plan)
+    {
+        _context.Plans.Update(plan);
+        return Task.CompletedTask;
+    }
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

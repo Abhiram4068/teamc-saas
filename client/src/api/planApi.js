@@ -16,6 +16,21 @@ export const planApi = {
         return response.data;
     },
 
+    updatePlan: async (id, data) => {
+        const response = await axiosClient.patch(`/plans/${id}`, data);
+        return response.data;
+    },
+
+    updatePlanStatus: async (id, status) => {
+        const response = await axiosClient.patch(`/plans/${id}/status`, { status });
+        return response.data;
+    },
+
+    deletePlan: async (id) => {
+        const response = await axiosClient.delete(`/plans/${id}`);
+        return response.data;
+    },
+
     mapFeaturesToPlan: async (data) => {
         const response = await axiosClient.post('/plans/map-features', data);
         return response.data;

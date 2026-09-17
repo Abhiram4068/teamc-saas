@@ -31,13 +31,13 @@ export default function SuperAdminViewPlans() {
     async function fetchPlans() {
         try {
             setLoading(true);
-            const response = await planApi.getPlans({ 
-                pageNumber, 
+            const response = await planApi.getPlans({
+                pageNumber,
                 pageSize,
                 searchTerm: debouncedSearchTerm || undefined,
                 status: statusFilter || undefined
             });
-            
+
             if (response?.data?.items) {
                 setPlans(response.data.items);
                 setTotalCount(response.data.totalCount || 0);
@@ -57,17 +57,17 @@ export default function SuperAdminViewPlans() {
     const getStatusBadge = (status) => {
         // Enums mapping: 1=Active, 2=Inactive, 3=Draft, 4=Archived, 5=Deleted
         switch (status) {
-            case 1: return <span className="text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">Active</span>;
-            case 2: return <span className="text-xs font-semibold text-red-700 bg-red-100 px-2 py-1 rounded-full">Inactive</span>;
-            case 3: return <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">Draft</span>;
-            case 4: return <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">Archived</span>;
-            case 5: return <span className="text-xs font-semibold text-red-700 bg-red-100 px-2 py-1 rounded-full">Deleted</span>;
-            default: return <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">Unknown</span>;
+            case 1: return <span className="text-xs font-semibold text-emerald-700">Active</span>;
+            case 2: return <span className="text-xs font-semibold text-red-700">Inactive</span>;
+            case 3: return <span className="text-xs font-semibold text-gray-600">Draft</span>;
+            case 4: return <span className="text-xs font-semibold text-amber-700">Archived</span>;
+            case 5: return <span className="text-xs font-semibold text-red-700">Deleted</span>;
+            default: return <span className="text-xs font-semibold text-gray-600">Unknown</span>;
         }
     };
 
     const getCurrencySymbol = (currencyEnum) => {
-        switch(currencyEnum) {
+        switch (currencyEnum) {
             case 1: return '₹';
             case 2: return '$';
             case 3: return '€';
@@ -89,13 +89,6 @@ export default function SuperAdminViewPlans() {
                     <p className="text-sm text-gray-400 mt-1">Control what tenants see on the public pricing page and what each tier unlocks.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Link
-                        to="/superadmin/plans/public-pricing"
-                        className="flex items-center gap-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 px-4 py-2 rounded hover:bg-gray-50 transition"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                        View Public Pricing Page
-                    </Link>
                     <Link
                         to="/superadmin/create-plan/"
                         className="flex items-center gap-2 text-sm font-semibold text-white bg-[#141824] hover:bg-[#252c40] px-4 py-2 rounded shadow-sm transition"
@@ -128,145 +121,94 @@ export default function SuperAdminViewPlans() {
                     </p>
                 </div>
                 <div className="bg-[#141824] border border-[#252c40] rounded p-4">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Subscribed Tenants</p>
-                    <p className="text-2xl font-extrabold text-white mt-1">1,106</p>
-                    <p className="text-xs text-emerald-400 font-medium mt-1">+4.2% this month</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Active Plans</p>
+                    <p className="text-2xl font-extrabold text-white mt-1">{plans.filter(p => p.status === 1).length}</p>
+                    <p className="text-xs text-slate-400 mt-1">Currently active</p>
                 </div>
-                <div className="bg-[#141824] border border-[#252c40] rounded p-4">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">MRR from Plans</p>
-                    <p className="text-2xl font-extrabold text-white mt-1">&#8377;12.4L</p>
-                    <p className="text-xs text-red-400 font-medium mt-1">-0.6% this month</p>
-                </div>
-                <div className="bg-[#141824] border border-[#252c40] rounded p-4">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Most Popular</p>
-                    <p className="text-2xl font-extrabold text-white mt-1">Premium</p>
-                    <p className="text-xs text-slate-400 mt-1">612 tenants on this tier</p>
+            </div>
+
+            {/* Action Toolbar */}
+            <div className="flex flex-wrap items-center justify-end gap-3 mb-4">
+                <div className="flex items-center space-x-2">
+                    <div className="relative w-56">
+                        <i className="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-[10px] text-gray-400"></i>
+                        <input 
+                            type="text" 
+                            placeholder="Search by plan code or name..." 
+                            className="w-full bg-white text-xs text-slate-700 pl-8 pr-3 py-1.5 border border-gray-200 rounded focus:outline-none focus:border-blue-500 shadow-sm placeholder-gray-400"
+                            value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); setPageNumber(1); }}
+                        />
+                    </div>
+                    <select
+                        className="bg-white border border-gray-200 text-slate-600 text-xs px-2.5 py-1.5 rounded shadow-sm focus:outline-none focus:border-blue-500 appearance-none"
+                        value={statusFilter}
+                        onChange={(e) => { setStatusFilter(e.target.value); setPageNumber(1); }}
+                    >
+                        <option value="">All Status</option>
+                        <option value="1">Active</option>
+                        <option value="2">Inactive</option>
+                        <option value="3">Draft</option>
+                        <option value="4">Archived</option>
+                        <option value="5">Deleted</option>
+                    </select>
                 </div>
             </div>
 
             {/* Plans table container */}
             <div className="bg-white border border-gray-200 rounded overflow-hidden">
-                <div className="flex items-center justify-between p-4 border-b border-gray-100 flex-wrap gap-4">
-                    <div className="relative flex-1 max-w-2xl">
-                        <input 
-                            type="text" 
-                            placeholder="Search by plan code or name..." 
-                            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
-                            value={searchTerm}
-                            onChange={(e) => { setSearchTerm(e.target.value); setPageNumber(1); }}
-                        />
-                        <svg className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <select 
-                            className="py-2 px-3 pr-8 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500 bg-white text-gray-600 min-w-[120px]"
-                            value={statusFilter}
-                            onChange={(e) => { setStatusFilter(e.target.value); setPageNumber(1); }}
-                        >
-                            <option value="">All Status</option>
-                            <option value="1">Active</option>
-                            <option value="2">Inactive</option>
-                            <option value="3">Draft</option>
-                            <option value="4">Archived</option>
-                            <option value="5">Deleted</option>
-                        </select>
-                        
-                        <div className="flex flex-col items-end justify-center border-l border-gray-200 pl-6 h-full">
-                            <div className="flex items-center text-sm text-gray-600 gap-2">
-                                <span>Page {pageNumber} of {Math.ceil(totalCount / pageSize) || 1}</span>
-                                <div className="flex items-center">
-                                    <button 
-                                        disabled={pageNumber === 1}
-                                        onClick={() => setPageNumber(prev => prev - 1)}
-                                        className="p-1 hover:bg-gray-100 rounded text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
-                                    </button>
-                                    <button 
-                                        disabled={pageNumber * pageSize >= totalCount}
-                                        onClick={() => setPageNumber(prev => prev + 1)}
-                                        className="p-1 hover:bg-gray-100 rounded text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <span className="text-[11px] text-gray-400 mt-0.5">
-                                Showing {plans.length} of {totalCount} results
-                            </span>
-                        </div>
-                    </div>
-                </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm min-w-[980px]">
+                    <table className="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr className="border-b border-gray-200 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50">
-                                <th className="py-3 px-6">NAME</th>
-                                <th className="py-3 px-6">CODE</th>
-                                <th className="py-3 px-6">DESCRIPTION</th>
-                                <th className="py-3 px-6">STATUS</th>
-                                <th className="py-3 px-6">MONTHLY</th>
-                                <th className="py-3 px-6">YEARLY</th>
-                                <th className="py-3 px-6">TRIAL</th>
-                                <th className="py-3 px-6 text-center">ACTIONS</th>
+                            <tr className="bg-[#f8f9fa] border-b border-gray-200 text-[10px] font-bold text-slate-500 tracking-wider uppercase">
+                                <th className="py-2.5 px-3 w-8 text-center">SI</th>
+                                <th className="py-2.5 px-3">NAME</th>
+                                <th className="py-2.5 px-3">CODE</th>
+                                <th className="py-2.5 px-3">DESCRIPTION</th>
+                                <th className="py-2.5 px-3">STATUS</th>
+                                <th className="py-2.5 px-3">MONTHLY</th>
+                                <th className="py-2.5 px-3">YEARLY</th>
+                                <th className="py-2.5 px-3">TRIAL</th>
+                                <th className="py-2.5 px-3">ACTIONS</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-100 text-slate-700">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="8" className="py-6 px-6 text-center text-gray-500">Loading plans...</td>
+                                    <td colSpan="9" className="py-6 px-6 text-center text-gray-500">Loading plans...</td>
                                 </tr>
                             ) : error ? (
                                 <tr>
-                                    <td colSpan="8" className="py-6 px-6 text-center text-red-500">{error}</td>
+                                    <td colSpan="9" className="py-6 px-6 text-center text-red-500">{error}</td>
                                 </tr>
                             ) : plans.length === 0 ? (
                                 <tr>
-                                    <td colSpan="8" className="py-6 px-6 text-center text-gray-500">No plans found.</td>
+                                    <td colSpan="9" className="py-6 px-6 text-center text-gray-500">No plans found.</td>
                                 </tr>
                             ) : (
-                                plans.map((plan) => (
-                                    <tr key={plan.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="py-3 px-6 text-gray-800 font-semibold text-[13px]">
-                                            <div className="truncate w-full max-w-[150px]" title={plan.name}>{plan.name}</div>
+                                plans.map((plan, index) => (
+                                    <tr key={plan.id} className="hover:bg-gray-50/60 transition-colors">
+                                        <td className="py-2.5 px-3 text-center text-gray-400 font-medium">{(pageNumber - 1) * pageSize + index + 1}</td>
+                                        <td className="py-2.5 px-3 text-[#141824] font-semibold">{plan.name}</td>
+                                        <td className="py-2.5 px-3 text-slate-600 font-mono">{plan.code}</td>
+                                        <td className="py-2.5 px-3 text-slate-600 truncate max-w-[200px]" title={plan.description}>{plan.description || 'N/A'}</td>
+                                        <td className="py-2.5 px-3">{getStatusBadge(plan.status)}</td>
+                                        <td className="py-2.5 px-3 text-slate-600">
+                                            {plan.monthlyPrice === 0 ? 'Free' : `${getCurrencySymbol(plan.currency)}${plan.monthlyPrice.toFixed(2)}`}
                                         </td>
-                                        <td className="py-3 px-6 text-gray-600 text-[13px] font-mono">
-                                            <div className="truncate w-full max-w-[120px]" title={plan.code}>{plan.code}</div>
+                                        <td className="py-2.5 px-3 text-slate-600">
+                                            {plan.yearlyPrice === 0 ? 'Free' : `${getCurrencySymbol(plan.currency)}${plan.yearlyPrice.toFixed(2)}`}
                                         </td>
-                                        <td className="py-3 px-6 text-gray-600 text-[13px]">
-                                            <div className="truncate w-full max-w-[200px]" title={plan.description || 'N/A'}>
-                                                {plan.description || 'N/A'}
-                                            </div>
+                                        <td className="py-2.5 px-3 text-slate-600">
+                                            {plan.trialPeriodDays ? `${plan.trialPeriodDays} days` : <>&mdash;</>}
                                         </td>
-                                        <td className="py-3 px-6">{getStatusBadge(plan.status)}</td>
-                                        <td className="py-3 px-6 text-gray-600 text-[13px]">
-                                            <div className="truncate w-full max-w-[80px]" title={plan.monthlyPrice === 0 ? 'Free' : `${getCurrencySymbol(plan.currency)}${plan.monthlyPrice.toFixed(2)}`}>
-                                                {plan.monthlyPrice === 0 ? 'Free' : `${getCurrencySymbol(plan.currency)}${plan.monthlyPrice.toFixed(2)}`}
-                                            </div>
-                                        </td>
-                                        <td className="py-3 px-6 text-gray-600 text-[13px]">
-                                            <div className="truncate w-full max-w-[80px]" title={plan.yearlyPrice === 0 ? 'Free' : `${getCurrencySymbol(plan.currency)}${plan.yearlyPrice.toFixed(2)}`}>
-                                                {plan.yearlyPrice === 0 ? 'Free' : `${getCurrencySymbol(plan.currency)}${plan.yearlyPrice.toFixed(2)}`}
-                                            </div>
-                                        </td>
-                                        <td className="py-3 px-6 text-gray-600 text-[13px]">
-                                            <div className="truncate w-full max-w-[80px]" title={plan.trialPeriodDays ? `${plan.trialPeriodDays} days` : '—'}>
-                                                {plan.trialPeriodDays ? `${plan.trialPeriodDays} days` : <>&mdash;</>}
-                                            </div>
-                                        </td>
-                                        <td className="py-3 px-6 text-center">
-                                            <div className="flex items-center justify-center gap-3">
+                                        <td className="py-2.5 px-3">
+                                            <div className="flex items-center gap-3">
                                                 <Link
                                                     to={`/superadmin/plans/${plan.id}`}
-                                                    className="text-[12px] font-medium text-emerald-600 hover:underline"
+                                                    className="text-[12px] font-medium text-teal-600 hover:text-teal-700 hover:underline focus:outline-none"
                                                 >
                                                     View
-                                                </Link>
-                                                <Link
-                                                    to={`/superadmin/plans/${plan.id}/edit`}
-                                                    className="text-[12px] font-medium text-blue-600 hover:underline"
-                                                >
-                                                    Edit
                                                 </Link>
                                             </div>
                                         </td>
@@ -276,8 +218,40 @@ export default function SuperAdminViewPlans() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* PAGINATION BAR */}
+                <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-white text-xs text-gray-500">
+                    <div>
+                        {totalCount > 0 ? `${(pageNumber - 1) * pageSize + 1} to ${Math.min(pageNumber * pageSize, totalCount)} Items of ${totalCount}` : '0 Items'}
+                    </div>
+                    <div className="flex items-center space-x-1">
+                        <button 
+                            onClick={() => setPageNumber(prev => prev - 1)}
+                            disabled={pageNumber === 1}
+                            className="w-6 h-6 flex items-center justify-center rounded border border-gray-200 text-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed"
+                        >
+                            <i className="fa-solid fa-chevron-left text-[8px]"></i>
+                        </button>
+                        <button className="w-6 h-6 flex items-center justify-center rounded bg-[#141824] text-white font-medium text-xs">{pageNumber}</button>
+                        {(pageNumber * pageSize) < totalCount && (
+                            <button 
+                                onClick={() => setPageNumber(prev => prev + 1)}
+                                className="w-6 h-6 flex items-center justify-center rounded border border-gray-200 text-slate-600 hover:bg-gray-50 text-xs"
+                            >
+                                {pageNumber + 1}
+                            </button>
+                        )}
+                        <button 
+                            onClick={() => setPageNumber(prev => prev + 1)}
+                            disabled={pageNumber * pageSize >= totalCount}
+                            className="w-6 h-6 flex items-center justify-center rounded border border-gray-200 text-slate-600 hover:bg-gray-50 text-xs disabled:cursor-not-allowed disabled:text-gray-300"
+                        >
+                            <i className="fa-solid fa-chevron-right text-[8px]"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
-            
+
         </div>
     );
 }

@@ -15,13 +15,19 @@ public class FeatureService : IFeatureService
 {
     private readonly IFeatureRepository _featureRepository;
     private readonly IValidator<CreateFeatureRequestDto> _validator;
+    private readonly IValidator<UpdateFeatureRequestDto> _updateValidator;
+    private readonly IValidator<UpdateFeatureStatusRequestDto> _statusValidator;
 
     public FeatureService(
         IFeatureRepository featureRepository,
-        IValidator<CreateFeatureRequestDto> validator)
+        IValidator<CreateFeatureRequestDto> validator,
+        IValidator<UpdateFeatureRequestDto> updateValidator,
+        IValidator<UpdateFeatureStatusRequestDto> statusValidator)
     {
         _featureRepository = featureRepository;
         _validator = validator;
+        _updateValidator = updateValidator;
+        _statusValidator = statusValidator;
     }
 
     public async Task<ApiResponse<FeatureResponseDto>> CreateFeatureAsync(CreateFeatureRequestDto request, string? createdBy = null)
@@ -139,4 +145,97 @@ public class FeatureService : IFeatureService
 
         return ApiResponse<PaginatedResponseDto<FeatureResponseDto>>.SuccessResponse(paginatedResponse, "Features retrieved successfully.", 200);
     }
+
+    public async Task<ApiResponse<FeatureResponseDto>> UpdateFeatureAsync(int id, UpdateFeatureRequestDto request, string? updatedBy = null)
+    {
+        var validationResult = await _updateValidator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            var firstError = validationResult.Errors.First().ErrorMessage;
+            return ApiResponse<FeatureResponseDto>.FailureResponse(firstError, 400);
+        }
+
+        var feature = await _featureRepository.GetByIdAsync(id);
+        if (feature == null)
+        {
+            return ApiResponse<FeatureResponseDto>.FailureResponse($"Feature with ID {id} not found.", 404);
+        }
+
+        var words = request.Name.Trim().ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var formattedName = string.Join(" ", words.Select(w => char.ToUpper(w[0]) + w.Substring(1)));
+
+        feature.Name = formattedName;
+        feature.Description = request.Description?.Trim();
+        feature.UpdatedAt = DateTime.UtcNow;
+
+        await _featureRepository.SaveChangesAsync();
+
+        var responseDto = new FeatureResponseDto
+        {
+            Id = feature.Id,
+            Name = feature.Name,
+            Code = feature.Code,
+            Description = feature.Description,
+            Status = feature.Status,
+            Type = feature.Type,
+            CreatedAt = feature.CreatedAt,
+            CreatedBy = feature.CreatedBy,
+            UpdatedAt = feature.UpdatedAt
+        };
+
+        return ApiResponse<FeatureResponseDto>.SuccessResponse(responseDto, "Feature updated successfully.", 200);
+    }
+
+    public async Task<ApiResponse<FeatureResponseDto>> UpdateFeatureStatusAsync(int id, UpdateFeatureStatusRequestDto request, string? updatedBy = null)
+    {
+        var validationResult = await _statusValidator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            var firstError = validationResult.Errors.First().ErrorMessage;
+            return ApiResponse<FeatureResponseDto>.FailureResponse(firstError, 400);
+        }
+
+        var feature = await _featureRepository.GetByIdAsync(id);
+        if (feature == null)
+        {
+            return ApiResponse<FeatureResponseDto>.FailureResponse($"Feature with ID {id} not found.", 404);
+        }
+
+        feature.Status = request.Status;
+        feature.UpdatedAt = DateTime.UtcNow;
+
+        await _featureRepository.SaveChangesAsync();
+
+        var responseDto = new FeatureResponseDto
+        {
+            Id = feature.Id,
+            Name = feature.Name,
+            Code = feature.Code,
+            Description = feature.Description,
+            Status = feature.Status,
+            Type = feature.Type,
+            CreatedAt = feature.CreatedAt,
+            CreatedBy = feature.CreatedBy,
+            UpdatedAt = feature.UpdatedAt
+        };
+
+        return ApiResponse<FeatureResponseDto>.SuccessResponse(responseDto, "Feature status updated successfully.", 200);
+    }
+
+    public async Task<ApiResponse<bool>> SoftDeleteFeatureAsync(int id, string? deletedBy = null)
+    {
+        var feature = await _featureRepository.GetByIdAsync(id);
+        if (feature == null)
+        {
+            return ApiResponse<bool>.FailureResponse($"Feature with ID {id} not found.", 404);
+        }
+
+        feature.Status = SaaS.Domain.Enums.FeatureStatus.Deleted;
+        feature.UpdatedAt = DateTime.UtcNow;
+
+        await _featureRepository.SaveChangesAsync();
+
+        return ApiResponse<bool>.SuccessResponse(true, "Feature deleted successfully.", 200);
+    }
 }
+
