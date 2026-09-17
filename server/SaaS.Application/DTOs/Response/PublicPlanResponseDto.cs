@@ -22,4 +22,6 @@ public class PublicPlanFeatureDto
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsEnabled { get; set; }
+    public bool? AccessValue { get; set; }
+    public int? LimitValue { get; set; }
 }

@@ -82,6 +82,8 @@ public class PlanRepository : IPlanRepository
             .Where(p => p.Status == SaaS.Domain.Enums.PlanStatus.Active)
             .Include(p => p.PlanFeatures.Where(pf => pf.IsEnabled))
                 .ThenInclude(pf => pf.Feature)
+            .Include(p => p.PlanFeatures.Where(pf => pf.IsEnabled))
+                .ThenInclude(pf => pf.Config)
             .OrderBy(p => p.MonthlyPrice)
             .ToListAsync();
     }
