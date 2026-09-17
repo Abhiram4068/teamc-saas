@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { featureApi } from '../../api/featureApi';
-import { validateFeatureForm } from '../../validators/featureFormValidator';
+import { validateFeatureForm, validateUpdateFeatureForm } from '../../validators/featureFormValidator';
 import { useToast } from '../../utils/Toast';
 import Breadcrumb from '../../components/common/Breadcrumb';
 
@@ -25,21 +25,33 @@ export default function SuperAdminViewFeatures() {
         status: 1,
         type: 1
     });
-    
+
     // View Modal state
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [selectedFeature, setSelectedFeature] = useState(null);
     const [isViewing, setIsViewing] = useState(false);
 
+    // Edit Modal State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editFormData, setEditFormData] = useState({ name: '', description: '' });
+    const [editFormErrors, setEditFormErrors] = useState({});
+
+    // Status Modal State
+    const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+    const [statusToUpdate, setStatusToUpdate] = useState(null);
+
+    // Delete Modal State
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
     // Prevent background scroll when modal is open
     useEffect(() => {
-        if (isCreateModalOpen || isViewModalOpen) {
+        if (isCreateModalOpen || isViewModalOpen || isEditModalOpen || isStatusModalOpen || isDeleteModalOpen) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
         }
         return () => { document.body.style.overflow = 'unset'; };
-    }, [isCreateModalOpen, isViewModalOpen]);
+    }, [isCreateModalOpen, isViewModalOpen, isEditModalOpen, isStatusModalOpen, isDeleteModalOpen]);
 
     // Debounce search input
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
@@ -58,13 +70,13 @@ export default function SuperAdminViewFeatures() {
     async function fetchFeatures() {
         try {
             setLoading(true);
-            const response = await featureApi.getFeatures({ 
-                pageNumber, 
+            const response = await featureApi.getFeatures({
+                pageNumber,
                 pageSize,
                 searchTerm: debouncedSearchTerm || undefined,
                 status: statusFilter || undefined
             });
-            
+
             if (response?.data?.items) {
                 setFeatures(response.data.items);
                 setTotalCount(response.data.totalCount || 0);
@@ -82,13 +94,13 @@ export default function SuperAdminViewFeatures() {
 
     const handleCreateFeature = async (e) => {
         e.preventDefault();
-        
+
         const { isValid, errors } = validateFeatureForm(newFeature);
         if (!isValid) {
             setFormErrors(errors);
             return;
         }
-        
+
         setFormErrors({});
         try {
             setIsSubmitting(true);
@@ -128,15 +140,82 @@ export default function SuperAdminViewFeatures() {
         }
     };
 
+    const openEditModal = () => {
+        setEditFormData({
+            name: selectedFeature.name || '',
+            description: selectedFeature.description || ''
+        });
+        setEditFormErrors({});
+        setIsEditModalOpen(true);
+    };
+
+    const handleEditSubmit = async () => {
+        const { isValid, errors } = validateUpdateFeatureForm(editFormData);
+        if (!isValid) {
+            setEditFormErrors(errors);
+            return;
+        }
+        setEditFormErrors({});
+        
+        try {
+            setIsSubmitting(true);
+            await featureApi.updateFeature(selectedFeature.id, editFormData);
+            setIsEditModalOpen(false);
+            setRefreshTrigger(prev => prev + 1);
+            showToast('Feature updated successfully!', 'success');
+            handleViewFeature(selectedFeature.id);
+        } catch (err) {
+            console.error("Error updating feature:", err);
+            const errorMessage = err.response?.data?.message || err.message || "Failed to update feature.";
+            showToast(errorMessage, 'error');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleStatusUpdate = async () => {
+        try {
+            setIsSubmitting(true);
+            await featureApi.updateFeatureStatus(selectedFeature.id, { status: statusToUpdate });
+            setIsStatusModalOpen(false);
+            setRefreshTrigger(prev => prev + 1);
+            showToast('Feature status updated successfully!', 'success');
+            handleViewFeature(selectedFeature.id);
+        } catch (err) {
+            console.error("Error updating feature status:", err);
+            const errorMessage = err.response?.data?.message || err.message || "Failed to update status.";
+            showToast(errorMessage, 'error');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteFeature = async () => {
+        try {
+            setIsSubmitting(true);
+            await featureApi.deleteFeature(selectedFeature.id);
+            setIsDeleteModalOpen(false);
+            setIsViewModalOpen(false);
+            setRefreshTrigger(prev => prev + 1);
+            showToast('Feature deleted successfully!', 'success');
+        } catch (err) {
+            console.error("Error deleting feature:", err);
+            const errorMessage = err.response?.data?.message || err.message || "Failed to delete feature.";
+            showToast(errorMessage, 'error');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const getStatusBadge = (status) => {
         // Enums mapping: 1=Active, 2=Inactive, 3=Draft, 4=Archived, 5=Deleted
         switch (status) {
-            case 1: return <span className="text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">Active</span>;
-            case 2: return <span className="text-xs font-semibold text-red-700 bg-red-100 px-2 py-1 rounded-full">Inactive</span>;
-            case 3: return <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">Draft</span>;
-            case 4: return <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">Archived</span>;
-            case 5: return <span className="text-xs font-semibold text-red-700 bg-red-100 px-2 py-1 rounded-full">Deleted</span>;
-            default: return <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">Unknown</span>;
+            case 1: return <span className="text-xs font-semibold text-emerald-700">Active</span>;
+            case 2: return <span className="text-xs font-semibold text-red-700">Inactive</span>;
+            case 3: return <span className="text-xs font-semibold text-gray-600">Draft</span>;
+            case 4: return <span className="text-xs font-semibold text-amber-700">Archived</span>;
+            case 5: return <span className="text-xs font-semibold text-red-700">Deleted</span>;
+            default: return <span className="text-xs font-semibold text-gray-600">Unknown</span>;
         }
     };
 
@@ -157,7 +236,7 @@ export default function SuperAdminViewFeatures() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                         Dashboard Overview
                     </button>
-                    <button 
+                    <button
                         onClick={() => setIsCreateModalOpen(true)}
                         className="flex items-center gap-2 text-sm font-semibold text-white bg-[#141824] hover:bg-[#252c40] px-4 py-2 rounded shadow-sm transition"
                     >
@@ -177,132 +256,92 @@ export default function SuperAdminViewFeatures() {
                     </p>
                 </div>
                 <div className="bg-[#141824] border border-[#252c40] rounded p-4">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Categories</p>
-                    <p className="text-2xl font-extrabold text-white mt-1">5</p>
-                    <p className="text-xs text-slate-400 mt-1">Core HR, Security, Support...</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Active Features</p>
+                    <p className="text-2xl font-extrabold text-white mt-1">{features.filter(f => f.status === 1).length}</p>
+                    <p className="text-xs text-slate-400 mt-1">Currently active</p>
                 </div>
-                <div className="bg-[#141824] border border-[#252c40] rounded p-4">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Mapped to Plans</p>
-                    <p className="text-2xl font-extrabold text-white mt-1">16</p>
-                    <p className="text-xs text-emerald-400 font-medium mt-1">2 unmapped</p>
-                </div>
-                <div className="bg-[#141824] border border-[#252c40] rounded p-4">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Most Gated Feature</p>
-                    <p className="text-2xl font-extrabold text-white mt-1">SSO</p>
-                    <p className="text-xs text-slate-400 mt-1">Enterprise only</p>
+            </div>
+
+            {/* Action Toolbar */}
+            <div className="flex flex-wrap items-center justify-end gap-3 mb-4">
+                <div className="flex items-center space-x-2">
+                    <div className="relative w-56">
+                        <i className="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-[10px] text-gray-400"></i>
+                        <input 
+                            type="text" 
+                            placeholder="Search by code or name..." 
+                            className="w-full bg-white text-xs text-slate-700 pl-8 pr-3 py-1.5 border border-gray-200 rounded focus:outline-none focus:border-blue-500 shadow-sm placeholder-gray-400"
+                            value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); setPageNumber(1); }}
+                        />
+                    </div>
+                    <select
+                        className="bg-white border border-gray-200 text-slate-600 text-xs px-2.5 py-1.5 rounded shadow-sm focus:outline-none focus:border-blue-500 appearance-none"
+                        value={statusFilter}
+                        onChange={(e) => { setStatusFilter(e.target.value); setPageNumber(1); }}
+                    >
+                        <option value="">All Status</option>
+                        <option value="1">Active</option>
+                        <option value="2">Inactive</option>
+                        <option value="3">Draft</option>
+                        <option value="4">Archived</option>
+                        <option value="5">Deleted</option>
+                    </select>
                 </div>
             </div>
 
             {/* Features table container */}
             <div className="bg-white border border-gray-200 rounded overflow-hidden">
-                <div className="flex items-center justify-between p-4 border-b border-gray-100 flex-wrap gap-4">
-                    <div className="relative flex-1 max-w-2xl">
-                        <input 
-                            type="text" 
-                            placeholder="Search by code or name..." 
-                            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded focus:outline-none focus:border-brand-500"
-                            value={searchTerm}
-                            onChange={(e) => { setSearchTerm(e.target.value); setPageNumber(1); }}
-                        />
-                        <svg className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <select 
-                            className="py-2 px-3 pr-8 text-sm border border-gray-200 rounded focus:outline-none focus:border-brand-500 bg-white text-gray-600 min-w-[120px]"
-                            value={statusFilter}
-                            onChange={(e) => { setStatusFilter(e.target.value); setPageNumber(1); }}
-                        >
-                            <option value="">All Status</option>
-                            <option value="1">Active</option>
-                            <option value="2">Inactive</option>
-                            <option value="3">Draft</option>
-                            <option value="4">Archived</option>
-                            <option value="5">Deleted</option>
-                        </select>
-                        
-                        <div className="flex flex-col items-end justify-center border-l border-gray-200 pl-6 h-full">
-                            <div className="flex items-center text-sm text-gray-600 gap-2">
-                                <span>Page {pageNumber} of {Math.ceil(totalCount / pageSize) || 1}</span>
-                                <div className="flex items-center">
-                                    <button 
-                                        disabled={pageNumber === 1}
-                                        onClick={() => setPageNumber(prev => prev - 1)}
-                                        className="p-1 hover:bg-gray-100 rounded text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
-                                    </button>
-                                    <button 
-                                        disabled={pageNumber * pageSize >= totalCount}
-                                        onClick={() => setPageNumber(prev => prev + 1)}
-                                        className="p-1 hover:bg-gray-100 rounded text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <span className="text-[11px] text-gray-400 mt-0.5">
-                                Showing {features.length} of {totalCount} results
-                            </span>
-                        </div>
-                    </div>
-                </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm min-w-[980px]">
+                    <table className="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr className="border-b border-gray-200 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                                <th className="py-3 px-6 w-[20%]">NAME</th>
-                                <th className="py-3 px-6 w-[15%]">CODE</th>
-                                <th className="py-3 px-6 w-[25%]">DESCRIPTION</th>
-                                <th className="py-3 px-6 w-[15%]">CREATED AT</th>
-                                <th className="py-3 px-6 w-[15%]">STATUS</th>
-                                <th className="py-3 px-6 w-[10%] text-center">ACTION</th>
+                            <tr className="bg-[#f8f9fa] border-b border-gray-200 text-[10px] font-bold text-slate-500 tracking-wider uppercase">
+                                <th className="py-2.5 px-3 w-8 text-center">SI</th>
+                                <th className="py-2.5 px-3">NAME</th>
+                                <th className="py-2.5 px-3">CODE</th>
+                                <th className="py-2.5 px-3">DESCRIPTION</th>
+                                <th className="py-2.5 px-3">CREATED AT</th>
+                                <th className="py-2.5 px-3">STATUS</th>
+                                <th className="py-2.5 px-3">ACTIONS</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-100 text-slate-700">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="py-6 px-6 text-center text-gray-500">Loading features...</td>
+                                    <td colSpan="7" className="py-6 px-6 text-center text-gray-500">Loading features...</td>
                                 </tr>
                             ) : error ? (
                                 <tr>
-                                    <td colSpan="6" className="py-6 px-6 text-center text-red-500">{error}</td>
+                                    <td colSpan="7" className="py-6 px-6 text-center text-red-500">{error}</td>
                                 </tr>
                             ) : features.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="py-6 px-6 text-center text-gray-500">No features found.</td>
+                                    <td colSpan="7" className="py-6 px-6 text-center text-gray-500">No features found.</td>
                                 </tr>
                             ) : (
-                                features.map((feature) => (
-                                    <tr key={feature.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="py-3 px-6 text-gray-800 font-medium text-[13px]">
-                                            <div className="truncate w-full max-w-[200px]" title={feature.name}>
-                                                {feature.name}
-                                            </div>
+                                features.map((feature, index) => (
+                                    <tr key={feature.id} className="hover:bg-gray-50/60 transition-colors">
+                                        <td className="py-2.5 px-3 text-center text-gray-400 font-medium">{(pageNumber - 1) * pageSize + index + 1}</td>
+                                        <td className="py-2.5 px-3 text-[#141824] font-semibold">
+                                            <div className="truncate w-full max-w-[200px]" title={feature.name}>{feature.name}</div>
                                         </td>
-                                        <td className="py-3 px-6 text-gray-600 text-[13px]">
-                                            <div className="truncate w-full max-w-[150px]" title={feature.code}>
-                                                {feature.code}
-                                            </div>
+                                        <td className="py-2.5 px-3 text-slate-600 font-mono">
+                                            <div className="truncate w-full max-w-[150px]" title={feature.code}>{feature.code}</div>
                                         </td>
-                                        <td className="py-3 px-6 text-gray-600 text-[13px]">
-                                            <div className="truncate w-full max-w-[250px]" title={feature.description || 'N/A'}>
-                                                {feature.description || 'N/A'}
-                                            </div>
+                                        <td className="py-2.5 px-3 text-slate-600">
+                                            <div className="truncate w-full max-w-[250px]" title={feature.description || 'N/A'}>{feature.description || 'N/A'}</div>
                                         </td>
-                                        <td className="py-3 px-6 text-gray-500 text-[13px]">
+                                        <td className="py-2.5 px-3 text-slate-600">
                                             {new Date(feature.createdAt).toLocaleDateString()}
                                         </td>
-                                        <td className="py-3 px-6">{getStatusBadge(feature.status)}</td>
-                                        <td className="py-3 px-6 text-center">
-                                            <div className="flex items-center justify-center gap-3">
+                                        <td className="py-2.5 px-3">{getStatusBadge(feature.status)}</td>
+                                        <td className="py-2.5 px-3">
+                                            <div className="flex items-center gap-3">
                                                 <button 
                                                     onClick={() => handleViewFeature(feature.id)}
-                                                    className="text-[12px] font-medium text-emerald-600 hover:underline"
+                                                    className="text-[12px] font-medium text-teal-600 hover:text-teal-700 hover:underline focus:outline-none"
                                                 >
                                                     View
-                                                </button>
-                                                <button className="text-[12px] font-medium text-blue-600 hover:underline">
-                                                    Edit
                                                 </button>
                                             </div>
                                         </td>
@@ -311,6 +350,38 @@ export default function SuperAdminViewFeatures() {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* PAGINATION BAR */}
+                <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-white text-xs text-gray-500">
+                    <div>
+                        {totalCount > 0 ? `${(pageNumber - 1) * pageSize + 1} to ${Math.min(pageNumber * pageSize, totalCount)} Items of ${totalCount}` : '0 Items'}
+                    </div>
+                    <div className="flex items-center space-x-1">
+                        <button 
+                            onClick={() => setPageNumber(prev => prev - 1)}
+                            disabled={pageNumber === 1}
+                            className="w-6 h-6 flex items-center justify-center rounded border border-gray-200 text-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed"
+                        >
+                            <i className="fa-solid fa-chevron-left text-[8px]"></i>
+                        </button>
+                        <button className="w-6 h-6 flex items-center justify-center rounded bg-[#141824] text-white font-medium text-xs">{pageNumber}</button>
+                        {(pageNumber * pageSize) < totalCount && (
+                            <button 
+                                onClick={() => setPageNumber(prev => prev + 1)}
+                                className="w-6 h-6 flex items-center justify-center rounded border border-gray-200 text-slate-600 hover:bg-gray-50 text-xs"
+                            >
+                                {pageNumber + 1}
+                            </button>
+                        )}
+                        <button 
+                            onClick={() => setPageNumber(prev => prev + 1)}
+                            disabled={pageNumber * pageSize >= totalCount}
+                            className="w-6 h-6 flex items-center justify-center rounded border border-gray-200 text-slate-600 hover:bg-gray-50 text-xs disabled:cursor-not-allowed disabled:text-gray-300"
+                        >
+                            <i className="fa-solid fa-chevron-right text-[8px]"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -327,11 +398,11 @@ export default function SuperAdminViewFeatures() {
                         <form onSubmit={handleCreateFeature} className="p-6 space-y-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Name</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     required
                                     value={newFeature.name}
-                                    onChange={(e) => setNewFeature({...newFeature, name: e.target.value})}
+                                    onChange={(e) => setNewFeature({ ...newFeature, name: e.target.value })}
                                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm ${formErrors.name ? 'border-red-500' : 'border-gray-200'}`}
                                     placeholder="e.g. Attendance Management"
                                 />
@@ -339,11 +410,11 @@ export default function SuperAdminViewFeatures() {
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Code</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     required
                                     value={newFeature.code}
-                                    onChange={(e) => setNewFeature({...newFeature, code: e.target.value})}
+                                    onChange={(e) => setNewFeature({ ...newFeature, code: e.target.value })}
                                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm ${formErrors.code ? 'border-red-500' : 'border-gray-200'}`}
                                     placeholder="e.g. ATTENDANCE"
                                 />
@@ -351,10 +422,10 @@ export default function SuperAdminViewFeatures() {
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
-                                <textarea 
+                                <textarea
                                     required
                                     value={newFeature.description}
-                                    onChange={(e) => setNewFeature({...newFeature, description: e.target.value})}
+                                    onChange={(e) => setNewFeature({ ...newFeature, description: e.target.value })}
                                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm h-24 resize-none ${formErrors.description ? 'border-red-500' : 'border-gray-200'}`}
                                     placeholder="e.g. Track and manage employee attendance."
                                 />
@@ -362,9 +433,9 @@ export default function SuperAdminViewFeatures() {
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Feature Type</label>
-                                <select 
+                                <select
                                     value={newFeature.type}
-                                    onChange={(e) => setNewFeature({...newFeature, type: Number(e.target.value)})}
+                                    onChange={(e) => setNewFeature({ ...newFeature, type: Number(e.target.value) })}
                                     className="w-full px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm bg-white border-gray-200"
                                 >
                                     <option value={1}>Access Based (Allow/Deny access)</option>
@@ -373,9 +444,9 @@ export default function SuperAdminViewFeatures() {
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
-                                <select 
+                                <select
                                     value={newFeature.status}
-                                    onChange={(e) => setNewFeature({...newFeature, status: Number(e.target.value)})}
+                                    onChange={(e) => setNewFeature({ ...newFeature, status: Number(e.target.value) })}
                                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm bg-white ${formErrors.status ? 'border-red-500' : 'border-gray-200'}`}
                                 >
                                     <option value={1}>Active</option>
@@ -384,15 +455,15 @@ export default function SuperAdminViewFeatures() {
                                 {formErrors.status && <p className="text-red-500 text-xs mt-1">{formErrors.status}</p>}
                             </div>
                             <div className="pt-4 flex items-center justify-end gap-3 border-t border-gray-100">
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onClick={() => { setIsCreateModalOpen(false); setFormErrors({}); }}
                                     className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 border border-transparent rounded transition"
                                 >
                                     Cancel
                                 </button>
-                                <button 
-                                    type="submit" 
+                                <button
+                                    type="submit"
                                     disabled={isSubmitting}
                                     className="px-4 py-2 text-sm font-semibold text-white bg-[#141824] hover:bg-[#252c40] rounded shadow-sm disabled:opacity-50 transition"
                                 >
@@ -458,8 +529,19 @@ export default function SuperAdminViewFeatures() {
                                 </div>
                             )}
                         </div>
-                        <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex justify-end">
-                            <button 
+                        <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <button onClick={openEditModal} className="px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded transition shadow-sm">
+                                    Edit
+                                </button>
+                                <button onClick={() => { setStatusToUpdate(selectedFeature?.status === 1 ? 2 : 1); setIsStatusModalOpen(true); }} className="px-3 py-1.5 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-900 rounded transition shadow-sm">
+                                    Change Status
+                                </button>
+                                <button onClick={() => setIsDeleteModalOpen(true)} className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded transition">
+                                    Delete
+                                </button>
+                            </div>
+                            <button
                                 onClick={() => setIsViewModalOpen(false)}
                                 className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 border border-gray-200 rounded transition"
                             >
@@ -469,6 +551,132 @@ export default function SuperAdminViewFeatures() {
                     </div>
                 </div>
             )}
+            {/* Edit Feature Modal */}
+            {isEditModalOpen && selectedFeature && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
+                        <div className="px-6 py-4 border-b border-indigo-100 bg-indigo-50/50 flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                                    <i className="fa-solid fa-pen text-sm"></i>
+                                </div>
+                                Edit Feature
+                            </h2>
+                            <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                                <i className="fa-solid fa-xmark text-lg"></i>
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-700 mb-1">Feature Name</label>
+                                <input 
+                                    type="text"
+                                    value={editFormData.name}
+                                    onChange={(e) => {
+                                        setEditFormData({...editFormData, name: e.target.value});
+                                        if (editFormErrors.name) setEditFormErrors({...editFormErrors, name: null});
+                                    }}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 text-sm transition-shadow ${editFormErrors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
+                                />
+                                {editFormErrors.name && <p className="text-red-500 text-[10px] mt-1">{editFormErrors.name}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
+                                <textarea 
+                                    value={editFormData.description}
+                                    onChange={(e) => {
+                                        setEditFormData({...editFormData, description: e.target.value});
+                                        if (editFormErrors.description) setEditFormErrors({...editFormErrors, description: null});
+                                    }}
+                                    rows="3"
+                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 text-sm resize-none transition-shadow ${editFormErrors.description ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
+                                ></textarea>
+                                {editFormErrors.description && <p className="text-red-500 text-[10px] mt-1">{editFormErrors.description}</p>}
+                            </div>
+                        </div>
+                        <div className="px-6 py-4 border-t border-gray-100 bg-slate-50 flex items-center justify-end gap-3">
+                            <button
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-lg transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleEditSubmit}
+                                disabled={isSubmitting}
+                                className="px-4 py-2 text-xs font-semibold text-white bg-[#141824] hover:bg-slate-800 rounded-lg transition shadow-sm disabled:opacity-50"
+                            >
+                                {isSubmitting ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Status Modal */}
+            {isStatusModalOpen && selectedFeature && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
+                        <div className="p-6 text-center">
+                            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                <i className="fa-solid fa-power-off text-2xl text-slate-600"></i>
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-800 mb-2">Change Feature Status?</h3>
+                            <p className="text-sm text-slate-500 mb-6">
+                                Are you sure you want to change the status of <strong>{selectedFeature.name}</strong> to <span className="font-bold">{statusToUpdate === 1 ? 'Active' : 'Inactive'}</span>?
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setIsStatusModalOpen(false)}
+                                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleStatusUpdate}
+                                    disabled={isSubmitting}
+                                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-[#141824] hover:bg-slate-800 rounded-lg transition shadow-sm disabled:opacity-50"
+                                >
+                                    {isSubmitting ? 'Updating...' : 'Confirm'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Modal */}
+            {isDeleteModalOpen && selectedFeature && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
+                        <div className="p-6 text-center">
+                            <div className="w-16 h-16 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-4 text-rose-600">
+                                <i className="fa-solid fa-triangle-exclamation text-2xl"></i>
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-800 mb-2">Delete Feature?</h3>
+                            <p className="text-sm text-slate-500 mb-6">
+                                Are you sure you want to delete <strong>{selectedFeature.name}</strong>? This action will mark the feature as deleted.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setIsDeleteModalOpen(false)}
+                                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteFeature}
+                                    disabled={isSubmitting}
+                                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition shadow-sm disabled:opacity-50"
+                                >
+                                    {isSubmitting ? 'Deleting...' : 'Delete'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }

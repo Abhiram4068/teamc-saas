@@ -4,6 +4,7 @@ import { planApi } from '../../api/planApi';
 import { featureApi } from '../../api/featureApi';
 import { useToast } from '../../utils/Toast';
 import Breadcrumb from '../../components/common/Breadcrumb';
+import { validateUpdatePlanForm } from '../../validators/planFormValidator';
 
 const STATUS_CONFIG = {
   1: { label: 'Active', color: 'text-emerald-600' },
@@ -29,6 +30,20 @@ export default function SuperAdminViewDetailedPlan() {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Edit Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isConfirmEditModalOpen, setIsConfirmEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({ name: '', description: '', trialPeriodDays: '' });
+  const [editFormErrors, setEditFormErrors] = useState({});
+
+  // Status Modal State
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [isConfirmStatusModalOpen, setIsConfirmStatusModalOpen] = useState(false);
+  const [newStatusValue, setNewStatusValue] = useState(null);
+
+  // Delete Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // Add Features Modal State
   const [isAddFeatureModalOpen, setIsAddFeatureModalOpen] = useState(false);
@@ -69,7 +84,7 @@ export default function SuperAdminViewDetailedPlan() {
 
   // Lock body scroll when any modal is active
   useEffect(() => {
-    if (isAddFeatureModalOpen || confirmFeature) {
+    if (isAddFeatureModalOpen || confirmFeature || isEditModalOpen || isConfirmEditModalOpen || isStatusModalOpen || isConfirmStatusModalOpen || isDeleteModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -77,7 +92,7 @@ export default function SuperAdminViewDetailedPlan() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isAddFeatureModalOpen, confirmFeature]);
+  }, [isAddFeatureModalOpen, confirmFeature, isEditModalOpen, isConfirmEditModalOpen, isStatusModalOpen, isConfirmStatusModalOpen, isDeleteModalOpen]);
 
   async function fetchPlan() {
     try {
@@ -147,9 +162,9 @@ export default function SuperAdminViewDetailedPlan() {
       const payload = {
         planId: parseInt(id, 10),
         features: [{
-            featureId: confirmFeature.id,
-            accessValue: confirmFeature.type === 1 ? accessValue : null,
-            limitValue: confirmFeature.type === 2 ? Number(limitValue) : null
+          featureId: confirmFeature.id,
+          accessValue: confirmFeature.type === 1 ? accessValue : null,
+          limitValue: confirmFeature.type === 2 ? Number(limitValue) : null
         }],
       };
       const response = await planApi.mapFeaturesToPlan(payload);
@@ -170,33 +185,82 @@ export default function SuperAdminViewDetailedPlan() {
     }
   }
 
-  const handleStatusChange = async (newStatus) => {
+  const openEditModal = () => {
+    setEditFormData({
+      name: plan.name || '',
+      description: plan.description || '',
+      trialPeriodDays: plan.trialPeriodDays ?? ''
+    });
+    setEditFormErrors({});
+    setIsEditModalOpen(true);
+  };
+
+  const clearEditForm = () => {
+    setEditFormData({ name: '', description: '', trialPeriodDays: '' });
+    setEditFormErrors({});
+  };
+
+  const handleEditSubmit = () => {
+    const { isValid, errors } = validateUpdatePlanForm(editFormData);
+    if (!isValid) {
+      setEditFormErrors(errors);
+      return;
+    }
+    setEditFormErrors({});
+    setIsConfirmEditModalOpen(true);
+  };
+
+  const handleConfirmEdit = async () => {
     try {
       setIsUpdating(true);
-      const response = await planApi.updatePlanStatus?.(id, newStatus);
-      if (response?.success) {
-        setPlan((prev) => ({ ...prev, status: newStatus }));
-        showToast('Plan status updated successfully.', 'success');
-      } else {
-        setPlan((prev) => ({ ...prev, status: newStatus }));
-        showToast('Plan status updated.', 'success');
-      }
+      const payload = {
+        name: editFormData.name,
+        description: editFormData.description,
+        trialPeriodDays: editFormData.trialPeriodDays !== '' ? Number(editFormData.trialPeriodDays) : null
+      };
+      await planApi.updatePlan(id, payload);
+      showToast('Plan updated successfully.', 'success');
+      setIsConfirmEditModalOpen(false);
+      setIsEditModalOpen(false);
+      fetchPlan();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to update status.', 'error');
+      showToast(err.response?.data?.message || 'Failed to update plan.', 'error');
+      setIsConfirmEditModalOpen(false);
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this plan?')) return;
+  const openStatusModal = () => {
+    setNewStatusValue(plan.status);
+    setIsStatusModalOpen(true);
+  };
+
+  const handleConfirmStatus = async () => {
     try {
       setIsUpdating(true);
-      await planApi.deletePlan?.(id);
+      await planApi.updatePlanStatus(id, newStatusValue);
+      showToast('Plan status updated successfully.', 'success');
+      setIsConfirmStatusModalOpen(false);
+      setIsStatusModalOpen(false);
+      fetchPlan();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to update status.', 'error');
+      setIsConfirmStatusModalOpen(false);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      setIsUpdating(true);
+      await planApi.deletePlan(id);
       showToast('Plan deleted successfully.', 'success');
       navigate('/superadmin/plans');
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to delete plan.', 'error');
+      setIsDeleteModalOpen(false);
     } finally {
       setIsUpdating(false);
     }
@@ -247,9 +311,13 @@ export default function SuperAdminViewDetailedPlan() {
             <>
               <div className="flex items-center gap-3 mt-2">
                 <h1 className="text-2xl font-bold text-gray-800">{plan.name}</h1>
-                <span className={`text-sm font-semibold ${statusConfig.color}`}>
-                  {statusConfig.label}
-                </span>
+                <button
+                  onClick={openStatusModal}
+                  className={`text-sm font-semibold px-2.5 py-1 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer ${statusConfig.color}`}
+                  title="Click to edit status"
+                >
+                  {statusConfig.label} <i className="fa-solid fa-pen ml-1 text-[10px]"></i>
+                </button>
               </div>
               <p className="text-xs font-mono text-gray-400 mt-1">CODE: {plan.code}</p>
             </>
@@ -268,7 +336,7 @@ export default function SuperAdminViewDetailedPlan() {
               Add Features to {plan?.name}
             </button>
             <button
-              onClick={() => navigate(`/superadmin/plans/${id}/edit`)}
+              onClick={openEditModal}
               className="flex items-center gap-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 px-4 py-2 rounded hover:bg-gray-50 transition"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -277,7 +345,7 @@ export default function SuperAdminViewDetailedPlan() {
               Edit Plan
             </button>
             <button
-              onClick={handleDelete}
+              onClick={() => setIsDeleteModalOpen(true)}
               disabled={isUpdating}
               className="flex items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 px-4 py-2 rounded hover:bg-red-100 transition disabled:opacity-50"
             >
@@ -492,7 +560,7 @@ export default function SuperAdminViewDetailedPlan() {
       {isAddFeatureModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 sm:p-6 overflow-hidden">
           <div className="w-full lg:w-3/4 max-w-5xl h-[85vh] max-h-[820px] bg-white rounded-xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            
+
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-slate-50/80">
               <div>
@@ -694,31 +762,31 @@ export default function SuperAdminViewDetailedPlan() {
                 <span className="text-gray-500 font-semibold text-xs">Feature Name</span>
                 <span className="font-bold text-gray-800">{confirmFeature.name}</span>
               </div>
-              
+
               <div className="pt-2">
-                  {confirmFeature.type === 2 ? (
-                      <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-1">Limit Value</label>
-                          <input 
-                              type="number"
-                              min="0"
-                              required
-                              value={limitValue}
-                              onChange={(e) => setLimitValue(e.target.value)}
-                              placeholder="Enter numeric limit (e.g. 5)"
-                              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-indigo-500 text-sm"
-                          />
+                {confirmFeature.type === 2 ? (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Limit Value</label>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      value={limitValue}
+                      onChange={(e) => setLimitValue(e.target.value)}
+                      placeholder="Enter numeric limit (e.g. 5)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-indigo-500 text-sm"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-semibold text-gray-700">Access Enabled</label>
+                    <div className="relative inline-flex items-center cursor-pointer" onClick={() => setAccessValue(!accessValue)}>
+                      <div className={`w-9 h-5 rounded-full transition-colors ${accessValue ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+                        <div className={`absolute top-0.5 left-0.5 bg-white border border-gray-300 rounded-full h-4 w-4 transition-transform ${accessValue ? 'translate-x-4 border-white' : ''}`}></div>
                       </div>
-                  ) : (
-                      <div className="flex items-center gap-2">
-                          <label className="text-xs font-semibold text-gray-700">Access Enabled</label>
-                          <div className="relative inline-flex items-center cursor-pointer" onClick={() => setAccessValue(!accessValue)}>
-                              <div className={`w-9 h-5 rounded-full transition-colors ${accessValue ? 'bg-indigo-600' : 'bg-gray-300'}`}>
-                                  <div className={`absolute top-0.5 left-0.5 bg-white border border-gray-300 rounded-full h-4 w-4 transition-transform ${accessValue ? 'translate-x-4 border-white' : ''}`}></div>
-                              </div>
-                          </div>
-                      </div>
-                  )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -747,6 +815,236 @@ export default function SuperAdminViewDetailedPlan() {
                   <span>Yes, Add Feature</span>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT MODAL */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-hidden">
+          <div className="w-full max-w-lg bg-white rounded-xl shadow-2xl border border-slate-200 flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-slate-50/80 rounded-t-xl">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                Edit Plan
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-gray-400 hover:text-gray-700 transition cursor-pointer"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Plan Name</label>
+                <input 
+                  type="text"
+                  value={editFormData.name}
+                  onChange={(e) => {
+                    setEditFormData({...editFormData, name: e.target.value});
+                    if (editFormErrors.name) setEditFormErrors({...editFormErrors, name: null});
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 text-sm transition-shadow ${editFormErrors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
+                  placeholder="e.g. Pro Plan"
+                />
+                {editFormErrors.name && <p className="text-red-500 text-[10px] mt-1">{editFormErrors.name}</p>}
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
+                <textarea 
+                  value={editFormData.description}
+                  onChange={(e) => {
+                    setEditFormData({...editFormData, description: e.target.value});
+                    if (editFormErrors.description) setEditFormErrors({...editFormErrors, description: null});
+                  }}
+                  rows="3"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 text-sm resize-none transition-shadow ${editFormErrors.description ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
+                  placeholder="Plan description..."
+                ></textarea>
+                {editFormErrors.description && <p className="text-red-500 text-[10px] mt-1">{editFormErrors.description}</p>}
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Trial Period (Days)</label>
+                <input 
+                  type="number"
+                  min="0"
+                  value={editFormData.trialPeriodDays}
+                  onChange={(e) => {
+                    setEditFormData({...editFormData, trialPeriodDays: e.target.value});
+                    if (editFormErrors.trialPeriodDays) setEditFormErrors({...editFormErrors, trialPeriodDays: null});
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 text-sm transition-shadow ${editFormErrors.trialPeriodDays ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
+                  placeholder="Leave blank for no trial"
+                />
+                {editFormErrors.trialPeriodDays && <p className="text-red-500 text-[10px] mt-1">{editFormErrors.trialPeriodDays}</p>}
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 bg-slate-50 flex items-center justify-between rounded-b-xl">
+              <button
+                type="button"
+                onClick={clearEditForm}
+                className="px-4 py-2 text-xs font-semibold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition cursor-pointer"
+              >
+                Clear
+              </button>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEditSubmit}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-[#141824] hover:bg-slate-800 rounded-lg transition shadow-sm disabled:opacity-50 cursor-pointer"
+                >
+                  Confirm Edit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM EDIT MODAL */}
+      {isConfirmEditModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-hidden animate-in fade-in duration-100">
+          <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl border border-slate-200 p-6 relative">
+            <div className="absolute top-0 left-0 w-full h-1 bg-indig rounded-t-xl"></div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2  text-indigo-600 rounded-full">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+              </div>
+              <h4 className="text-lg font-bold text-gray-900">Save Changes?</h4>
+            </div>
+            <p className="text-sm text-gray-600 mb-6 pl-12">Are you sure you want to save the changes made to this plan?</p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={() => setIsConfirmEditModalOpen(false)}
+                className="px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={handleConfirmEdit}
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#141824] hover:bg-slate-800 rounded-lg transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isUpdating ? 'Saving...' : 'Yes, Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* STATUS MODAL */}
+      {isStatusModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-hidden">
+          <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl border border-slate-200 flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-gray-100 bg-slate-50/80 rounded-t-xl">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                Change Status
+              </h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <label className="block text-sm font-semibold text-gray-700">Select New Status</label>
+              <select
+                value={newStatusValue || ''}
+                onChange={(e) => setNewStatusValue(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm transition-shadow cursor-pointer"
+              >
+                <option value={1}>Active</option>
+                <option value={2}>Inactive</option>
+                <option value={3}>Draft</option>
+                <option value={4}>Archived</option>
+              </select>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 bg-slate-50 flex justify-end gap-3 rounded-b-xl">
+              <button
+                onClick={() => setIsStatusModalOpen(false)}
+                className="px-4 py-2 text-xs font-semibold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setIsConfirmStatusModalOpen(true)}
+                disabled={newStatusValue === plan.status}
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#141824] hover:bg-slate-800 rounded-lg transition cursor-pointer disabled:opacity-50 shadow-sm"
+              >
+                Update Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM STATUS MODAL */}
+      {isConfirmStatusModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-hidden animate-in fade-in duration-100">
+          <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl border border-slate-200 p-6 relative">
+            <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500 rounded-t-xl"></div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-indigo-50 text-indigo-500 rounded-full">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              <h4 className="text-lg font-bold text-gray-900">Confirm Status Change</h4>
+            </div>
+            <p className="text-sm text-gray-600 mb-6 pl-12">Change status to <span className="font-semibold text-gray-800">{STATUS_CONFIG[newStatusValue]?.label}</span>?</p>
+            <div className="flex justify-end gap-3">
+              <button
+                disabled={isUpdating}
+                onClick={() => setIsConfirmStatusModalOpen(false)}
+                className="px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={isUpdating}
+                onClick={handleConfirmStatus}
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#141824] hover:bg-slate-800 rounded-lg transition flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
+              >
+                {isUpdating ? 'Updating...' : 'Yes, Update'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE MODAL */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-hidden animate-in fade-in duration-100">
+          <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl border border-red-100 p-6 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-red-600"></div>
+            <div className="flex flex-col items-center text-center">
+              <div className="p-3 bg-red-50 text-red-600 rounded-full mb-4">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+              </div>
+              <h4 className="text-xl font-bold text-gray-900 mb-2">Delete Plan?</h4>
+              <p className="text-sm text-gray-500 mb-6 px-2">Are you sure you want to permanently delete <strong className="text-gray-700">{plan?.name}</strong>? This action cannot be reversed.</p>
+
+              <div className="flex justify-center w-full gap-3">
+                <button
+                  disabled={isUpdating}
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={isUpdating}
+                  onClick={handleConfirmDelete}
+                  className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
+                >
+                  {isUpdating ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

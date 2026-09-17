@@ -14,5 +14,20 @@ export const featureApi = {
     getFeatureById: async (id) => {
         const response = await axiosClient.get(`/features/${id}`);
         return response.data;
+    },
+
+    updateFeature: async (id, data) => {
+        const response = await axiosClient.patch(`/features/${id}`, data);
+        return response.data;
+    },
+
+    updateFeatureStatus: async (id, data) => {
+        const response = await axiosClient.patch(`/features/${id}/status`, data);
+        return response.data;
+    },
+
+    deleteFeature: async (id) => {
+        const response = await axiosClient.delete(`/features/${id}`);
+        return response.data;
     }
 };

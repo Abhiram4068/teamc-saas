@@ -16,6 +16,8 @@ public class PlanService : IPlanService
     private readonly IPlanFeatureRepository _planFeatureRepository;
     private readonly ISubscriptionRepository _subscriptionRepository;
     private readonly IValidator<CreatePlanRequestDto> _validator;
+    private readonly IValidator<UpdatePlanRequestDto> _updateValidator;
+    private readonly IValidator<UpdatePlanStatusRequestDto> _updateStatusValidator;
     private readonly IValidator<MapPlanFeatureRequestDto> _mapValidator;
     private readonly IStripeProductService _stripeProductService;
 
@@ -25,6 +27,8 @@ public class PlanService : IPlanService
         IPlanFeatureRepository planFeatureRepository,
         ISubscriptionRepository subscriptionRepository,
         IValidator<CreatePlanRequestDto> validator,
+        IValidator<UpdatePlanRequestDto> updateValidator,
+        IValidator<UpdatePlanStatusRequestDto> updateStatusValidator,
         IValidator<MapPlanFeatureRequestDto> mapValidator,
         IStripeProductService stripeProductService)
     {
@@ -33,6 +37,8 @@ public class PlanService : IPlanService
         _planFeatureRepository = planFeatureRepository;
         _subscriptionRepository = subscriptionRepository;
         _validator = validator;
+        _updateValidator = updateValidator;
+        _updateStatusValidator = updateStatusValidator;
         _mapValidator = mapValidator;
         _stripeProductService = stripeProductService;
     }
@@ -379,5 +385,85 @@ public class PlanService : IPlanService
         }
 
         return ApiResponse<List<PublicPlanResponseDto>>.SuccessResponse(availablePlans, "Available plans retrieved successfully.");
+    }
+
+    public async Task<ApiResponse<PlanResponseDto>> UpdatePlanAsync(int id, UpdatePlanRequestDto request, string? updatedBy = null)
+    {
+        var validationResult = await _updateValidator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            return ApiResponse<PlanResponseDto>.FailureResponse(validationResult.Errors.First().ErrorMessage, 400);
+        }
+
+        var plan = await _planRepository.GetByIdAsync(id);
+        if (plan == null || plan.Status == SaaS.Domain.Enums.PlanStatus.Deleted)
+        {
+            return ApiResponse<PlanResponseDto>.FailureResponse($"Plan not found.", 404);
+        }
+
+        var normalizedName = request.Name.Trim();
+        if (!string.Equals(plan.Name, normalizedName, StringComparison.OrdinalIgnoreCase))
+        {
+            if (await _planRepository.ExistsByNameAsync(normalizedName))
+            {
+                return ApiResponse<PlanResponseDto>.FailureResponse($"Plan with name {normalizedName} already exists.", 409);
+            }
+        }
+
+        var words = normalizedName.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var formattedName = string.Join(" ", words.Select(w => char.ToUpper(w[0]) + w.Substring(1)));
+
+        plan.Name = formattedName;
+        plan.Description = request.Description?.Trim();
+        plan.TrialPeriodDays = request.TrialPeriodDays;
+        plan.UpdatedAt = DateTime.UtcNow;
+        // Re-using CreatedBy field if UpdatedBy isn't part of entity, wait, it has UpdatedAt? 
+        // Entities might not have UpdatedBy, let's just update UpdatedAt. 
+        // If it does, we'll set it. Oh, it doesn't have UpdatedBy. 
+
+        await _planRepository.UpdateAsync(plan);
+        await _planRepository.SaveChangesAsync();
+
+        return ApiResponse<PlanResponseDto>.SuccessResponse(MapToDto(plan), "Plan updated successfully.", 200);
+    }
+
+    public async Task<ApiResponse<bool>> UpdatePlanStatusAsync(int id, UpdatePlanStatusRequestDto request, string? updatedBy = null)
+    {
+        var validationResult = await _updateStatusValidator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            return ApiResponse<bool>.FailureResponse(validationResult.Errors.First().ErrorMessage, 400);
+        }
+
+        var plan = await _planRepository.GetByIdAsync(id);
+        if (plan == null || plan.Status == SaaS.Domain.Enums.PlanStatus.Deleted)
+        {
+            return ApiResponse<bool>.FailureResponse($"Plan with ID {id} not found.", 404);
+        }
+
+        plan.Status = request.Status;
+        plan.UpdatedAt = DateTime.UtcNow;
+
+        await _planRepository.UpdateAsync(plan);
+        await _planRepository.SaveChangesAsync();
+
+        return ApiResponse<bool>.SuccessResponse(true, "Plan status updated successfully.", 200);
+    }
+
+    public async Task<ApiResponse<bool>> SoftDeletePlanAsync(int id, string? deletedBy = null)
+    {
+        var plan = await _planRepository.GetByIdAsync(id);
+        if (plan == null || plan.Status == SaaS.Domain.Enums.PlanStatus.Deleted)
+        {
+            return ApiResponse<bool>.FailureResponse($"Plan with ID {id} not found.", 404);
+        }
+
+        plan.Status = SaaS.Domain.Enums.PlanStatus.Deleted;
+        plan.UpdatedAt = DateTime.UtcNow;
+
+        await _planRepository.UpdateAsync(plan);
+        await _planRepository.SaveChangesAsync();
+
+        return ApiResponse<bool>.SuccessResponse(true, "Plan deleted successfully.", 200);
     }
 }
