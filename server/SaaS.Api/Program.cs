@@ -22,8 +22,19 @@ using SaaS.Application.Services.Features;
 using SaaS.Api.Policies.Features;
 using Microsoft.AspNetCore.Authorization;
 using System.Text;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
+    .WriteTo.Console()
+    .CreateLogger();
+
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
+    builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -110,6 +121,7 @@ builder.Services.AddScoped<IStripeProductService, StripeProductService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ITenantFeatureService, TenantFeatureService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<ITenantAdminService, TenantAdminService>();
 
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, FeaturePolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, FeatureAuthorizationHandler>();
@@ -135,4 +147,13 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

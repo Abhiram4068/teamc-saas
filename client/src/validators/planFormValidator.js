@@ -81,3 +81,36 @@ export const validatePlanForm = (data) => {
         errors
     };
 };
+
+export const validateUpdatePlanForm = (data) => {
+    const errors = {};
+
+    if (!data.name || data.name.trim() === '') {
+        errors.name = 'Name is required.';
+    } else if (data.name.trim().length < 3) {
+        errors.name = 'Name must be at least 3 characters.';
+    } else if (data.name.trim().length > 100) {
+        errors.name = 'Name must not exceed 100 characters.';
+    }
+
+    if (!data.description || data.description.trim() === '') {
+        errors.description = 'Description is required.';
+    } else if (data.description.trim().length < 10) {
+        errors.description = 'Description must be at least 10 characters.';
+    } else if (data.description.trim().length > 500) {
+        errors.description = 'Description must not exceed 500 characters.';
+    }
+
+    if (data.trialPeriodDays !== null && data.trialPeriodDays !== undefined && data.trialPeriodDays !== '') {
+        if (isNaN(Number(data.trialPeriodDays)) || Number(data.trialPeriodDays) < 0) {
+            errors.trialPeriodDays = 'Trial Period Days must be greater than or equal to 0.';
+        } else if (!Number.isInteger(Number(data.trialPeriodDays))) {
+            errors.trialPeriodDays = 'Trial Period Days must be a whole number.';
+        }
+    }
+
+    return {
+        isValid: Object.keys(errors).length === 0,
+        errors
+    };
+};

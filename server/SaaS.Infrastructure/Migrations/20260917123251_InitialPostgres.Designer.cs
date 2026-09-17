@@ -12,7 +12,7 @@ using SaaS.Infrastructure.Data;
 namespace SaaS.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260916120947_InitialPostgres")]
+    [Migration("20260917123251_InitialPostgres")]
     partial class InitialPostgres
     {
         /// <inheritdoc />

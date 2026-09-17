@@ -180,13 +180,6 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<ApiResponse<SubscriptionResponseDto>> GetCurrentSubscriptionAsync(int tenantId)
     {
-        var user = await _userRepository.GetByIdAsync(tenantId);
-
-        if (user == null)
-        {
-            return ApiResponse<SubscriptionResponseDto>.FailureResponse("Tenant not found.");
-        }
-
         var subscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);
         
         if (subscription == null)

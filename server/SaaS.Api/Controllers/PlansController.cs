@@ -71,6 +71,36 @@ public class PlansController : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpPatch("{id}")]
+    [Authorize(Roles = "1")]
+    public async Task<IActionResult> UpdatePlan(int id, [FromBody] UpdatePlanRequestDto request)
+    {
+        _logger.LogInformation("Update plan request received for ID: {PlanId}.", id);
+
+        var response = await _planService.UpdatePlanAsync(id, request);
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpPatch("{id}/status")]
+    [Authorize(Roles = "1")]
+    public async Task<IActionResult> UpdatePlanStatus(int id, [FromBody] UpdatePlanStatusRequestDto request)
+    {
+        _logger.LogInformation("Update plan status request received for ID: {PlanId}.", id);
+
+        var response = await _planService.UpdatePlanStatusAsync(id, request);
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "1")]
+    public async Task<IActionResult> DeletePlan(int id)
+    {
+        _logger.LogInformation("Delete plan request received for ID: {PlanId}.", id);
+
+        var response = await _planService.SoftDeletePlanAsync(id);
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost("map-features")]
     [Authorize(Roles = "1")]
     public async Task<IActionResult> MapFeaturesToPlan([FromBody] MapPlanFeatureRequestDto request)

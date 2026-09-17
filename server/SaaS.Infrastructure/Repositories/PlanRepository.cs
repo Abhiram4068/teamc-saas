@@ -43,6 +43,12 @@ public class PlanRepository : IPlanRepository
         await _context.Plans.AddAsync(plan);
     }
 
+    public Task UpdateAsync(Plan plan)
+    {
+        _context.Plans.Update(plan);
+        return Task.CompletedTask;
+    }
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
@@ -82,6 +88,8 @@ public class PlanRepository : IPlanRepository
             .Where(p => p.Status == SaaS.Domain.Enums.PlanStatus.Active)
             .Include(p => p.PlanFeatures.Where(pf => pf.IsEnabled))
                 .ThenInclude(pf => pf.Feature)
+            .Include(p => p.PlanFeatures.Where(pf => pf.IsEnabled))
+                .ThenInclude(pf => pf.Config)
             .OrderBy(p => p.MonthlyPrice)
             .ToListAsync();
     }

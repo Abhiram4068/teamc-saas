@@ -62,7 +62,7 @@ export default function TenantAddAdmin() {
         
         {/* Breadcrumbs */}
         <div className="flex items-center text-xs font-semibold text-blue-600 uppercase tracking-wider mb-4">
-          <span className="cursor-pointer hover:underline" onClick={() => navigate('/tenant/dashboard')}>Dashboard</span>
+          <span className="cursor-pointer hover:underline" onClick={() => navigate('/tenant/administrators')}>ADMINISTRATORS</span>
           <i className="fa-solid fa-chevron-right text-[9px] mx-2.5 text-gray-400"></i>
           <span className="text-gray-500">Add Admin</span>
         </div>
@@ -71,7 +71,7 @@ export default function TenantAddAdmin() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-8 border-b border-gray-200">
           <div>
             <h1 className="text-2xl font-bold text-[#141824] tracking-tight">
-              Add New Admin
+              Add New Admin For Your Organization
             </h1>
             <p className="text-sm text-gray-500 mt-1">Create a new administrative user with full organizational access.</p>
           </div>

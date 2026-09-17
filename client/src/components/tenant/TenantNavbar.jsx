@@ -40,14 +40,6 @@ export default function TenantNavbar() {
       </div>
 
       <div className="flex items-center justify-end space-x-4 w-1/3">
-        {/* Add Admin Button */}
-        <button 
-          onClick={() => navigate('/tenant/add-admin')}
-          className="hidden sm:flex items-center px-3 py-1.5 bg-brand-50 text-brand-600 border border-brand-200 hover:bg-brand-100 rounded-md text-sm font-semibold transition-colors shadow-sm"
-        >
-          <i className="fa-solid fa-user-plus mr-2"></i>
-          Add Admin
-        </button>
 
         <button className="text-gray-400 hover:text-gray-600 transition-colors">
           <i className="fa-regular fa-sun text-lg"></i>
