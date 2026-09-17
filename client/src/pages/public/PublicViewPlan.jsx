@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { planApi } from '../../api/planApi';
+import { subscriptionApi } from '../../api/subscriptionApi';
+import { getToken, getRole } from '../../utils/tokenStorage';
 
 function getCurrencySymbol(currency) {
   switch (currency) {
@@ -22,10 +24,28 @@ export default function PublicViewPlan() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAnnual, setIsAnnual] = useState(true);
+  const [currentPlanId, setCurrentPlanId] = useState(null);
 
   useEffect(() => {
     fetchPublicPlans();
+    checkCurrentSubscription();
   }, []);
+
+  async function checkCurrentSubscription() {
+    try {
+      const token = getToken();
+      const role = getRole();
+      // Role 2 is usually Tenant Admin
+      if (token && role === 2) {
+        const res = await subscriptionApi.getCurrentSubscription();
+        if (res?.success && res?.data?.hasActiveSubscription) {
+          setCurrentPlanId(res.data.planId);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching current subscription:', err);
+    }
+  }
 
   async function fetchPublicPlans() {
     try {
@@ -71,12 +91,12 @@ export default function PublicViewPlan() {
 
   return (
     <div className="bg-white">
-      
+
       {/* PRICING HERO & TOGGLE */}
       <section className="bg-gradient-to-b from-blue-200 via-blue-100 to-white pt-16 pb-12">
         <div className="max-w-5xl mx-auto px-4 text-center">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-brand-800 tracking-tight mb-4">
-           Choose a plan that works for your workforce
+            Choose a plan that works for your workforce
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto font-normal">
             Scale your workforce management without hidden seat fees or unexpected setup costs.
@@ -86,9 +106,8 @@ export default function PublicViewPlan() {
           <div className="mt-8 flex items-center justify-center space-x-4">
             <span
               onClick={() => setIsAnnual(false)}
-              className={`text-sm cursor-pointer select-none transition ${
-                !isAnnual ? 'font-bold text-brand-800' : 'font-medium text-gray-600 hover:text-gray-900'
-              }`}
+              className={`text-sm cursor-pointer select-none transition ${!isAnnual ? 'font-bold text-brand-800' : 'font-medium text-gray-600 hover:text-gray-900'
+                }`}
             >
               Monthly Billing
             </span>
@@ -96,16 +115,14 @@ export default function PublicViewPlan() {
             <button
               type="button"
               onClick={() => setIsAnnual(!isAnnual)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                isAnnual ? 'bg-brand-600' : 'bg-gray-300'
-              }`}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isAnnual ? 'bg-brand-600' : 'bg-gray-300'
+                }`}
               role="switch"
               aria-checked={isAnnual}
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
-                  isAnnual ? 'translate-x-5' : 'translate-x-0'
-                }`}
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${isAnnual ? 'translate-x-5' : 'translate-x-0'
+                  }`}
               />
             </button>
 
@@ -114,9 +131,8 @@ export default function PublicViewPlan() {
               className="flex items-center space-x-2 cursor-pointer select-none"
             >
               <span
-                className={`text-sm transition ${
-                  isAnnual ? 'font-bold text-brand-800' : 'font-medium text-gray-600 hover:text-gray-900'
-                }`}
+                className={`text-sm transition ${isAnnual ? 'font-bold text-brand-800' : 'font-medium text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 Annual Billing
               </span>
@@ -131,7 +147,7 @@ export default function PublicViewPlan() {
       {/* PRICING CARDS SECTION */}
       <section className="pb-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           {/* Loading Skeleton State */}
           {loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch max-w-5xl mx-auto">
@@ -187,15 +203,14 @@ export default function PublicViewPlan() {
           {/* Active Plans Grid */}
           {!loading && !error && plans.length > 0 && (
             <div
-              className={`grid gap-6 items-stretch justify-center ${
-                plans.length === 1
-                  ? 'max-w-md mx-auto grid-cols-1'
-                  : plans.length === 2
+              className={`grid gap-6 items-stretch justify-center ${plans.length === 1
+                ? 'max-w-md mx-auto grid-cols-1'
+                : plans.length === 2
                   ? 'max-w-3xl mx-auto grid-cols-1 md:grid-cols-2'
                   : plans.length === 3
-                  ? 'max-w-5xl mx-auto grid-cols-1 md:grid-cols-3'
-                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
-              }`}
+                    ? 'max-w-5xl mx-auto grid-cols-1 md:grid-cols-3'
+                    : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+                }`}
             >
               {plans.map((plan, index) => {
                 const isPopular =
@@ -214,11 +229,10 @@ export default function PublicViewPlan() {
                 return (
                   <div
                     key={plan.id}
-                    className={`rounded-xl p-6 flex flex-col justify-between transition duration-200 relative ${
-                      isEnterprise
-                        ? 'border border-slate-700 bg-brand-800 text-white shadow-md hover:shadow-xl'
-                        : 'border border-gray-200 bg-white hover:shadow-lg'
-                    }`}
+                    className={`rounded-xl p-6 flex flex-col justify-between transition duration-200 relative ${isEnterprise
+                      ? 'border border-slate-700 bg-brand-800 text-white shadow-md hover:shadow-xl'
+                      : 'border border-gray-200 bg-white hover:shadow-lg'
+                      }`}
                   >
                     {/* Highlight Badge
                     {isPopular && (
@@ -241,9 +255,8 @@ export default function PublicViewPlan() {
                       {/* Description with fixed height for perfect vertical alignment */}
                       <p
                         title={plan.description || 'Essential tools and capabilities designed for modern workforce operations.'}
-                        className={`text-xs mt-1.5 h-9 line-clamp-2 leading-relaxed ${
-                          isEnterprise ? 'text-gray-300' : 'text-gray-500'
-                        }`}
+                        className={`text-xs mt-1.5 h-9 line-clamp-2 leading-relaxed ${isEnterprise ? 'text-gray-300' : 'text-gray-500'
+                          }`}
                       >
                         {plan.description || 'Essential tools and capabilities designed for modern workforce operations.'}
                       </p>
@@ -253,9 +266,8 @@ export default function PublicViewPlan() {
                         <div className="flex items-baseline gap-1.5">
                           <span
                             title={isFree ? 'Free' : `${currencySymbol} ${Number(priceValue).toLocaleString()} ${isAnnual ? '/ year' : '/ month'}`}
-                            className={`text-3xl font-extrabold tracking-tight truncate ${
-                              isEnterprise ? 'text-white' : 'text-brand-800'
-                            }`}
+                            className={`text-3xl font-extrabold tracking-tight truncate ${isEnterprise ? 'text-white' : 'text-brand-800'
+                              }`}
                           >
                             {isFree ? 'Free' : `${currencySymbol} ${Number(priceValue).toLocaleString()}`}
                           </span>
@@ -270,18 +282,17 @@ export default function PublicViewPlan() {
                           {isFree
                             ? 'Free forever for basic workforce setup'
                             : isAnnual
-                            ? 'Billed annually'
-                            : 'Billed monthly'}
+                              ? 'Billed annually'
+                              : 'Billed monthly'}
                         </span>
 
                         {/* Always allocate h-7 (28px) so cards without trial maintain identical vertical button alignment */}
                         <div className="h-7 mt-2.5 flex items-center">
                           {plan.trialPeriodDays > 0 ? (
-                            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5  ${
-                              isEnterprise
-                                ? 'text-emerald-300'
-                                : 'text-emerald-700 '
-                            }`}>
+                            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5  ${isEnterprise
+                              ? 'text-emerald-300'
+                              : 'text-emerald-700 '
+                              }`}>
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
@@ -294,28 +305,35 @@ export default function PublicViewPlan() {
                       </div>
 
                       {/* CTA Button (Now perfectly aligned across all cards) */}
-                      <Link
-                        to={`/checkout/${plan.id}`}
-                        className={`block text-center w-full text-sm font-semibold py-2.5 rounded-md transition mb-6 shadow-xs cursor-pointer ${
-                          isEnterprise
-                            ? 'bg-white hover:bg-gray-100 text-brand-800'
+                      {currentPlanId === plan.id ? (
+                        <button
+                          disabled
+                          className="block text-center w-full text-sm font-bold py-2.5 rounded-md transition mb-6 shadow-xs bg-[#0f172a] text-white cursor-default"
+                        >
+                          Current Plan
+                        </button>
+                      ) : (
+                        <Link
+                          to={`/checkout/${plan.id}`}
+                          className={`block text-center w-full text-sm font-semibold py-2.5 rounded-md transition mb-6 shadow-xs cursor-pointer ${isEnterprise
+                            ? 'bg-white hover:bg-gray-100 text-brand-800 '
                             : isPopular
-                            ? 'bg-brand-600 hover:bg-blue-700 text-white'
-                            : 'bg-brand-50 hover:bg-brand-100 text-brand-600'
-                        }`}
-                      >
-                        {plan.trialPeriodDays > 0
-                          ? `Start ${plan.trialPeriodDays}-Day Free Trial`
-                          : isFree
-                          ? 'Get Started'
-                          : `Get Started with ${plan.name}`}
-                      </Link>
+                              ? 'bg-brand-600 hover:bg-blue-700 text-white'
+                              : 'bg-brand-50 hover:bg-brand-100 text-brand-600'
+                            }`}
+                        >
+                          {plan.trialPeriodDays > 0
+                            ? `Start ${plan.trialPeriodDays}-Day Free Trial`
+                            : isFree
+                              ? 'Get Started'
+                              : `Get Started with ${plan.name}`}
+                        </Link>
+                      )}
 
                       {/* Included Features List */}
                       <div className={`border-t pt-4 ${isEnterprise ? 'border-gray-700' : 'border-gray-100'}`}>
-                        <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${
-                          isEnterprise ? 'text-gray-300' : 'text-gray-700'
-                        }`}>
+                        <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${isEnterprise ? 'text-gray-300' : 'text-gray-700'
+                          }`}>
                           Features Included:
                         </p>
 
@@ -324,8 +342,8 @@ export default function PublicViewPlan() {
                             plan.features.map((feat) => {
                               const desc =
                                 feat.description &&
-                                feat.description !== feat.name &&
-                                feat.description !== feat.code
+                                  feat.description !== feat.name &&
+                                  feat.description !== feat.code
                                   ? feat.description
                                   : `${feat.name} capability included in this plan.`;
 
@@ -336,9 +354,8 @@ export default function PublicViewPlan() {
                                 >
                                   {/* Checkmark icon */}
                                   <svg
-                                    className={`w-4 h-4 shrink-0 mt-0.5 ${
-                                      isEnterprise ? 'text-blue-400' : 'text-emerald-500'
-                                    }`}
+                                    className={`w-4 h-4 shrink-0 mt-0.5 ${isEnterprise ? 'text-blue-400' : 'text-emerald-500'
+                                      }`}
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -348,21 +365,22 @@ export default function PublicViewPlan() {
 
                                   {/* Feature Name — up to 3 lines, then truncates; title shows full text on hover */}
                                   <span
-                                    title={feat.name}
+                                    title={feat.limitValue != null ? feat.name + ' ' + feat.limitValue : feat.name}
                                     className={`font-semibold min-w-0 line-clamp-3 ${isEnterprise ? 'text-white' : 'text-gray-900'}`}
                                   >
                                     {feat.name}
+                                    <span className='font-bold'>  {feat.limitValue != null && <span className="font-bold mr-1">{feat.limitValue}</span>}</span>
+
                                   </span>
 
                                   {/* Info icon button fixed to the right-most of the feature name */}
                                   <div className="relative inline-flex items-center group/tooltip shrink-0 ml-auto">
                                     <button
                                       type="button"
-                                      className={`inline-flex items-center justify-center w-4 h-4 rounded-full transition-colors cursor-pointer ${
-                                        isEnterprise
-                                          ? 'text-slate-400 hover:text-white hover:bg-white/10'
-                                          : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
-                                      }`}
+                                      className={`inline-flex items-center justify-center w-4 h-4 rounded-full transition-colors cursor-pointer ${isEnterprise
+                                        ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                                        : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                                        }`}
                                       aria-label={`Description for ${feat.name}`}
                                     >
                                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -374,6 +392,7 @@ export default function PublicViewPlan() {
                                     <div className="absolute bottom-full right-0 mb-2 hidden group-hover/tooltip:flex flex-col items-end z-50 pointer-events-none w-56 max-w-xs animate-in fade-in zoom-in-95 duration-150">
                                       <div className="bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-md py-1.5 px-2.5 shadow-xl border border-slate-700/80 text-center font-jakarta">
                                         {desc}
+                                        {feat.limitValue != null && <span className="font-bold ml-1">{feat.limitValue}</span>}
                                       </div>
                                       <div className="w-2 h-2 bg-slate-900 rotate-45 -mt-1 border-r border-b border-slate-700/80 mr-1.5" />
                                     </div>
@@ -466,9 +485,13 @@ export default function PublicViewPlan() {
                         return (
                           <td key={plan.id} className="p-4 text-center">
                             {hasFeature ? (
-                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs border border-emerald-200">
-                                ✓
-                              </span>
+                              hasFeature.limitValue != null ? (
+                                <span className="text-gray-800 font-bold text-sm">{hasFeature.limitValue}</span>
+                              ) : (
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs border border-emerald-200">
+                                  ✓
+                                </span>
+                              )
                             ) : (
                               <span className="text-gray-300 font-bold text-xs">—</span>
                             )}

@@ -234,6 +234,7 @@ export default function SuperAdminViewPlanFeatures() {
                           {/* Name */}
                           <td className="py-3.5 px-5">
                             <div className="font-semibold text-slate-900">
+                              {feature.limitValue != null && <span className="font-bold mr-1">{feature.limitValue}</span>}
                               {feature.featureName || feature.name || 'Unnamed Feature'}
                             </div>
                           </td>

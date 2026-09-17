@@ -45,67 +45,86 @@ export default function SuperAdminDashboard() {
         <h1 className="text-2xl font-bold text-slate-800">Teamo SuperAdmin Dashboard</h1>
       </div>
 
-      {/* TOP METRICS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1 */}
-        <div className="bg-white border border-slate-200/80 rounded-lg p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase">Total Tenants</span>
-            <div className="text-xl font-extrabold text-slate-800 mt-0.5">1,284</div>
+      <div className="flex flex-col xl:flex-row gap-6 items-start">
+        {/* LEFT STATS TILES */}
+        <div className="w-full xl:w-64 shrink-0 space-y-3 flex flex-col">
+          <div className="flex items-center justify-between mb-1 px-1">
+            <h2 className="text-sm font-bold text-slate-800">Key Metrics</h2>
+            <button className="text-slate-400 hover:text-slate-600">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+            </button>
           </div>
-          <span className="bg-emerald-50 text-emerald-600 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-            +12.4%
-          </span>
+          
+          {/* Card 1 */}
+          <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-default flex flex-col justify-between group">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 group-hover:bg-slate-800 group-hover:text-white transition-colors">
+                <i className="fa-solid fa-building text-[10px]"></i>
+              </div>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Tenants</span>
+            </div>
+            <div className="flex items-end justify-between">
+              <div className="text-2xl font-extrabold text-slate-800 tracking-tight">1,284</div>
+              <span className="text-emerald-500 text-[11px] font-bold flex items-center gap-0.5">
+                <i className="fa-solid fa-arrow-trend-up"></i> 12.4%
+              </span>
+            </div>
+          </div>
+
+          {/* Card 2 */}
+          <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-default flex flex-col justify-between group">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <i className="fa-solid fa-bolt text-[10px]"></i>
+              </div>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Subs</span>
+            </div>
+            <div className="flex items-end justify-between">
+              <div className="text-2xl font-extrabold text-slate-800 tracking-tight">1,106</div>
+              <span className="text-emerald-500 text-[11px] font-bold flex items-center gap-0.5">
+                <i className="fa-solid fa-arrow-trend-up"></i> 4.2%
+              </span>
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-default flex flex-col justify-between group">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                <i className="fa-solid fa-wallet text-[10px]"></i>
+              </div>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Revenue</span>
+            </div>
+            <div className="flex items-end justify-between">
+              <div className="text-2xl font-extrabold text-slate-800 tracking-tight">₹12.4L</div>
+              <span className="text-rose-500 text-[11px] font-bold flex items-center gap-0.5">
+                <i className="fa-solid fa-arrow-trend-down"></i> 0.6%
+              </span>
+            </div>
+          </div>
+
+          {/* Card 4 */}
+          <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-default flex flex-col justify-between group">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <i className="fa-solid fa-users text-[10px]"></i>
+              </div>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Users</span>
+            </div>
+            <div className="flex items-end justify-between">
+              <div className="text-2xl font-extrabold text-slate-800 tracking-tight">18,542</div>
+              <span className="text-emerald-500 text-[11px] font-bold flex items-center gap-0.5">
+                <i className="fa-solid fa-arrow-trend-up"></i> 8.1%
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Card 2 */}
-        <div className="bg-white border border-slate-200/80 rounded-lg p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase">Active Subscriptions</span>
-            <div className="text-xl font-extrabold text-slate-800 mt-0.5">1,106</div>
-          </div>
-          <span className="bg-emerald-50 text-emerald-600 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-            +4.2%
-          </span>
-        </div>
+        {/* MAIN CONTENT WRAPPER */}
+        <div className="flex-1 space-y-6 min-w-0 w-full">
 
-        {/* Card 3 */}
-        <div className="bg-white border border-slate-200/80 rounded-lg p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase">Monthly Revenue</span>
-            <div className="text-xl font-extrabold text-slate-800 mt-0.5">₹12.4L</div>
-          </div>
-          <span className="bg-rose-50 text-rose-500 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
-            </svg>
-            -0.6%
-          </span>
-        </div>
-
-        {/* Card 4 */}
-        <div className="bg-white border border-slate-200/80 rounded-lg p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase">Total Users</span>
-            <div className="text-xl font-extrabold text-slate-800 mt-0.5">18,542</div>
-          </div>
-          <span className="bg-emerald-50 text-emerald-600 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-            +8.1%
-          </span>
-        </div>
-      </div>
-
-      {/* MAIN FEATURE SECTION (TOP TENANTS GROWTH & ACTIVITY) */}
-      <div className="bg-white border border-slate-200/80 rounded-lg p-5 shadow-sm space-y-4">
+          {/* MAIN FEATURE SECTION (TOP TENANTS GROWTH & ACTIVITY) */}
+          <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm space-y-4">
         <h2 className="text-base font-bold text-slate-800">Top Tenants Growth & Activity</h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -229,7 +248,7 @@ export default function SuperAdminDashboard() {
       {/* TWO COLUMN TABLES (RECENT TENANTS & RECENT PAYMENTS) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* RECENT TENANTS */}
-        <div className="bg-white border border-slate-200/80 rounded-lg p-5 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm space-y-4">
           <div className="flex justify-between items-center border-b border-slate-100 pb-3">
             <h3 className="text-sm font-bold text-slate-800">Recent Tenants</h3>
             <Link to="/superadmin/tenants" className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1">
@@ -280,7 +299,7 @@ export default function SuperAdminDashboard() {
         </div>
 
         {/* RECENT PAYMENTS */}
-        <div className="bg-white border border-slate-200/80 rounded-lg p-5 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm space-y-4">
           <div className="flex justify-between items-center border-b border-slate-100 pb-3">
             <h3 className="text-sm font-bold text-slate-800">Recent Payments</h3>
             <Link to="/superadmin/payments" className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1">
@@ -324,6 +343,9 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
       </div>
+      
+      </div> {/* End Main Content Wrapper */}
+      </div> {/* End Split Layout Container */}
 
       {/* FOOTER */}
       <footer className="pt-6 border-t border-slate-200 text-xs text-slate-400 flex justify-between items-center">

@@ -12,4 +12,7 @@ public interface IFeatureService
     Task<ApiResponse<FeatureResponseDto>> CreateFeatureAsync(CreateFeatureRequestDto request, string? createdBy = null);
     Task<ApiResponse<FeatureResponseDto>> GetFeatureByIdAsync(int id);
     Task<ApiResponse<PaginatedResponseDto<FeatureResponseDto>>> GetFeaturesAsync(GetFeaturesRequestDto request);
+    Task<ApiResponse<FeatureResponseDto>> UpdateFeatureAsync(int id, UpdateFeatureRequestDto request, string? updatedBy = null);
+    Task<ApiResponse<FeatureResponseDto>> UpdateFeatureStatusAsync(int id, UpdateFeatureStatusRequestDto request, string? updatedBy = null);
+    Task<ApiResponse<bool>> SoftDeleteFeatureAsync(int id, string? deletedBy = null);
 }

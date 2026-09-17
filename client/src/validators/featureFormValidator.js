@@ -34,3 +34,31 @@ export const validateFeatureForm = (data) => {
         errors
     };
 };
+
+export const validateUpdateFeatureForm = (data) => {
+    const errors = {};
+
+    // Name validation
+    if (!data.name || data.name.trim() === '') {
+        errors.name = 'Feature Name is required.';
+    } else if (data.name.trim().length < 3) {
+        errors.name = 'Feature Name must be at least 3 characters.';
+    } else if (data.name.length > 100) {
+        errors.name = 'Feature Name must not exceed 100 characters.';
+    }
+
+    // Description validation
+    if (!data.description || data.description.trim() === '') {
+        errors.description = 'Description is required.';
+    } else if (data.description.trim().length < 10) {
+        errors.description = 'Description must be at least 10 characters.';
+    } else if (data.description.length > 500) {
+        errors.description = 'Description must not exceed 500 characters.';
+    }
+
+    return {
+        isValid: Object.keys(errors).length === 0,
+        errors
+    };
+};
+

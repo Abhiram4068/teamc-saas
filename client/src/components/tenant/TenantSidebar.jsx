@@ -22,9 +22,9 @@ export default function TenantSidebar() {
       title: 'Subscription',
       items: [
         { to: '/tenant/my-plan', label: 'My Plan', icon: 'fa-solid fa-crown' },
-        { to: '/tenant/plans', label: 'Explore Plans', icon: 'fa-solid fa-compass' },
-        { to: '/tenant/history', label: 'Payment History', icon: 'fa-solid fa-clock-rotate-left' },
-        { to: '/tenant/billing', label: 'Billing Information', icon: 'fa-solid fa-file-invoice-dollar' },
+        // { to: '/tenant/plans', label: 'Explore Plans', icon: 'fa-solid fa-compass' },
+        // { to: '/tenant/history', label: 'Payment History', icon: 'fa-solid fa-clock-rotate-left' },
+        // { to: '/tenant/billing', label: 'Billing Information', icon: 'fa-solid fa-file-invoice-dollar' },
         { to: '/tenant/invoices', label: 'Invoices', icon: 'fa-solid fa-receipt' },
       ],
     },
@@ -32,17 +32,17 @@ export default function TenantSidebar() {
       title: 'Organization',
       items: [
         { to: '/tenant/administrators', label: 'Administrators', icon: 'fa-solid fa-users-gear' },
-        { to: '/tenant/profile', label: 'Organization Profile', icon: 'fa-solid fa-building' },
+        // { to: '/tenant/profile', label: 'Organization Profile', icon: 'fa-solid fa-building' },
       ],
     },
-    {
-      title: 'Settings',
-      items: [
-        { to: '/tenant/account', label: 'Account Settings', icon: 'fa-solid fa-user-cog' },
-        { to: '/tenant/security', label: 'Security', icon: 'fa-solid fa-shield-halved' },
-        { to: '/tenant/notifications', label: 'Notifications', icon: 'fa-solid fa-bell' },
-      ],
-    },
+    // {
+    //   title: 'Settings',
+    //   items: [
+    //     { to: '/tenant/account', label: 'Account Settings', icon: 'fa-solid fa-user-cog' },
+    //     { to: '/tenant/security', label: 'Security', icon: 'fa-solid fa-shield-halved' },
+    //     { to: '/tenant/notifications', label: 'Notifications', icon: 'fa-solid fa-bell' },
+    //   ],
+    // },
   ];
 
   return (
@@ -73,7 +73,7 @@ export default function TenantSidebar() {
             </div>
           </div>
         ))}
-
+{/* 
         <div>
           <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 ml-2">
             Help & Support
@@ -91,7 +91,7 @@ export default function TenantSidebar() {
             <i className={`fa-solid fa-circle-question w-5 text-center text-[13px] mr-2`}></i>
             <span className="text-[13px]">Help & Support</span>
           </NavLink>
-        </div>
+        </div> */}
       </div>
 
       <div className="px-4 mt-6">

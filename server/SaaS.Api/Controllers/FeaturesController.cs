@@ -82,4 +82,76 @@ public class FeaturesController : ControllerBase
 
         return StatusCode(response.StatusCode, response);
     }
+
+    /// <summary>
+    /// Updates an existing system feature. SuperAdmin (Role = 1) required.
+    /// </summary>
+    [HttpPatch("{id}")]
+    [Authorize(Roles = "1")]
+    public async Task<IActionResult> UpdateFeature(int id, [FromBody] UpdateFeatureRequestDto request)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? User.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(userIdStr))
+        {
+            return Unauthorized();
+        }
+
+        var updatedBy = User.FindFirst(ClaimTypes.Email)?.Value ?? userIdStr;
+
+        _logger.LogInformation("Update feature request received for ID: {Id} by User: {UpdatedBy}.", id, updatedBy);
+
+        var response = await _featureService.UpdateFeatureAsync(id, request, updatedBy);
+
+        return StatusCode(response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Updates the status of an existing system feature. SuperAdmin (Role = 1) required.
+    /// </summary>
+    [HttpPatch("{id}/status")]
+    [Authorize(Roles = "1")]
+    public async Task<IActionResult> UpdateFeatureStatus(int id, [FromBody] UpdateFeatureStatusRequestDto request)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? User.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(userIdStr))
+        {
+            return Unauthorized();
+        }
+
+        var updatedBy = User.FindFirst(ClaimTypes.Email)?.Value ?? userIdStr;
+
+        _logger.LogInformation("Update feature status request received for ID: {Id} by User: {UpdatedBy}.", id, updatedBy);
+
+        var response = await _featureService.UpdateFeatureStatusAsync(id, request, updatedBy);
+
+        return StatusCode(response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Soft deletes a system feature. SuperAdmin (Role = 1) required.
+    /// </summary>
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "1")]
+    public async Task<IActionResult> DeleteFeature(int id)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? User.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(userIdStr))
+        {
+            return Unauthorized();
+        }
+
+        var deletedBy = User.FindFirst(ClaimTypes.Email)?.Value ?? userIdStr;
+
+        _logger.LogInformation("Delete feature request received for ID: {Id} by User: {DeletedBy}.", id, deletedBy);
+
+        var response = await _featureService.SoftDeleteFeatureAsync(id, deletedBy);
+
+        return StatusCode(response.StatusCode, response);
+    }
 }

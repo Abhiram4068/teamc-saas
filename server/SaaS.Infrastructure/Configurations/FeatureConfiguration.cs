@@ -33,6 +33,8 @@ public class FeatureConfiguration : IEntityTypeConfiguration<Feature>
         builder.Property(f => f.Status)
             .IsRequired()
             .HasDefaultValue(FeatureStatus.Active);
+        builder.Property(f => f.Type)
+            .IsRequired();
 
         builder.Property(f => f.CreatedBy)
             .HasMaxLength(100);

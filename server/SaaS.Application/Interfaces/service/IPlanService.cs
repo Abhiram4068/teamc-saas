@@ -14,4 +14,7 @@ public interface IPlanService
     Task<ApiResponse<bool>> RemoveFeatureFromPlanAsync(int planId, int featureId);
     Task<ApiResponse<List<PublicPlanResponseDto>>> PublicPlanGetAsync();
     Task<ApiResponse<List<PublicPlanResponseDto>>> GetAvailablePlansForTenantAsync(int tenantId);
+    Task<ApiResponse<PlanResponseDto>> UpdatePlanAsync(int id, UpdatePlanRequestDto request, string? updatedBy = null);
+    Task<ApiResponse<bool>> UpdatePlanStatusAsync(int id, UpdatePlanStatusRequestDto request, string? updatedBy = null);
+    Task<ApiResponse<bool>> SoftDeletePlanAsync(int id, string? deletedBy = null);
 }

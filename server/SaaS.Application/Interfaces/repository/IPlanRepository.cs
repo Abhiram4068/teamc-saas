@@ -9,6 +9,7 @@ public interface IPlanRepository
     Task<bool> ExistsByCodeAsync(string code);
     Task<bool> ExistsByNameAsync(string name);
     Task AddAsync(Plan plan);
+    Task UpdateAsync(Plan plan);
     Task SaveChangesAsync();
     
     Task<(IEnumerable<Plan> Items, int TotalCount)> GetPlansAsync(string? searchTerm, SaaS.Domain.Enums.PlanStatus? status, int pageNumber, int pageSize);
