@@ -280,6 +280,8 @@ public class PlanService : IPlanService
             FeatureCode = pf.Feature?.Code ?? string.Empty,
             FeatureDescription = pf.Feature?.Description,
             IsEnabled = pf.IsEnabled,
+            AccessValue = pf.Config?.AccessValue,
+            LimitValue = pf.Config?.LimitValue,
             CreatedAt = pf.CreatedAt,
             TotalFeatures = totalCount
         }).ToList();
@@ -324,7 +326,9 @@ public class PlanService : IPlanService
                     FeatureId = pf.FeatureId,
                     Name = pf.Feature.Name,
                     Description = pf.Feature.Description,
-                    IsEnabled = pf.IsEnabled
+                    IsEnabled = pf.IsEnabled,
+                    AccessValue = pf.Config?.AccessValue,
+                    LimitValue = pf.Config?.LimitValue
                 }).ToList()
         }).ToList();
 

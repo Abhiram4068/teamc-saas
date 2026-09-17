@@ -348,10 +348,12 @@ export default function PublicViewPlan() {
 
                                   {/* Feature Name — up to 3 lines, then truncates; title shows full text on hover */}
                                   <span
-                                    title={feat.name}
+                                    title={feat.limitValue != null ? feat.name + ' ' + feat.limitValue : feat.name}
                                     className={`font-semibold min-w-0 line-clamp-3 ${isEnterprise ? 'text-white' : 'text-gray-900'}`}
                                   >
                                     {feat.name}
+                                    <span className='font-bold'>  {feat.limitValue != null && <span className="font-bold mr-1">{feat.limitValue}</span>}</span>
+                                    
                                   </span>
 
                                   {/* Info icon button fixed to the right-most of the feature name */}
@@ -374,6 +376,7 @@ export default function PublicViewPlan() {
                                     <div className="absolute bottom-full right-0 mb-2 hidden group-hover/tooltip:flex flex-col items-end z-50 pointer-events-none w-56 max-w-xs animate-in fade-in zoom-in-95 duration-150">
                                       <div className="bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-md py-1.5 px-2.5 shadow-xl border border-slate-700/80 text-center font-jakarta">
                                         {desc}
+                                        {feat.limitValue != null && <span className="font-bold ml-1">{feat.limitValue}</span>}
                                       </div>
                                       <div className="w-2 h-2 bg-slate-900 rotate-45 -mt-1 border-r border-b border-slate-700/80 mr-1.5" />
                                     </div>
@@ -466,9 +469,13 @@ export default function PublicViewPlan() {
                         return (
                           <td key={plan.id} className="p-4 text-center">
                             {hasFeature ? (
-                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs border border-emerald-200">
-                                ✓
-                              </span>
+                              hasFeature.limitValue != null ? (
+                                <span className="text-gray-800 font-bold text-sm">{hasFeature.limitValue}</span>
+                              ) : (
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs border border-emerald-200">
+                                  ✓
+                                </span>
+                              )
                             ) : (
                               <span className="text-gray-300 font-bold text-xs">—</span>
                             )}
