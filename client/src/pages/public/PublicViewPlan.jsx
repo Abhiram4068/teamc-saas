@@ -185,18 +185,9 @@ export default function PublicViewPlan() {
 
           {/* Empty Plans State */}
           {!loading && !error && plans.length === 0 && (
-            <div className="max-w-md mx-auto text-center py-16 px-6 bg-slate-50 border border-slate-200 rounded-xl">
-              <svg className="w-10 h-10 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
+            <div className="max-w-md mx-auto text-center py-16 px-6">
               <h3 className="text-base font-bold text-slate-800">No Plans Currently Available</h3>
               <p className="text-xs text-slate-500 mt-1">Please check back shortly or reach out to our team.</p>
-              <Link
-                to="/login"
-                className="inline-block mt-4 px-4 py-2 bg-brand-600 text-white text-xs font-semibold rounded hover:bg-blue-700 transition"
-              >
-                Sign In
-              </Link>
             </div>
           )}
 
