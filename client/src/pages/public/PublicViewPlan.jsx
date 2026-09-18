@@ -256,11 +256,11 @@ export default function PublicViewPlan() {
                       <div className="my-5">
                         <div className="flex items-baseline gap-1.5">
                           <span
-                            title={isFree ? 'Free' : `${currencySymbol} ${Number(priceValue).toLocaleString()} ${isAnnual ? '/ year' : '/ month'}`}
+                            title={isFree ? '₹ 0' : `${currencySymbol} ${Number(priceValue).toLocaleString()} ${isAnnual ? '/ year' : '/ month'}`}
                             className={`text-3xl font-extrabold tracking-tight truncate ${isEnterprise ? 'text-white' : 'text-brand-800'
                               }`}
                           >
-                            {isFree ? 'Free' : `${currencySymbol} ${Number(priceValue).toLocaleString()}`}
+                            {isFree ? '₹ 0' : `${currencySymbol} ${Number(priceValue).toLocaleString()}`}
                           </span>
                           {!isFree && (
                             <span className={`text-xs font-medium ${isEnterprise ? 'text-gray-300' : 'text-gray-500'}`}>
@@ -268,14 +268,6 @@ export default function PublicViewPlan() {
                             </span>
                           )}
                         </div>
-
-                        <span className={`text-xs block mt-1 ${isEnterprise ? 'text-gray-300' : 'text-gray-500'}`}>
-                          {isFree
-                            ? 'Free forever for basic workforce setup'
-                            : isAnnual
-                              ? 'Billed annually'
-                              : 'Billed monthly'}
-                        </span>
 
                         {/* Always allocate h-7 (28px) so cards without trial maintain identical vertical button alignment */}
                         <div className="h-7 mt-2.5 flex items-center">
