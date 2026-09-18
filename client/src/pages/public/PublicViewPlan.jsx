@@ -322,11 +322,15 @@ export default function PublicViewPlan() {
                               : 'bg-brand-50 hover:bg-brand-100 text-brand-600'
                             }`}
                         >
-                          {plan.trialPeriodDays > 0
-                            ? `Start ${plan.trialPeriodDays}-Day Free Trial`
-                            : isFree
-                              ? 'Get Started'
-                              : `Get Started with ${plan.name}`}
+                          {currentPlanId
+                            ? plan.rank > (plans.find(p => p.id === currentPlanId)?.rank ?? -1)
+                              ? `Upgrade to ${plan.name}`
+                              : `Downgrade to ${plan.name}`
+                            : plan.trialPeriodDays > 0
+                              ? `Start ${plan.trialPeriodDays}-Day Free Trial`
+                              : isFree
+                                ? 'Get Started'
+                                : `Get Started with ${plan.name}`}
                         </Link>
                       )}
 

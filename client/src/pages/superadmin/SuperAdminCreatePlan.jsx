@@ -20,6 +20,7 @@ const STATUS_OPTIONS = [
 const INITIAL_FORM_DATA = {
   name: '',
   code: '',
+  rank: '',
   description: '',
   currency: 1,
   monthlyPrice: '',
@@ -105,6 +106,7 @@ export default function SuperAdminCreatePlan() {
       const payload = {
         name: formData.name.trim(),
         code: formData.code.trim().toUpperCase(),
+        rank: Number(formData.rank),
         description: formData.description ? formData.description.trim() : null,
         status: Number(formData.status),
         currency: Number(formData.currency),
@@ -246,6 +248,29 @@ export default function SuperAdminCreatePlan() {
                     <p className="text-[10px] text-gray-400 mt-1">Unique key used by billing and backend APIs.</p>
                   )}
                 </div>
+              </div>
+
+              {/* Rank */}
+              <div>
+                  <label className="block font-medium text-gray-700 mb-1">
+                    Plan Rank (Hierarchy) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="rank"
+                    min="1"
+                    value={formData.rank}
+                    onChange={handleChange}
+                    placeholder="e.g. 1, 2, 3"
+                    className={`w-full px-3 py-2 border rounded text-xs bg-white focus:outline-none focus:ring-1 focus:ring-slate-900 ${
+                      errors.rank ? 'border-rose-400 bg-rose-50/30' : 'border-gray-200'
+                    }`}
+                  />
+                  {errors.rank ? (
+                    <p className="text-[11px] text-rose-500 mt-1">{errors.rank}</p>
+                  ) : (
+                    <p className="text-[10px] text-gray-400 mt-1">Lower number means lower tier (e.g. 1 for Free, 2 for Starter).</p>
+                  )}
               </div>
 
               {/* Description */}

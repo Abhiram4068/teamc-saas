@@ -13,6 +13,7 @@ public class Plan
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public int Rank { get; set; }
     public PlanStatus Status { get; set; } = PlanStatus.Active;
 
     // Pricing & Currency

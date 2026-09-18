@@ -40,9 +40,7 @@ export default function PublicNavbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2 group">
-              <svg className="w-8 h-8 text-brand-600 transition group-hover:scale-105" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5 10-5Z2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
+
               <span className="text-xl font-bold text-brand-800 tracking-tight">Teamo</span>
             </Link>
           </div>

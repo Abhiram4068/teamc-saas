@@ -169,9 +169,20 @@ export default function TenantViewPlans() {
 
                 <button
                   onClick={() => handlePlanSelect(plan)}
-                  className="block text-center w-full text-sm font-semibold py-2.5 rounded-md transition mb-6 shadow-xs cursor-pointer bg-[#EFF6FF] hover:bg-[#EFF6FF] text-brand-600"
+                  disabled={plan.transitionType === 'CURRENT PLAN'}
+                  className={`block text-center w-full text-sm font-semibold py-2.5 rounded-md transition mb-6 shadow-xs ${
+                    plan.transitionType === 'CURRENT PLAN'
+                      ? 'bg-slate-100 text-slate-500 cursor-not-allowed'
+                      : 'bg-[#EFF6FF] hover:bg-blue-50 text-brand-600 cursor-pointer'
+                  }`}
                 >
-                  View {plan.name}
+                  {plan.transitionType === 'CURRENT PLAN'
+                    ? 'Current Plan'
+                    : plan.transitionType === 'UPGRADE'
+                    ? `Upgrade to ${plan.name}`
+                    : plan.transitionType === 'DOWNGRADE'
+                    ? `Downgrade to ${plan.name}`
+                    : `View ${plan.name}`}
                 </button>
 
                 <div className="mt-8 pt-6 border-t border-slate-100">

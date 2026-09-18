@@ -8,6 +8,7 @@ public interface IPlanRepository
     Task<Plan?> GetByCodeAsync(string code);
     Task<bool> ExistsByCodeAsync(string code);
     Task<bool> ExistsByNameAsync(string name);
+    Task<bool> ExistsByRankAsync(int rank, int? excludePlanId = null);
     Task AddAsync(Plan plan);
     Task UpdateAsync(Plan plan);
     Task SaveChangesAsync();

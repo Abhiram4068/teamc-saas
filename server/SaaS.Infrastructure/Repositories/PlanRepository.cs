@@ -38,6 +38,16 @@ public class PlanRepository : IPlanRepository
         return await _context.Plans.AnyAsync(p => p.Name.ToLower() == name.ToLower());
     }
 
+    public async Task<bool> ExistsByRankAsync(int rank, int? excludePlanId = null)
+    {
+        var query = _context.Plans.Where(p => p.Rank == rank && p.Status != SaaS.Domain.Enums.PlanStatus.Deleted);
+        if (excludePlanId.HasValue)
+        {
+            query = query.Where(p => p.Id != excludePlanId.Value);
+        }
+        return await query.AnyAsync();
+    }
+
     public async Task AddAsync(Plan plan)
     {
         await _context.Plans.AddAsync(plan);

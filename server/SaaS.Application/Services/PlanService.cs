@@ -66,6 +66,11 @@ public class PlanService : IPlanService
             return ApiResponse<PlanResponseDto>.FailureResponse($"Plan with name {normalizedName} already exists.", 409);
         }
 
+        if (await _planRepository.ExistsByRankAsync(request.Rank))
+        {
+            return ApiResponse<PlanResponseDto>.FailureResponse($"A plan with Rank {request.Rank} already exists.", 409);
+        }
+
         // Format Name (Title Case)
         var words = normalizedName.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var formattedName = string.Join(" ", words.Select(w => char.ToUpper(w[0]) + w.Substring(1)));
@@ -84,6 +89,7 @@ public class PlanService : IPlanService
             Name = formattedName,
             Code = normalizedCode,
             Description = request.Description?.Trim(),
+            Rank = request.Rank,
             Status = request.Status,
             MonthlyPrice = request.MonthlyPrice,
             YearlyPrice = request.YearlyPrice,
@@ -319,6 +325,7 @@ public class PlanService : IPlanService
             Name = plan.Name,
             Code = plan.Code,
             Description = plan.Description,
+            Rank = plan.Rank,
             MonthlyPrice = plan.MonthlyPrice,
             YearlyPrice = plan.YearlyPrice,
             Currency = plan.Currency,
@@ -352,6 +359,7 @@ public class PlanService : IPlanService
             Name = plan.Name,
             Code = plan.Code,
             Description = plan.Description,
+            Rank = plan.Rank,
             Status = plan.Status,
             MonthlyPrice = plan.MonthlyPrice,
             YearlyPrice = plan.YearlyPrice,
@@ -381,7 +389,29 @@ public class PlanService : IPlanService
         
         if (activeSubscription != null)
         {
-            availablePlans = availablePlans.Where(p => p.Id != activeSubscription.PlanId).ToList();
+            var currentPlanId = activeSubscription.PlanId;
+            var currentPlan = availablePlans.FirstOrDefault(p => p.Id == currentPlanId);
+            
+            if (currentPlan != null)
+            {
+                int currentRank = currentPlan.Rank;
+                foreach (var p in availablePlans)
+                {
+                    if (p.Rank > currentRank)
+                        p.TransitionType = "UPGRADE";
+                    else if (p.Rank < currentRank)
+                        p.TransitionType = "DOWNGRADE";
+                    else
+                        p.TransitionType = "CURRENT PLAN";
+                }
+            }
+        }
+        else
+        {
+            foreach (var p in availablePlans)
+            {
+                p.TransitionType = "UPGRADE";
+            }
         }
 
         return ApiResponse<List<PublicPlanResponseDto>>.SuccessResponse(availablePlans, "Available plans retrieved successfully.");
@@ -410,11 +440,20 @@ public class PlanService : IPlanService
             }
         }
 
+        if (plan.Rank != request.Rank)
+        {
+            if (await _planRepository.ExistsByRankAsync(request.Rank, id))
+            {
+                return ApiResponse<PlanResponseDto>.FailureResponse($"A plan with Rank {request.Rank} already exists.", 409);
+            }
+        }
+
         var words = normalizedName.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var formattedName = string.Join(" ", words.Select(w => char.ToUpper(w[0]) + w.Substring(1)));
 
         plan.Name = formattedName;
         plan.Description = request.Description?.Trim();
+        plan.Rank = request.Rank;
         plan.TrialPeriodDays = request.TrialPeriodDays;
         plan.UpdatedAt = DateTime.UtcNow;
         // Re-using CreatedBy field if UpdatedBy isn't part of entity, wait, it has UpdatedAt? 

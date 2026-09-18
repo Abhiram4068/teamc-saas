@@ -13,6 +13,9 @@ public class CreatePlanRequestValidator : AbstractValidator<CreatePlanRequestDto
             .MinimumLength(3).WithMessage("Plan Name must be at least 3 characters.")
             .MaximumLength(100).WithMessage("Plan Name must not exceed 100 characters.");
 
+        RuleFor(x => x.Rank)
+            .GreaterThan(0).WithMessage("Plan Rank must be greater than 0.");
+
         RuleFor(x => x.Code)
             .NotEmpty().WithMessage("Plan Code is required.")
             .MaximumLength(50).WithMessage("Plan Code must not exceed 50 characters.")

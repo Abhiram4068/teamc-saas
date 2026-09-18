@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
     /// </summary>
     /// <param name="request">The user login credentials request DTO.</param>
     /// <returns>An <see cref="IActionResult"/> containing the API response with authentication tokens.</returns>
-    [HttpPost("admin/login")]
+    [HttpPost("superadmin/login")]
     [ProducesResponseType(typeof(ApiResponse<LoginResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<LoginResponseDto>), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> SuperAdminLogin([FromBody] LoginRequestDto request)

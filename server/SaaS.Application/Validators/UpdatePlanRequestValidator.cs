@@ -11,6 +11,9 @@ public class UpdatePlanRequestValidator : AbstractValidator<UpdatePlanRequestDto
             .NotEmpty().WithMessage("Plan name is required.")
             .MaximumLength(100).WithMessage("Plan name must not exceed 100 characters.");
 
+        RuleFor(x => x.Rank)
+            .GreaterThan(0).WithMessage("Plan Rank must be greater than 0.");
+
         RuleFor(x => x.Description)
             .MaximumLength(500).WithMessage("Description must not exceed 500 characters.");
 

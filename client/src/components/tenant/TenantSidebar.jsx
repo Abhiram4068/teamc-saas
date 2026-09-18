@@ -22,7 +22,7 @@ export default function TenantSidebar() {
       title: 'Subscription',
       items: [
         { to: '/tenant/my-plan', label: 'My Plan', icon: 'fa-solid fa-crown' },
-        // { to: '/tenant/plans', label: 'Explore Plans', icon: 'fa-solid fa-compass' },
+        { to: '/tenant/plans', label: 'Explore Plans', icon: 'fa-solid fa-compass' },
         // { to: '/tenant/history', label: 'Payment History', icon: 'fa-solid fa-clock-rotate-left' },
         // { to: '/tenant/billing', label: 'Billing Information', icon: 'fa-solid fa-file-invoice-dollar' },
         { to: '/tenant/invoices', label: 'Invoices', icon: 'fa-solid fa-receipt' },
