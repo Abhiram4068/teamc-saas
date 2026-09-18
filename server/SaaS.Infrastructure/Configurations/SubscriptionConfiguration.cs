@@ -23,7 +23,7 @@ public class SubscriptionConfiguration
             .IsRequired();
 
         builder.Property(x => x.EndDate)
-            .IsRequired();
+            .IsRequired(false);
 
         builder.Property(x => x.StripeCustomerId)
             .HasMaxLength(100);
