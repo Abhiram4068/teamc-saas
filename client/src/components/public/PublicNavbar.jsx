@@ -58,12 +58,6 @@ export default function PublicNavbar() {
           <div className="hidden sm:flex items-center space-x-4">
             {user ? (
               <>
-                <Link
-                  to="/tenant/dashboard"
-                  className=" text-[#091E42] hover:text-[#091E41]/90 text-sm font-semibold px-4 py-2 rounded-md transition duration-150 shadow-xs cursor-pointer"
-                >
-                  Access Tenant Portal
-                </Link>
                 <div
                   className="relative"
                   onMouseEnter={() => setIsProfileMenuOpen(true)}
