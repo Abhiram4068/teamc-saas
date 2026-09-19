@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SaaS.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SaaS.Infrastructure.Data;
 namespace SaaS.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260911154702_UpdateUserEntity")]
+    partial class UpdateUserEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -102,9 +105,6 @@ namespace SaaS.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(1);
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -114,68 +114,6 @@ namespace SaaS.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Features", (string)null);
-                });
-
-            modelBuilder.Entity("SaaS.Domain.Entities.Payment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("PaymentDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("StripeCheckoutSessionId")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("StripeInvoiceId")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("StripePaymentIntentId")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<Guid>("SubscriptionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<long>("TenantId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StripeCheckoutSessionId")
-                        .IsUnique();
-
-                    b.HasIndex("StripeInvoiceId");
-
-                    b.HasIndex("StripePaymentIntentId");
-
-                    b.HasIndex("SubscriptionId");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Plan", b =>
@@ -222,19 +160,10 @@ namespace SaaS.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("Rank")
-                        .HasColumnType("int");
-
                     b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(1);
-
-                    b.Property<string>("StripeMonthlyPriceId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("StripeYearlyPriceId")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("TrialPeriodDays")
                         .HasColumnType("int");
@@ -289,110 +218,6 @@ namespace SaaS.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("PlanFeatures", (string)null);
-                });
-
-            modelBuilder.Entity("SaaS.Domain.Entities.PlanFeatureConfig", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool?>("AccessValue")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("LimitValue")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PlanFeatureId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlanFeatureId")
-                        .IsUnique();
-
-                    b.ToTable("PlanFeatureConfigs");
-                });
-
-            modelBuilder.Entity("SaaS.Domain.Entities.Subscription", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Address")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("BillingCycle")
-                        .HasColumnType("int");
-
-                    b.Property<string>("City")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("OrganizationName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Pincode")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<int>("PlanId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("State")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("StripeCustomerId")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("StripeSubscriptionId")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<long>("TenantId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlanId");
-
-                    b.HasIndex("StripeSubscriptionId")
-                        .IsUnique()
-                        .HasFilter("[StripeSubscriptionId] IS NOT NULL");
-
-                    b.HasIndex("TenantId")
-                        .IsUnique();
-
-                    b.ToTable("Subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Tenant", b =>
@@ -459,9 +284,6 @@ namespace SaaS.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime?>("LastLogin")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -523,33 +345,6 @@ namespace SaaS.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SaaS.Domain.Entities.Payment", b =>
-                {
-                    b.HasOne("SaaS.Domain.Entities.Subscription", "Subscription")
-                        .WithMany("Payments")
-                        .HasForeignKey("SubscriptionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SaaS.Domain.Entities.Tenant", "Tenant")
-                        .WithMany("Payments")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SaaS.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Subscription");
-
-                    b.Navigation("Tenant");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("SaaS.Domain.Entities.PlanFeature", b =>
                 {
                     b.HasOne("SaaS.Domain.Entities.Feature", "Feature")
@@ -567,36 +362,6 @@ namespace SaaS.Infrastructure.Migrations
                     b.Navigation("Feature");
 
                     b.Navigation("Plan");
-                });
-
-            modelBuilder.Entity("SaaS.Domain.Entities.PlanFeatureConfig", b =>
-                {
-                    b.HasOne("SaaS.Domain.Entities.PlanFeature", "PlanFeature")
-                        .WithOne("Config")
-                        .HasForeignKey("SaaS.Domain.Entities.PlanFeatureConfig", "PlanFeatureId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PlanFeature");
-                });
-
-            modelBuilder.Entity("SaaS.Domain.Entities.Subscription", b =>
-                {
-                    b.HasOne("SaaS.Domain.Entities.Plan", "Plan")
-                        .WithMany("Subscriptions")
-                        .HasForeignKey("PlanId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SaaS.Domain.Entities.Tenant", "Tenant")
-                        .WithOne("Subscription")
-                        .HasForeignKey("SaaS.Domain.Entities.Subscription", "TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Plan");
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.User", b =>
@@ -622,27 +387,11 @@ namespace SaaS.Infrastructure.Migrations
             modelBuilder.Entity("SaaS.Domain.Entities.Plan", b =>
                 {
                     b.Navigation("PlanFeatures");
-
-                    b.Navigation("Subscriptions");
-                });
-
-            modelBuilder.Entity("SaaS.Domain.Entities.PlanFeature", b =>
-                {
-                    b.Navigation("Config");
-                });
-
-            modelBuilder.Entity("SaaS.Domain.Entities.Subscription", b =>
-                {
-                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Tenant", b =>
                 {
                     b.Navigation("Employees");
-
-                    b.Navigation("Payments");
-
-                    b.Navigation("Subscription");
 
                     b.Navigation("Users");
                 });
