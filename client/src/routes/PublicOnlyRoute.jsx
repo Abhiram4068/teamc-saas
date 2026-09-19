@@ -7,7 +7,6 @@ export default function PublicOnlyRoute() {
 
   if (token) {
     const role = getRole();
-    
     if (role === 1) {
       return <Navigate to="/superadmin/dashboard" replace />;
     } else if (role === 2) {

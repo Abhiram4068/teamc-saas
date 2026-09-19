@@ -1,13 +1,12 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace SaaS.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialPostgres : Migration
+    public partial class RankForPlan : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,16 +15,16 @@ namespace SaaS.Infrastructure.Migrations
                 name: "Features",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
-                    Type = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedBy = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -36,24 +35,25 @@ namespace SaaS.Infrastructure.Migrations
                 name: "Plans",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
-                    MonthlyPrice = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
-                    YearlyPrice = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
-                    Currency = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
-                    TrialPeriodDays = table.Column<int>(type: "integer", nullable: true),
-                    Version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
-                    EffectiveFrom = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EffectiveTo = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedBy = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    StripeMonthlyPriceId = table.Column<string>(type: "text", nullable: true),
-                    StripeYearlyPriceId = table.Column<string>(type: "text", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Rank = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    MonthlyPrice = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    YearlyPrice = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    Currency = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    TrialPeriodDays = table.Column<int>(type: "int", nullable: true),
+                    Version = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    EffectiveFrom = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EffectiveTo = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    StripeMonthlyPriceId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StripeYearlyPriceId = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -65,14 +65,14 @@ namespace SaaS.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    CIN = table.Column<string>(type: "character varying(21)", maxLength: 21, nullable: false),
-                    CompanyName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Address = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    Pincode = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CIN = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
+                    CompanyName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Pincode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -83,12 +83,12 @@ namespace SaaS.Infrastructure.Migrations
                 name: "PlanFeatures",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    PlanId = table.Column<int>(type: "integer", nullable: false),
-                    FeatureId = table.Column<int>(type: "integer", nullable: false),
-                    IsEnabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PlanId = table.Column<int>(type: "int", nullable: false),
+                    FeatureId = table.Column<int>(type: "int", nullable: false),
+                    IsEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -111,22 +111,22 @@ namespace SaaS.Infrastructure.Migrations
                 name: "Subscriptions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     TenantId = table.Column<long>(type: "bigint", nullable: false),
-                    PlanId = table.Column<int>(type: "integer", nullable: false),
-                    BillingCycle = table.Column<int>(type: "integer", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    StripeCustomerId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    StripeSubscriptionId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    OrganizationName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Address = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    City = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    State = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    Pincode = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    PlanId = table.Column<int>(type: "int", nullable: false),
+                    BillingCycle = table.Column<int>(type: "int", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    StripeCustomerId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    StripeSubscriptionId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    OrganizationName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    State = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Pincode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -150,18 +150,18 @@ namespace SaaS.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    PasswordHash = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    PhoneNumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     TenantId = table.Column<long>(type: "bigint", nullable: true),
-                    Role = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    LastLogin = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    Role = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastLogin = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -178,13 +178,13 @@ namespace SaaS.Infrastructure.Migrations
                 name: "PlanFeatureConfigs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    PlanFeatureId = table.Column<int>(type: "integer", nullable: false),
-                    AccessValue = table.Column<bool>(type: "boolean", nullable: true),
-                    LimitValue = table.Column<int>(type: "integer", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PlanFeatureId = table.Column<int>(type: "int", nullable: false),
+                    AccessValue = table.Column<bool>(type: "bit", nullable: true),
+                    LimitValue = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -202,15 +202,15 @@ namespace SaaS.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
                     TenantId = table.Column<long>(type: "bigint", nullable: false),
-                    Designation = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
-                    Department = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
+                    Designation = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
+                    Department = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
                     JoiningDate = table.Column<DateTime>(type: "date", nullable: false),
                     ReportingManagerId = table.Column<long>(type: "bigint", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -239,18 +239,18 @@ namespace SaaS.Infrastructure.Migrations
                 name: "Payments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     TenantId = table.Column<long>(type: "bigint", nullable: false),
-                    SubscriptionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SubscriptionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
-                    Amount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    PaymentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    StripeCheckoutSessionId = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    StripePaymentIntentId = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
-                    StripeInvoiceId = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    StripeCheckoutSessionId = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    StripePaymentIntentId = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
+                    StripeInvoiceId = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -360,7 +360,8 @@ namespace SaaS.Infrastructure.Migrations
                 name: "IX_Subscriptions_StripeSubscriptionId",
                 table: "Subscriptions",
                 column: "StripeSubscriptionId",
-                unique: true);
+                unique: true,
+                filter: "[StripeSubscriptionId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Subscriptions_TenantId",

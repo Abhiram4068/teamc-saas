@@ -12,7 +12,7 @@ using SaaS.Infrastructure.Data;
 namespace SaaS.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260918074016_RankForPlan")]
+    [Migration("20260919103327_RankForPlan")]
     partial class RankForPlan
     {
         /// <inheritdoc />
@@ -345,7 +345,7 @@ namespace SaaS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OrganizationName")

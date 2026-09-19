@@ -83,12 +83,12 @@ export default function AppRoutes() {
           <Route path="/price" element={<PublicViewPlan />} />
           <Route path="/pricing" element={<PublicViewPlan />} />
           <Route path="/landing" element={<PublicLanding />} />
-          <Route path="/sign-up" element={<TenantRegistration />} />
         </Route>
 
         {/* Login routes that should redirect away if already logged in */}
         <Route element={<PublicOnlyRoute />}>
           <Route path="/login" element={<Login />} />
+          <Route path="/sign-up" element={<TenantRegistration />} />
           <Route path="/superadmin/login" element={<SuperAdminLogin />} />
         </Route>
 

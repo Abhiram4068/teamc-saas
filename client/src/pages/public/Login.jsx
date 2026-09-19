@@ -44,7 +44,7 @@ export default function TenantLogin() {
         if (role === 1) {
           navigate('/superadmin/dashboard');
         } else if (role === 2) {
-          navigate('/tenant/dashboard');
+          navigate('/price');
         } else if (role === 3) {
           navigate('/tenant-admin/dashboard');
         } else {
