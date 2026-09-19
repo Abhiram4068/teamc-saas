@@ -52,19 +52,19 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateFeatureRequestValidat
 
 #endregion
 
-// Configure CORS
+// Configure CORS for render
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("https://useteamo.vercel.app")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configure JWT Settings & Authentication Scheme
 var jwtSection = builder.Configuration.GetSection("JwtSettings");
@@ -140,7 +140,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
