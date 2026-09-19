@@ -25,13 +25,7 @@ export default function PublicNavbar() {
 
   return (
     <>
-      {/* TOP ANNOUNCEMENT BAR */}
-      <div className="bg-[#091E42] text-white text-xs md:text-sm py-2 px-4 text-center font-medium">
-        <span>Scale your employee management as your business grows.</span>
-        <a href="/price" className=" hover:text-blue-200 ml-2 font-semibold transition">
-          Compare Plans &rarr;
-        </a>
-      </div>
+
 
       {/* NAVIGATION */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-xs">

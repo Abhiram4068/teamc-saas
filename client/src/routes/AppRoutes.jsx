@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 // Lazy loading all route components
 const PublicLayout = lazy(() => import('../layouts/PublicLayout'));
 const PublicViewPlan = lazy(() => import('../pages/public/PublicViewPlan'));
+const PublicLanding = lazy(() => import('../pages/public/Landing'));
 const SuperAdminLogin = lazy(() => import('../pages/public/SuperAdminLogin'));
 const SuperAdminProtectedRoute = lazy(() => import('./SuperAdminProtectedRoute'));
 const TenantProtectedRoute = lazy(() => import('./TenantProtectedRoute'));
@@ -68,9 +69,10 @@ export default function AppRoutes() {
       <Routes>
         {/* Public Routes with PublicLayout */}
         <Route element={<PublicLayout />}>
-          <Route path="/" element={<Navigate to="/price" replace />} />
+          <Route path="/" element={<PublicLanding />} />
           <Route path="/price" element={<PublicViewPlan />} />
           <Route path="/pricing" element={<PublicViewPlan />} />
+          <Route path="/landing" element={<PublicLanding />} />
           <Route path="/sign-up" element={<TenantRegistration />} />
         </Route>
 
