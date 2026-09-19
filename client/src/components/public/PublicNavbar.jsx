@@ -13,8 +13,11 @@ export default function PublicNavbar() {
   const isPriceActive = location.pathname === '/price' || location.pathname === '/pricing';
 
   useEffect(() => {
-    const currentUser = authApi.getCurrentUser();
-    setUser(currentUser);
+    const fetchUser = async () => {
+      const currentUser = await authApi.getCurrentUser();
+      setUser(currentUser);
+    };
+    fetchUser();
   }, [location.pathname]);
 
   const handleLogout = () => {

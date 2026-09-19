@@ -41,4 +41,11 @@ public interface IAuthService
     /// <param name="request">The request DTO containing admin details.</param>
     /// <returns>A task returning an <see cref="ApiResponse{T}"/> containing <see cref="TenantCreateTenantAdminResponseDto"/>.</returns>
     Task<ApiResponse<TenantCreateTenantAdminResponseDto>> CreateTenantAdminAsync(int tenantId, TenantCreateTenantAdminRequestDto request);
+
+    /// <summary>
+    /// Retrieves the profile data for the specified user.
+    /// </summary>
+    /// <param name="userId">The ID of the user.</param>
+    /// <returns>A task returning an <see cref="ApiResponse{T}"/> containing <see cref="ProfileResponseDto"/>.</returns>
+    Task<ApiResponse<ProfileResponseDto>> GetProfileAsync(long userId);
 }

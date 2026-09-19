@@ -50,7 +50,7 @@ export const authApi = {
     }
   },
 
-  getCurrentUser: () => {
+  getCurrentUser: async () => {
     const token = getToken();
     if (!token) return null;
 
@@ -59,23 +59,32 @@ export const authApi = {
       return null;
     }
 
-    const fName = decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] || decoded.given_name || '';
-    const lName = decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'] || decoded.family_name || '';
+    try {
+      const response = await axiosClient.get('/auth/profile');
+      if (response.data && response.data.success) {
+        const profile = response.data.data;
+        const fName = profile.firstName || '';
+        const lName = profile.lastName || '';
+        
+        let initials = '';
+        if (fName || lName) {
+          initials = `${fName.charAt(0)}${lName.charAt(0)}`.toUpperCase();
+        } else {
+          const email = profile.email || '';
+          initials = email ? email.charAt(0).toUpperCase() : 'U';
+        }
 
-    let initials = '';
-    if (fName || lName) {
-      initials = `${fName.charAt(0)}${lName.charAt(0)}`.toUpperCase();
-    } else {
-      const email = decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || decoded.email || '';
-      initials = email ? email.charAt(0).toUpperCase() : 'U';
+        return {
+          ...decoded,
+          ...profile,
+          initials
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error("Failed to fetch user profile", error);
+      return null;
     }
-
-    return {
-      ...decoded,
-      initials,
-      firstName: fName,
-      lastName: lName
-    };
   },
 
   logout: () => {
