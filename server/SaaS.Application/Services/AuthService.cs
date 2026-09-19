@@ -320,7 +320,7 @@ public class AuthService : IAuthService
         var tenant = new Tenant
         {
             CIN = normalizedCin!,
-            CompanyName = request.CompanyName?.Trim().ToUpperInvariant() ?? string.Empty,
+            CompanyName = request.CompanyName?.Trim() ?? string.Empty,
             Address = request.Address?.Trim(),
             Pincode = request.Pincode?.Trim(),
             Status = TenantStatus.Active,

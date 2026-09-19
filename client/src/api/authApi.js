@@ -55,9 +55,7 @@ export const authApi = {
     if (!token) return null;
 
     const decoded = parseJwt(token);
-    if (!decoded || decoded.exp * 1000 < Date.now()) {
-      return null;
-    }
+    if (!decoded) return null;
 
     try {
       const response = await axiosClient.get('/auth/profile');
