@@ -38,18 +38,8 @@ export default function TenantLogin() {
       const result = await authApi.publicLogin(formData.email, formData.password);
 
       if (result.success) {
-        const { getRole } = await import('../../utils/tokenStorage');
-        const role = getRole();
-
-        if (role === 1) {
-          navigate('/superadmin/dashboard');
-        } else if (role === 2) {
-          navigate('/tenant/dashboard');
-        } else if (role === 3) {
-          navigate('/tenant-admin/dashboard');
-        } else {
-          navigate('/price');
-        }
+        // Redirect to pricing page after successful login
+        navigate('/price');
       } else {
         setLoginError(result.message || 'Invalid email or password. Please try again.');
       }

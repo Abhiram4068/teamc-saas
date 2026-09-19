@@ -34,6 +34,8 @@ export default function TenantMyPlan() {
 
       if (subRes.status === 'fulfilled' && subRes.value?.success && subRes.value?.data?.hasActiveSubscription) {
         setSubscription(subRes.value.data);
+      } else {
+        showToast('No active subscription found.', 'warning');
       }
 
       if (featRes.status === 'fulfilled' && featRes.value?.success && featRes.value?.data) {
