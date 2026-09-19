@@ -28,8 +28,18 @@ const SuperAdminCreatePlan = lazy(() => import('../pages/superadmin/SuperAdminCr
 const SuperAdminViewPlanFeatures = lazy(() => import('../pages/superadmin/SuperAdminViewPlanFeatures'));
 const SuperAdminTenantsList = lazy(() => import('../pages/superadmin/SuperAdminTenantsList'));
 
+// Tenant Admin Pages
+const TenantAdminRoute = lazy(() => import('./TenantAdminRoute'));
+const TenantAdminLayout = lazy(() => import('../layouts/TenantAdminLayout'));
+const TenantAdminDashboard = lazy(() => import('../pages/tenant-admin/TenantAdminDashboard'));
+const TenantAdminEmployees = lazy(() => import('../pages/tenant-admin/TenantAdminEmployees'));
+const TenantAdminRegisterUser = lazy(() => import('../pages/tenant-admin/TenantAdminRegisterUser'));
+
 const TenantRegistration = lazy(() => import('../pages/public/Register'));
 const Login = lazy(() => import('../pages/public/Login'));
+
+// Route guards
+const PublicOnlyRoute = lazy(() => import('./PublicOnlyRoute'));
 
 // Fallback page
 const NotFound = lazy(() => import('../pages/common/NotFound'));
@@ -74,8 +84,11 @@ export default function AppRoutes() {
           <Route path="/sign-up" element={<TenantRegistration />} />
         </Route>
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/superadmin/login" element={<SuperAdminLogin />} />
+        {/* Login routes that should redirect away if already logged in */}
+        <Route element={<PublicOnlyRoute />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/superadmin/login" element={<SuperAdminLogin />} />
+        </Route>
 
         {/* SuperAdmin Protected Routes */}
         <Route element={<SuperAdminProtectedRoute />}>
@@ -111,6 +124,16 @@ export default function AppRoutes() {
             <Route path="/checkout/:planId" element={<Checkout />} />
             <Route path="/payment/success" element={<PaymentSuccess />} />
             <Route path="/payment/cancel" element={<PaymentCancel />} />
+          </Route>
+        </Route>
+
+        {/* Tenant Admin Routes */}
+        <Route element={<TenantAdminRoute />}>
+          <Route path="/tenant-admin" element={<TenantAdminLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<TenantAdminDashboard />} />
+            <Route path="users" element={<TenantAdminEmployees />} />
+            <Route path="add-user" element={<TenantAdminRegisterUser />} />
           </Route>
         </Route>
 

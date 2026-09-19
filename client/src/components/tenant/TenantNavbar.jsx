@@ -22,7 +22,7 @@ export default function TenantNavbar() {
       <div className="flex items-center w-1/3">
         {/* Placeholder for left side if needed, currently logo is public */}
         <h1 className="text-lg font-bold text-gray-800 tracking-tight">
-          Teamo Tenant User Portal
+          Teamo Tenant Portal
         </h1>
       </div>
 

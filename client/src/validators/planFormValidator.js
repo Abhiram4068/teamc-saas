@@ -10,6 +10,15 @@ export const validatePlanForm = (data) => {
         errors.name = 'Plan Name must not exceed 100 characters.';
     }
 
+    // Rank validation
+    if (data.rank === '' || data.rank === null || data.rank === undefined) {
+        errors.rank = 'Plan Rank is required.';
+    } else if (isNaN(Number(data.rank)) || Number(data.rank) <= 0) {
+        errors.rank = 'Plan Rank must be greater than 0.';
+    } else if (!Number.isInteger(Number(data.rank))) {
+        errors.rank = 'Plan Rank must be a whole number.';
+    }
+
     // Plan Code validation
     if (!data.code || data.code.trim() === '') {
         errors.code = 'Plan Code is required.';
@@ -91,6 +100,14 @@ export const validateUpdatePlanForm = (data) => {
         errors.name = 'Name must be at least 3 characters.';
     } else if (data.name.trim().length > 100) {
         errors.name = 'Name must not exceed 100 characters.';
+    }
+
+    if (data.rank === '' || data.rank === null || data.rank === undefined) {
+        errors.rank = 'Plan Rank is required.';
+    } else if (isNaN(Number(data.rank)) || Number(data.rank) <= 0) {
+        errors.rank = 'Plan Rank must be greater than 0.';
+    } else if (!Number.isInteger(Number(data.rank))) {
+        errors.rank = 'Plan Rank must be a whole number.';
     }
 
     if (!data.description || data.description.trim() === '') {

@@ -28,7 +28,7 @@ export const authApi = {
 
   superAdminLogin: async (email, password) => {
     try {
-      const response = await axiosClient.post('auth/admin/login', { email, password });
+      const response = await axiosClient.post('auth/superadmin/login', { email, password });
       const data = response.data;
 
       if (data && data.success && data.data && data.data.accessToken) {

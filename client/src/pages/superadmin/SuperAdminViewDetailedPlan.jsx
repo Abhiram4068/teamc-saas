@@ -34,7 +34,7 @@ export default function SuperAdminViewDetailedPlan() {
   // Edit Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isConfirmEditModalOpen, setIsConfirmEditModalOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState({ name: '', description: '', trialPeriodDays: '' });
+  const [editFormData, setEditFormData] = useState({ name: '', rank: '', description: '', trialPeriodDays: '' });
   const [editFormErrors, setEditFormErrors] = useState({});
 
   // Status Modal State
@@ -188,6 +188,7 @@ export default function SuperAdminViewDetailedPlan() {
   const openEditModal = () => {
     setEditFormData({
       name: plan.name || '',
+      rank: plan.rank || '',
       description: plan.description || '',
       trialPeriodDays: plan.trialPeriodDays ?? ''
     });
@@ -196,7 +197,7 @@ export default function SuperAdminViewDetailedPlan() {
   };
 
   const clearEditForm = () => {
-    setEditFormData({ name: '', description: '', trialPeriodDays: '' });
+    setEditFormData({ name: '', rank: '', description: '', trialPeriodDays: '' });
     setEditFormErrors({});
   };
 
@@ -215,6 +216,7 @@ export default function SuperAdminViewDetailedPlan() {
       setIsUpdating(true);
       const payload = {
         name: editFormData.name,
+        rank: Number(editFormData.rank),
         description: editFormData.description,
         trialPeriodDays: editFormData.trialPeriodDays !== '' ? Number(editFormData.trialPeriodDays) : null
       };
@@ -490,6 +492,11 @@ export default function SuperAdminViewDetailedPlan() {
                   <div className="px-5 py-3.5 grid grid-cols-3 gap-4">
                     <dt className="font-medium text-gray-500">System Identifier</dt>
                     <dd className="col-span-2 text-slate-800 font-mono text-[11px]">{plan.code}</dd>
+                  </div>
+
+                  <div className="px-5 py-3.5 grid grid-cols-3 gap-4">
+                    <dt className="font-medium text-gray-500">Plan Rank</dt>
+                    <dd className="col-span-2 text-gray-800 font-semibold">{plan.rank}</dd>
                   </div>
 
                   <div className="px-5 py-3.5 grid grid-cols-3 gap-4">
@@ -850,6 +857,21 @@ export default function SuperAdminViewDetailedPlan() {
                   placeholder="e.g. Pro Plan"
                 />
                 {editFormErrors.name && <p className="text-red-500 text-[10px] mt-1">{editFormErrors.name}</p>}
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Plan Rank (Hierarchy)</label>
+                <input 
+                  type="number"
+                  min="1"
+                  value={editFormData.rank}
+                  onChange={(e) => {
+                    setEditFormData({...editFormData, rank: e.target.value});
+                    if (editFormErrors.rank) setEditFormErrors({...editFormErrors, rank: null});
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 text-sm transition-shadow ${editFormErrors.rank ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
+                  placeholder="e.g. 1, 2, 3"
+                />
+                {editFormErrors.rank && <p className="text-red-500 text-[10px] mt-1">{editFormErrors.rank}</p>}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>

@@ -17,7 +17,7 @@ export default function Checkout() {
         state: '',
         pincode: ''
     });
-    
+
     const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
@@ -66,9 +66,9 @@ export default function Checkout() {
                 state: formData.state,
                 pincode: formData.pincode
             };
-            
+
             const response = await subscriptionApi.createCheckoutSession(payload);
-            
+
             if (response && response.data && response.data.checkoutUrl) {
                 window.location.href = response.data.checkoutUrl;
             }
@@ -139,67 +139,12 @@ export default function Checkout() {
 
                     {/* Step 2: Payment Methods (UPI, QR Code, Card) */}
                     <div className="p-6 sm:p-7 ">
-                        <h2 className="text-base font-bold text-slate-900 mb-0.5">2. Payment method</h2>
-                        <p className="text-xs text-slate-500 mb-6">Select your payment preferences.</p>
-
-                        <div className="space-y-3">
-                            {/* UPI / QR Option (Active) */}
-                            <div className="border border-brand-600 rounded p-4 bg-slate-50/50">
-                                <label className="flex items-center justify-between cursor-pointer mb-3">
-                                    <div className="flex items-center gap-2.5">
-                                        <input type="radio" name="payment-method" defaultChecked className="w-4 h-4 text-brand-600 focus:ring-brand-500" />
-                                        <span className="font-bold text-slate-900 text-sm">UPI / Dynamic QR Code</span>
-                                    </div>
-                                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-sm uppercase tracking-wider">Instant</span>
-                                </label>
-
-                                <div className="pt-3 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-                                    {/* QR Display */}
-                                    <div className="flex flex-col items-center bg-white p-3.5 rounded border border-slate-200 shadow-xs text-center">
-                                        <div className="w-32 h-32 bg-slate-50 rounded p-1.5 border border-slate-200 flex items-center justify-center mb-2 relative">
-                                            {/* Clean SVG QR Code */}
-                                            <svg className="w-full h-full text-slate-900" viewBox="0 0 100 100" fill="currentColor">
-                                                <path d="M0 0h30v30H0zm10 10v10h10V10zM70 0h30v30H70zm10 10v10h10V10zM0 70h30v30H0zm10 10v10h10V10zM40 10h10v10H40zm10 20h10v10H50zm-10 10h10v10H40zm20-20h10v10H60zm10 30h10v10H70zm-20 0h10v10H50zm30 10h10v20H80zm10 20h10v10H90zm-40 0h20v10H50zm-10-10h10v20H40zm30 0h10v10H70z" />
-                                            </svg>
-                                        </div>
-                                        <span className="text-xs font-semibold text-slate-800">Scan to pay ₹294.75</span>
-                                        <span className="text-[10px] text-slate-400 mt-0.5">GPay, PhonePe, Paytm, BHIM</span>
-                                    </div>
-
-                                    {/* UPI ID Input */}
-                                    <div className="space-y-3">
-                                        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Enter VPA / UPI ID</label>
-                                        <div className="flex gap-2">
-                                            <input type="text" placeholder="username@upi" className="flex-grow px-3 py-2 rounded border border-slate-300 text-sm focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none" />
-                                            <button type="button" className="bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs px-3.5 py-2 rounded transition">Verify</button>
-                                        </div>
-                                        <p className="text-[11px] text-slate-500 leading-normal">Payment request will be pushed directly to your UPI handle.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Card Option */}
-                            <div className="border border-slate-200 rounded p-3.5 hover:border-slate-300 transition">
-                                <label className="flex items-center justify-between cursor-pointer">
-                                    <div className="flex items-center gap-2.5">
-                                        <input type="radio" name="payment-method" className="w-4 h-4 text-brand-600 focus:ring-brand-500" />
-                                        <span className="font-semibold text-slate-800 text-sm">Credit or Debit Card</span>
-                                    </div>
-                                    <div className="flex gap-1.5 text-[10px] text-slate-400 font-mono font-bold tracking-widest">
-                                        <span>VISA</span>
-                                        <span>MC</span>
-                                        <span>AMEX</span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <button 
-                            type="button" 
-                            onClick={handleCheckout} 
+                        <button
+                            type="button"
+                            onClick={handleCheckout}
                             disabled={isProcessing}
-                            className="w-full mt-6 bg-brand-600 hover:bg-brand-700 disabled:opacity-70 disabled:cursor-not-allowed text-white text-sm font-bold py-3.5 rounded shadow-sm transition">
-                            {isProcessing ? "Redirecting to Payment..." : `Complete Upgrade — ₹ ${price}`}
+                            className="w-full bg-[#14283e] hover:bg-[#14283e] disabled:opacity-70 disabled:cursor-not-allowed text-white text-sm font-bold py-3.5 rounded shadow-sm transition">
+                            {isProcessing ? "Redirecting..." : `Enter Card Details`}
                         </button>
                     </div>
                 </div>

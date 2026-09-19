@@ -11,5 +11,5 @@ public class SubscriptionResponseDto
     public SubscriptionStatus Status { get; set; }
     public DateTime SubscribedOn { get; set; }
     public DateTime CurrentPeriodStart { get; set; }
-    public DateTime CurrentPeriodEnd { get; set; }
+    public DateTime? CurrentPeriodEnd { get; set; }
 }

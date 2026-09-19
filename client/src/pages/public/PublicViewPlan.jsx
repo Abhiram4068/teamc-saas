@@ -185,18 +185,9 @@ export default function PublicViewPlan() {
 
           {/* Empty Plans State */}
           {!loading && !error && plans.length === 0 && (
-            <div className="max-w-md mx-auto text-center py-16 px-6 bg-slate-50 border border-slate-200 rounded-xl">
-              <svg className="w-10 h-10 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
+            <div className="max-w-md mx-auto text-center py-16 px-6">
               <h3 className="text-base font-bold text-slate-800">No Plans Currently Available</h3>
               <p className="text-xs text-slate-500 mt-1">Please check back shortly or reach out to our team.</p>
-              <Link
-                to="/login"
-                className="inline-block mt-4 px-4 py-2 bg-brand-600 text-white text-xs font-semibold rounded hover:bg-blue-700 transition"
-              >
-                Sign In
-              </Link>
             </div>
           )}
 
@@ -265,11 +256,11 @@ export default function PublicViewPlan() {
                       <div className="my-5">
                         <div className="flex items-baseline gap-1.5">
                           <span
-                            title={isFree ? 'Free' : `${currencySymbol} ${Number(priceValue).toLocaleString()} ${isAnnual ? '/ year' : '/ month'}`}
+                            title={isFree ? '₹ 0' : `${currencySymbol} ${Number(priceValue).toLocaleString()} ${isAnnual ? '/ year' : '/ month'}`}
                             className={`text-3xl font-extrabold tracking-tight truncate ${isEnterprise ? 'text-white' : 'text-brand-800'
                               }`}
                           >
-                            {isFree ? 'Free' : `${currencySymbol} ${Number(priceValue).toLocaleString()}`}
+                            {isFree ? '₹ 0' : `${currencySymbol} ${Number(priceValue).toLocaleString()}`}
                           </span>
                           {!isFree && (
                             <span className={`text-xs font-medium ${isEnterprise ? 'text-gray-300' : 'text-gray-500'}`}>
@@ -277,14 +268,6 @@ export default function PublicViewPlan() {
                             </span>
                           )}
                         </div>
-
-                        <span className={`text-xs block mt-1 ${isEnterprise ? 'text-gray-300' : 'text-gray-500'}`}>
-                          {isFree
-                            ? 'Free forever for basic workforce setup'
-                            : isAnnual
-                              ? 'Billed annually'
-                              : 'Billed monthly'}
-                        </span>
 
                         {/* Always allocate h-7 (28px) so cards without trial maintain identical vertical button alignment */}
                         <div className="h-7 mt-2.5 flex items-center">
@@ -322,11 +305,15 @@ export default function PublicViewPlan() {
                               : 'bg-brand-50 hover:bg-brand-100 text-brand-600'
                             }`}
                         >
-                          {plan.trialPeriodDays > 0
-                            ? `Start ${plan.trialPeriodDays}-Day Free Trial`
-                            : isFree
-                              ? 'Get Started'
-                              : `Get Started with ${plan.name}`}
+                          {currentPlanId
+                            ? plan.rank > (plans.find(p => p.id === currentPlanId)?.rank ?? -1)
+                              ? `Upgrade to ${plan.name}`
+                              : `Downgrade to ${plan.name}`
+                            : plan.trialPeriodDays > 0
+                              ? `Start ${plan.trialPeriodDays}-Day Free Trial`
+                              : isFree
+                                ? 'Get Started'
+                                : `Get Started with ${plan.name}`}
                         </Link>
                       )}
 
