@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SaaS.Domain.Entities;
 
@@ -55,8 +55,7 @@ public class PaymentConfiguration
             .OnDelete(DeleteBehavior.Restrict);
 
         // A Stripe Checkout Session represents one checkout attempt
-        builder.HasIndex(x => x.StripeCheckoutSessionId)
-            .IsUnique();
+        builder.HasIndex(x => x.StripeCheckoutSessionId);
 
         // Useful for Stripe reconciliation
         builder.HasIndex(x => x.StripePaymentIntentId);
