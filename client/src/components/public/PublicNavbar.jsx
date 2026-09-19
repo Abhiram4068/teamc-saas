@@ -28,7 +28,7 @@ export default function PublicNavbar() {
 
 
       {/* NAVIGATION */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-xs">
+      <header className="sticky top-0 z-50 bg-white/40 backdrop-blur-md shadow-xs">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
           {/* Logo */}
