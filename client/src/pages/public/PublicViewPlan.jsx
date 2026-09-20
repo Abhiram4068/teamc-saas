@@ -254,19 +254,17 @@ export default function PublicViewPlan() {
 
                       {/* Pricing Block */}
                       <div className="my-5">
-                        <div className="flex items-baseline gap-1.5">
+                        <div className={`flex items-baseline gap-1.5 ${isFree ? 'invisible' : ''}`}>
                           <span
                             title={isFree ? 'Free' : `${currencySymbol} ${Number(priceValue).toLocaleString()} ${isAnnual ? '/ year' : '/ month'}`}
                             className={`text-3xl font-extrabold tracking-tight truncate ${isDarkCard ? 'text-white' : 'text-brand-800'
                               }`}
                           >
-                            {isFree ? '' : `${currencySymbol} ${Number(priceValue).toLocaleString()}`}
+                            {isFree ? 'Free' : `${currencySymbol} ${Number(priceValue).toLocaleString()}`}
                           </span>
-                          {!isFree && (
-                            <span className={`text-xs font-medium ${isDarkCard ? 'text-gray-300' : 'text-gray-500'}`}>
-                              {isAnnual ? '/ year' : '/ month'}
-                            </span>
-                          )}
+                          <span className={`text-xs font-medium ${isDarkCard ? 'text-gray-300' : 'text-gray-500'}`}>
+                            {isAnnual ? '/ year' : '/ month'}
+                          </span>
                         </div>
 
                         {/* Always allocate h-7 (28px) so cards without trial maintain identical vertical button alignment */}
