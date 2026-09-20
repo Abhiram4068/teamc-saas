@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SaaS.Domain.Entities;
 
@@ -28,13 +28,7 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         // Critical for tenant-scoped queries.
         builder.HasIndex(e => e.TenantId);
 
-        builder.Property(e => e.Designation)
-            .HasMaxLength(150)
-            .IsRequired(false);
 
-        builder.Property(e => e.Department)
-            .HasMaxLength(150)
-            .IsRequired(false);
 
         builder.Property(e => e.JoiningDate)
             .HasColumnType("date")

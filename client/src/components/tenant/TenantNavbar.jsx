@@ -7,8 +7,11 @@ export default function TenantNavbar() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const currentUser = authApi.getCurrentUser();
-    setUser(currentUser);
+    const fetchUser = async () => {
+      const currentUser = await authApi.getCurrentUser();
+      setUser(currentUser);
+    };
+    fetchUser();
   }, []);
 
   // Get initials from user or default to "T"

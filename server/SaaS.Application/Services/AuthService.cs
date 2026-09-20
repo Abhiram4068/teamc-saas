@@ -320,7 +320,7 @@ public class AuthService : IAuthService
         var tenant = new Tenant
         {
             CIN = normalizedCin!,
-            CompanyName = request.CompanyName?.Trim().ToUpperInvariant() ?? string.Empty,
+            CompanyName = request.CompanyName?.Trim() ?? string.Empty,
             Address = request.Address?.Trim(),
             Pincode = request.Pincode?.Trim(),
             Status = TenantStatus.Active,
@@ -430,5 +430,42 @@ public class AuthService : IAuthService
         };
 
         return ApiResponse<TenantCreateTenantAdminResponseDto>.SuccessResponse(response, "Tenant Admin created successfully.", 201);
+    }
+
+    public async Task<ApiResponse<ProfileResponseDto>> GetProfileAsync(long userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null || user.Status != UserStatus.Active)
+        {
+            return ApiResponse<ProfileResponseDto>.FailureResponse("Unauthorized", 401);
+        }
+
+        var dto = new ProfileResponseDto
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Role = user.Role,
+            TenantId = user.TenantId
+        };
+
+        if (user.TenantId.HasValue)
+        {
+            var tenantId = (int)user.TenantId.Value;
+            var tenant = await _tenantRepository.GetByIdAsync(tenantId);
+            if (tenant != null)
+            {
+                dto.CompanyName = tenant.CompanyName;
+            }
+
+            var sub = await _subscriptionRepository.GetActiveSubscriptionWithFeaturesAsync(tenantId);
+            if (sub != null && sub.Plan != null)
+            {
+                dto.CurrentPlanName = sub.Plan.Name;
+            }
+        }
+
+        return ApiResponse<ProfileResponseDto>.SuccessResponse(dto, "Profile retrieved successfully.", 200);
     }
 }

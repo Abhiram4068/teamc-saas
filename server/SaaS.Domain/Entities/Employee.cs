@@ -1,4 +1,4 @@
-﻿namespace SaaS.Domain.Entities;
+namespace SaaS.Domain.Entities;
 
 public class Employee
 {
@@ -8,9 +8,9 @@ public class Employee
 
     public long TenantId { get; set; }
 
-    public string? Designation { get; set; }
-
-    public string? Department { get; set; }
+    public int? DesignationId { get; set; }
+    
+    public int? DepartmentId { get; set; }
 
     public DateTime JoiningDate { get; set; }
 
@@ -24,6 +24,10 @@ public class Employee
     public User User { get; set; } = null!;
 
     public Tenant Tenant { get; set; } = null!;
+
+    public Department? Department { get; set; }
+
+    public Designation? Designation { get; set; }
 
     public Employee? ReportingManager { get; set; }
 

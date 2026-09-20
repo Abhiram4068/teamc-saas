@@ -109,4 +109,32 @@ public class AuthController : ControllerBase
         var response = await _authService.RegisterTenantAsync(request);
         return StatusCode(response.StatusCode, response);
     }
+
+    /// <summary>
+    /// Retrieves the profile for the currently authenticated user.
+    /// </summary>
+    /// <returns>An <see cref="IActionResult"/> containing the user's profile.</returns>
+    [HttpGet("profile")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [ProducesResponseType(typeof(ApiResponse<ProfileResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ProfileResponseDto>), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetProfile()
+    {
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                        ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+
+        if (string.IsNullOrEmpty(userIdStr) || !long.TryParse(userIdStr, out var userId))
+        {
+            return Unauthorized(ApiResponse<ProfileResponseDto>.FailureResponse("Unauthorized", 401));
+        }
+
+        var response = await _authService.GetProfileAsync(userId);
+        
+        if (response.StatusCode == 401)
+        {
+            return Unauthorized(response);
+        }
+
+        return StatusCode(response.StatusCode, response);
+    }
 }

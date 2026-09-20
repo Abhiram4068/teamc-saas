@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SaaS.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SaaS.Infrastructure.Data;
 namespace SaaS.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260919135816_AddDeptAndDesignationTables")]
+    partial class AddDeptAndDesignationTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,6 +24,36 @@ namespace SaaS.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("DepartmentUser", b =>
+                {
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("EmployeesId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("DepartmentId", "EmployeesId");
+
+                    b.HasIndex("EmployeesId");
+
+                    b.ToTable("DepartmentUsers", (string)null);
+                });
+
+            modelBuilder.Entity("DesignationUser", b =>
+                {
+                    b.Property<int>("DesignationId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("EmployeesId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("DesignationId", "EmployeesId");
+
+                    b.HasIndex("EmployeesId");
+
+                    b.ToTable("DesignationUsers", (string)null);
+                });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Department", b =>
                 {
@@ -87,11 +120,13 @@ namespace SaaS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("DepartmentId")
-                        .HasColumnType("int");
+                    b.Property<string>("Department")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
-                    b.Property<int?>("DesignationId")
-                        .HasColumnType("int");
+                    b.Property<string>("Designation")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<DateTime>("JoiningDate")
                         .HasColumnType("date");
@@ -109,10 +144,6 @@ namespace SaaS.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DepartmentId");
-
-                    b.HasIndex("DesignationId");
 
                     b.HasIndex("ReportingManagerId");
 
@@ -553,6 +584,36 @@ namespace SaaS.Infrastructure.Migrations
                     b.ToTable("User", (string)null);
                 });
 
+            modelBuilder.Entity("DepartmentUser", b =>
+                {
+                    b.HasOne("SaaS.Domain.Entities.Department", null)
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SaaS.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DesignationUser", b =>
+                {
+                    b.HasOne("SaaS.Domain.Entities.Designation", null)
+                        .WithMany()
+                        .HasForeignKey("DesignationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SaaS.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SaaS.Domain.Entities.Designation", b =>
                 {
                     b.HasOne("SaaS.Domain.Entities.Department", "Department")
@@ -566,16 +627,6 @@ namespace SaaS.Infrastructure.Migrations
 
             modelBuilder.Entity("SaaS.Domain.Entities.Employee", b =>
                 {
-                    b.HasOne("SaaS.Domain.Entities.Department", "Department")
-                        .WithMany("Employees")
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("SaaS.Domain.Entities.Designation", "Designation")
-                        .WithMany("Employees")
-                        .HasForeignKey("DesignationId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("SaaS.Domain.Entities.Employee", "ReportingManager")
                         .WithMany("DirectReports")
                         .HasForeignKey("ReportingManagerId")
@@ -592,10 +643,6 @@ namespace SaaS.Infrastructure.Migrations
                         .HasForeignKey("SaaS.Domain.Entities.Employee", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Department");
-
-                    b.Navigation("Designation");
 
                     b.Navigation("ReportingManager");
 
@@ -693,13 +740,6 @@ namespace SaaS.Infrastructure.Migrations
             modelBuilder.Entity("SaaS.Domain.Entities.Department", b =>
                 {
                     b.Navigation("Designations");
-
-                    b.Navigation("Employees");
-                });
-
-            modelBuilder.Entity("SaaS.Domain.Entities.Designation", b =>
-                {
-                    b.Navigation("Employees");
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Employee", b =>

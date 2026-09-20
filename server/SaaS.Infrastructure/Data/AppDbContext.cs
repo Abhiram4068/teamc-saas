@@ -15,6 +15,8 @@ public class AppDbContext : DbContext
     public DbSet<PlanFeatureConfig> PlanFeatureConfigs => Set<PlanFeatureConfig>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<Department> Departments => Set<Department>();
+    public DbSet<Designation> Designations => Set<Designation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,7 +35,24 @@ public class AppDbContext : DbContext
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // ---- Department & Designation ----
+        modelBuilder.Entity<Department>()
+            .HasMany(d => d.Designations)
+            .WithOne(d => d.Department)
+            .HasForeignKey(d => d.DepartmentId)
+            .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Department>()
+            .HasMany(d => d.Employees)
+            .WithOne(e => e.Department)
+            .HasForeignKey(e => e.DepartmentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Designation>()
+            .HasMany(d => d.Employees)
+            .WithOne(e => e.Designation)
+            .HasForeignKey(e => e.DesignationId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // ---- User email must be unique ----
         modelBuilder.Entity<User>()

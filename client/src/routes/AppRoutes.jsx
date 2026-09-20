@@ -8,6 +8,7 @@ const PublicLanding = lazy(() => import('../pages/public/Landing'));
 const SuperAdminLogin = lazy(() => import('../pages/public/SuperAdminLogin'));
 const SuperAdminProtectedRoute = lazy(() => import('./SuperAdminProtectedRoute'));
 const TenantProtectedRoute = lazy(() => import('./TenantProtectedRoute'));
+const PublicRoute = lazy(() => import('./PublicRoute'));
 const Checkout = lazy(() => import('../pages/tenant/Checkout'));
 const PaymentSuccess = lazy(() => import('../pages/tenant/PaymentSuccess'));
 const PaymentCancel = lazy(() => import('../pages/tenant/PaymentCancel'));
@@ -78,11 +79,13 @@ export default function AppRoutes() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public Routes with PublicLayout */}
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<PublicLanding />} />
-          <Route path="/price" element={<PublicViewPlan />} />
-          <Route path="/pricing" element={<PublicViewPlan />} />
-          <Route path="/landing" element={<PublicLanding />} />
+        <Route element={<PublicRoute />}>
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<PublicLanding />} />
+            <Route path="/price" element={<PublicViewPlan />} />
+            <Route path="/pricing" element={<PublicViewPlan />} />
+            <Route path="/landing" element={<PublicLanding />} />
+          </Route>
         </Route>
 
         {/* Login routes that should redirect away if already logged in */}
