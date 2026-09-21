@@ -25,7 +25,6 @@ export default function EmployeeNavbar() {
         </div>
         <div className="flex flex-col">
           <span className="text-sm font-semibold leading-tight">{fullName}</span>
-          <span className="text-[11px] text-gray-400">Employee</span>
         </div>
         <i className="fas fa-chevron-down text-[10px] text-gray-400 ml-1"></i>
       </div>
