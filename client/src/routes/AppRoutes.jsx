@@ -42,6 +42,8 @@ const EmployeeRoute = lazy(() => import('./EmployeeRoute'));
 const EmployeeLayout = lazy(() => import('../layouts/EmployeeLayout'));
 const EmployeeDashboard = lazy(() => import('../pages/employee/EmployeeDashboard'));
 const EmployeeProfile = lazy(() => import('../pages/employee/EmployeeProfile'));
+const EmployeeList = lazy(() => import('../pages/employee/EmployeeList'));
+const EmployeeDetails = lazy(() => import('../pages/employee/EmployeeDetails'));
 
 const TenantRegistration = lazy(() => import('../pages/public/Register'));
 const Login = lazy(() => import('../pages/public/Login'));
@@ -156,6 +158,8 @@ export default function AppRoutes() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<EmployeeDashboard />} />
             <Route path="profile" element={<EmployeeProfile />} />
+            <Route path="employees" element={<EmployeeList />} />
+            <Route path="employees/:employeeId" element={<EmployeeDetails />} />
           </Route>
         </Route>
 

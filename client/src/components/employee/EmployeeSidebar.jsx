@@ -47,6 +47,18 @@ export default function EmployeeSidebar() {
           <span>Home</span>
         </NavLink>
 
+        {(parsedRole === 4) ? (
+          <NavLink to="/emp/employees" className={linkClass}>
+            <i className="fas fa-users text-base w-5 text-center"></i>
+            <span>Employees</span>
+          </NavLink>
+        ) : (parsedRole ===5) ? (
+          <NavLink to="/emp/employees" className={linkClass}>
+            <i className="fas fa-users text-base w-5 text-center"></i>
+            <span>Team</span>
+          </NavLink>
+        ) : (null)}
+
         {parsedRole === 6 && (
           <FeatureGate feature={FEATURES.LEAVES_MODULE}>
             <NavLink to="/emp/leaves" className={linkClass}>

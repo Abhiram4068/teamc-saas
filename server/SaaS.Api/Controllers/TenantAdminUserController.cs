@@ -36,12 +36,16 @@ public class TenantAdminUserController : ControllerBase
     public async Task<IActionResult> GetEmployees([FromQuery] GetEmployeesRequestDto request)
     {
         var tenantIdString = User.FindFirst("TenantId")?.Value;
-        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                        ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId) ||
+            string.IsNullOrEmpty(userIdString) || !long.TryParse(userIdString, out var userId))
         {
-            return Unauthorized(new { success = false, message = "Tenant ID not found in token" });
+            return Unauthorized(new { success = false, message = "Tenant ID or User ID not found in token" });
         }
 
-        var response = await _tenantEmployeeService.GetEmployeesAsync(tenantId, request);
+        var response = await _tenantEmployeeService.GetEmployeesAsync(tenantId, userId, SaaS.Domain.Enums.Role.TenantAdmin, request);
         return StatusCode(response.StatusCode, response);
     }
 }

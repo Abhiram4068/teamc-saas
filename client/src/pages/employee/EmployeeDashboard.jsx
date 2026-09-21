@@ -1,6 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { employeeApi } from '../../api/employeeApi';
+import { getRole } from '../../utils/tokenStorage';
 
 export default function EmployeeDashboard() {
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const response = await employeeApi.getDashboardSummary();
+        if (response.data && response.data.data) {
+          setDashboardData(response.data.data);
+        }
+      } catch (error) {
+        console.error("Failed to load dashboard summary", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
+  const parsedRole = getRole();
   return (
     <div className="animate-fade-in ">
       {/* Header Card */}
@@ -18,6 +40,31 @@ export default function EmployeeDashboard() {
       <div className="flex justify-between items-center mb-4">
         <div className="text-[11px] font-bold text-gray-500 tracking-wide">EMPLOYEE DASHBOARD</div>
       </div>
+
+      {loading ? (
+        <div className="text-sm text-gray-500 mb-6">Loading dashboard data...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {dashboardData?.totalEmployees !== null && dashboardData?.totalEmployees !== undefined && (
+            <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-100 flex flex-col justify-between">
+              <span className="text-[10px] font-bold tracking-wide text-gray-500 mb-2">TOTAL EMPLOYEES</span>
+              <span className="text-3xl font-bold text-gray-900">{dashboardData.totalEmployees}</span>
+            </div>
+          )}
+          {dashboardData?.totalManagers !== null && dashboardData?.totalManagers !== undefined && (
+            <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-100 flex flex-col justify-between">
+              <span className="text-[10px] font-bold tracking-wide text-gray-500 mb-2">TOTAL MANAGERS</span>
+              <span className="text-3xl font-bold text-gray-900">{dashboardData.totalManagers}</span>
+            </div>
+          )}
+          {dashboardData?.reportingEmployees !== null && dashboardData?.reportingEmployees !== undefined && (
+            <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-100 flex flex-col justify-between">
+              <span className="text-[10px] font-bold tracking-wide text-gray-500 mb-2">MY TEAM (DIRECT REPORTS)</span>
+              <span className="text-3xl font-bold text-gray-900">{dashboardData.reportingEmployees}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-[2fr_1fr] gap-5">
         <div className="bg-[#1a2234] text-white rounded-lg p-6 flex flex-col justify-between h-[180px]">

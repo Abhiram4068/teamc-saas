@@ -7,6 +7,7 @@ using SaaS.Application.Interfaces.Service;
 using SaaS.Domain.Entities;
 using SaaS.Domain.Enums;
 
+
 namespace SaaS.Application.Services;
 
 public class TenantEmployeeService : ITenantEmployeeService
@@ -88,10 +89,32 @@ public class TenantEmployeeService : ITenantEmployeeService
         }
     }
 
-    public async Task<ApiResponse<PagedResponseDto<EmployeeResponseDto>>> GetEmployeesAsync(int tenantId, GetEmployeesRequestDto request)
+    public async Task<ApiResponse<PagedResponseDto<EmployeeResponseDto>>> GetEmployeesAsync(int tenantId, long userId, Role role, GetEmployeesRequestDto request)
     {
         try
         {
+            // Visibility rules
+            if (role == Role.Hr || role == Role.TenantAdmin)
+            {
+                // HR and TenantAdmin can see all employees. Do not filter by ReportingManagerId.
+                request.ReportingManagerId = null;
+            }
+            else if (role == Role.Manager)
+            {
+                // Manager can only see employees reporting to them.
+                var employee = await _employeeRepository.GetByUserIdAsync(userId);
+                if (employee == null)
+                {
+                    return ApiResponse<PagedResponseDto<EmployeeResponseDto>>.FailureResponse("Employee record not found for manager.", 403);
+                }
+                request.ReportingManagerId = employee.Id;
+            }
+            else
+            {
+                // Other roles (e.g. Employee) cannot view the employee list this way.
+                return ApiResponse<PagedResponseDto<EmployeeResponseDto>>.FailureResponse("Unauthorized access.", 403);
+            }
+
             var (items, totalCount) = await _employeeRepository.GetEmployeesAsync(tenantId, request);
 
             var mappedItems = items.Select(e => new EmployeeResponseDto
@@ -119,12 +142,223 @@ public class TenantEmployeeService : ITenantEmployeeService
                 PageSize = request.PageSize
             };
 
-            return ApiResponse<PagedResponseDto<EmployeeResponseDto>>.SuccessResponse(pagedResponse);
+            return ApiResponse<PagedResponseDto<EmployeeResponseDto>>.SuccessResponse(pagedResponse, "Employees retrieved successfully.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching employees for TenantId: {TenantId}", tenantId);
-            return ApiResponse<PagedResponseDto<EmployeeResponseDto>>.FailureResponse("An error occurred while fetching employees.", 500);
+            _logger.LogError(ex, "Error occurred while retrieving employees for Tenant: {TenantId}", tenantId);
+            return ApiResponse<PagedResponseDto<EmployeeResponseDto>>.FailureResponse("An error occurred while processing the request.");
+        }
+    }
+
+    public async Task<ApiResponse<EmployeeDashboardSummaryDto>> GetDashboardSummaryAsync(int tenantId, long userId, Role role)
+    {
+        try
+        {
+            var summary = new EmployeeDashboardSummaryDto();
+
+            switch (role)
+            {
+                case Role.Hr:
+                case Role.TenantAdmin:
+                    summary.TotalEmployees = await _employeeRepository.GetTotalCountAsync(tenantId);
+                    summary.TotalManagers = await _employeeRepository.GetManagerCountAsync(tenantId);
+                    break;
+                    
+                case Role.Manager:
+                    var emp = await _employeeRepository.GetByUserIdAsync(userId);
+                    if (emp != null)
+                    {
+                        summary.ReportingEmployees = await _employeeRepository.GetDirectReportsCountAsync(emp.Id);
+                    }
+                    break;
+                    
+                case Role.Employee:
+                    // Currently hardcoded as per requirement, or could be fetched from Leaves repository if implemented later
+                    summary.TotalLeaves = 12;
+                    break;
+            }
+
+            return ApiResponse<EmployeeDashboardSummaryDto>.SuccessResponse(summary, "Dashboard summary retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while retrieving dashboard summary for Tenant: {TenantId}", tenantId);
+            return ApiResponse<EmployeeDashboardSummaryDto>.FailureResponse("An error occurred while processing the request.");
+        }
+    }
+
+    public async Task<ApiResponse<EmployeeDetailedResponseDto>> GetEmployeeByIdAsync(int tenantId, long employeeId, long currentUserId, Role role)
+    {
+        try
+        {
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            
+            if (employee == null || employee.TenantId != tenantId || employee.User.Status == UserStatus.Deleted)
+            {
+                return ApiResponse<EmployeeDetailedResponseDto>.FailureResponse("Employee not found.", 404);
+            }
+
+            // Authorization check
+            if (role == Role.Manager)
+            {
+                var currentEmployee = await _employeeRepository.GetByUserIdAsync(currentUserId);
+                if (currentEmployee == null || employee.ReportingManagerId != currentEmployee.Id)
+                {
+                    return ApiResponse<EmployeeDetailedResponseDto>.FailureResponse("Unauthorized access.", 403);
+                }
+            }
+
+            var dto = new EmployeeDetailedResponseDto
+            {
+                Id = employee.Id,
+                UserId = employee.UserId,
+                FirstName = employee.User.FirstName,
+                LastName = employee.User.LastName,
+                Email = employee.User.Email,
+                PhoneNumber = employee.User.PhoneNumber,
+                DepartmentId = employee.DepartmentId,
+                DepartmentName = employee.Department?.Name,
+                DesignationId = employee.DesignationId,
+                DesignationName = employee.Designation?.Name,
+                Role = employee.User.Role,
+                Status = employee.User.Status.ToString(),
+                DateOfJoining = employee.JoiningDate,
+                CreatedAt = employee.User.CreatedAt,
+                UpdatedAt = employee.User.UpdatedAt,
+                EmployeeCode = null, // Or implement if EmployeeCode exists on Employee entity
+                ReportingManagerId = employee.ReportingManagerId,
+                ManagerName = employee.ReportingManager != null ? $"{employee.ReportingManager.User.FirstName} {employee.ReportingManager.User.LastName}" : null
+            };
+
+            return ApiResponse<EmployeeDetailedResponseDto>.SuccessResponse(dto, "Employee details retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching employee {EmployeeId}", employeeId);
+            return ApiResponse<EmployeeDetailedResponseDto>.FailureResponse("An error occurred.", 500);
+        }
+    }
+
+    public async Task<ApiResponse<string>> UpdateEmployeeProfileAsync(int tenantId, long employeeId, UpdateEmployeeProfileRequestDto request)
+    {
+        try
+        {
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null || employee.TenantId != tenantId)
+                return ApiResponse<string>.FailureResponse("Employee not found.", 404);
+
+            if (request.FirstName != null) employee.User.FirstName = request.FirstName;
+            if (request.LastName != null) employee.User.LastName = request.LastName;
+            if (request.PhoneNumber != null) employee.User.PhoneNumber = request.PhoneNumber;
+
+            employee.User.UpdatedAt = DateTime.UtcNow;
+            
+            await _userRepository.SaveChangesAsync();
+            return ApiResponse<string>.SuccessResponse(string.Empty, "Employee profile updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating employee profile {EmployeeId}", employeeId);
+            return ApiResponse<string>.FailureResponse("An error occurred.", 500);
+        }
+    }
+
+    public async Task<ApiResponse<string>> UpdateUserStatusAsync(int tenantId, long employeeId, UpdateUserStatusRequestDto request)
+    {
+        try
+        {
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null || employee.TenantId != tenantId)
+                return ApiResponse<string>.FailureResponse("Employee not found.", 404);
+
+            employee.User.Status = request.IsActive ? UserStatus.Active : UserStatus.Inactive;
+            employee.User.UpdatedAt = DateTime.UtcNow;
+            
+            await _userRepository.SaveChangesAsync();
+            return ApiResponse<string>.SuccessResponse(string.Empty, $"User status changed to {(request.IsActive ? "Active" : "Inactive")}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating status {EmployeeId}", employeeId);
+            return ApiResponse<string>.FailureResponse("An error occurred.", 500);
+        }
+    }
+
+
+    public async Task<ApiResponse<string>> DeleteEmployeeAsync(int tenantId, long employeeId, DeleteUserRequestDto request)
+    {
+        try
+        {
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null || employee.TenantId != tenantId)
+                return ApiResponse<string>.FailureResponse("Employee not found.", 404);
+
+            employee.User.Status = UserStatus.Deleted;
+            employee.User.UpdatedAt = DateTime.UtcNow;
+            
+            await _userRepository.SaveChangesAsync();
+            return ApiResponse<string>.SuccessResponse(string.Empty, "User deleted successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting employee {EmployeeId}", employeeId);
+            return ApiResponse<string>.FailureResponse("An error occurred.", 500);
+        }
+    }
+
+    public async Task<ApiResponse<string>> UpdateReportingManagerAsync(int tenantId, long employeeId, UpdateReportingManagerRequestDto request)
+    {
+        try
+        {
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null || employee.TenantId != tenantId)
+                return ApiResponse<string>.FailureResponse("Employee not found.", 404);
+
+            if (request.ManagerId == employee.Id)
+                return ApiResponse<string>.FailureResponse("Employee cannot be their own manager.", 400);
+
+            var manager = await _employeeRepository.GetByIdAsync(request.ManagerId);
+            if (manager == null || manager.TenantId != tenantId || manager.User.Status != UserStatus.Active)
+                return ApiResponse<string>.FailureResponse("Selected manager is invalid or inactive.", 400);
+
+            employee.ReportingManagerId = request.ManagerId;
+            employee.User.UpdatedAt = DateTime.UtcNow;
+            
+            await _userRepository.SaveChangesAsync();
+            return ApiResponse<string>.SuccessResponse(string.Empty, "Reporting manager updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating reporting manager {EmployeeId}", employeeId);
+            return ApiResponse<string>.FailureResponse("An error occurred.", 500);
+        }
+    }
+
+    public async Task<ApiResponse<IEnumerable<EmployeeResponseDto>>> GetManagersAsync(int tenantId, string? search)
+    {
+        try
+        {
+            var req = new GetEmployeesRequestDto { PageSize = 100, PageNumber = 1, SearchTerm = search, SortBy = "name" };
+            var (items, _) = await _employeeRepository.GetEmployeesAsync(tenantId, req);
+            
+            var managers = items.Where(e => e.User.Role == Role.Manager && e.User.Status == UserStatus.Active).Select(e => new EmployeeResponseDto
+            {
+                Id = e.Id,
+                UserId = e.UserId,
+                FirstName = e.User.FirstName,
+                LastName = e.User.LastName,
+                Email = e.User.Email,
+                DepartmentId = e.DepartmentId,
+                DesignationId = e.DesignationId
+            }).ToList();
+            
+            return ApiResponse<IEnumerable<EmployeeResponseDto>>.SuccessResponse(managers, "Managers retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving managers for Tenant: {TenantId}", tenantId);
+            return ApiResponse<IEnumerable<EmployeeResponseDto>>.FailureResponse("An error occurred.", 500);
         }
     }
 }

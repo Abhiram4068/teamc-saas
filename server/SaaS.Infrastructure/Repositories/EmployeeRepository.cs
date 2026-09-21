@@ -26,7 +26,18 @@ public class EmployeeRepository : IEmployeeRepository
             .Include(e => e.User)
             .Include(e => e.Department)
             .Include(e => e.Designation)
+            .Include(e => e.ReportingManager)
+                .ThenInclude(m => m.User)
             .FirstOrDefaultAsync(e => e.Id == id);
+    }
+
+    public async Task<Employee?> GetByUserIdAsync(long userId)
+    {
+        return await _context.Set<Employee>()
+            .Include(e => e.User)
+            .Include(e => e.Department)
+            .Include(e => e.Designation)
+            .FirstOrDefaultAsync(e => e.UserId == userId);
     }
 
     public async Task<(IEnumerable<Employee> Items, int TotalCount)> GetEmployeesAsync(int tenantId, SaaS.Application.DTOs.Requests.GetEmployeesRequestDto request)
@@ -36,6 +47,11 @@ public class EmployeeRepository : IEmployeeRepository
             .Include(e => e.Department)
             .Include(e => e.Designation)
             .Where(e => e.TenantId == tenantId && e.User.Status != SaaS.Domain.Enums.UserStatus.Deleted);
+
+        if (request.ReportingManagerId.HasValue)
+        {
+            query = query.Where(e => e.ReportingManagerId == request.ReportingManagerId.Value);
+        }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
@@ -88,5 +104,26 @@ public class EmployeeRepository : IEmployeeRepository
             .ToListAsync();
 
         return (items, totalCount);
+    }
+
+    public async Task<int> GetTotalCountAsync(int tenantId)
+    {
+        return await _context.Set<Employee>()
+            .CountAsync(e => e.TenantId == tenantId && e.User.Status != SaaS.Domain.Enums.UserStatus.Deleted);
+    }
+
+    public async Task<int> GetManagerCountAsync(int tenantId)
+    {
+        return await _context.Set<Employee>()
+            .CountAsync(e => e.TenantId == tenantId && 
+                             e.User.Role == SaaS.Domain.Enums.Role.Manager &&
+                             e.User.Status != SaaS.Domain.Enums.UserStatus.Deleted);
+    }
+
+    public async Task<int> GetDirectReportsCountAsync(long employeeId)
+    {
+        return await _context.Set<Employee>()
+            .CountAsync(e => e.ReportingManagerId == employeeId && 
+                             e.User.Status != SaaS.Domain.Enums.UserStatus.Deleted);
     }
 }
