@@ -13,6 +13,8 @@ export default function PublicOnlyRoute() {
       return <Navigate to="/tenant/dashboard" replace />;
     } else if (role === 3) {
       return <Navigate to="/tenant-admin/dashboard" replace />;
+    } else if (role === 4 || role === 5 || role === 6) {
+      return <Navigate to="/emp/dashboard" replace />;
     }
     
     // Fallback if role is unknown

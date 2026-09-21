@@ -1,0 +1,48 @@
+import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+
+export default function EmployeeSidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    navigate('/login');
+  };
+
+  const linkClass = ({ isActive }) =>
+    `w-full h-12 flex items-center px-6 text-xs gap-4 cursor-pointer transition-all duration-200 no-underline ${
+      isActive
+        ? 'bg-slate-100 text-slate-900 border-l-[3px] border-slate-900 font-semibold'
+        : 'text-slate-300 hover:text-white hover:bg-slate-800 '
+    }`;
+
+  return (
+    <div className="w-[240px] shrink-0 bg-slate-900 flex flex-col pt-6 relative min-h-[calc(100vh-60px)]">
+ 
+      <div className="flex flex-col w-full divide-y divide-white/10 border-t border-b border-white/10">
+        <NavLink to="/emp/dashboard" className={linkClass}>
+          <i className="fas fa-gauge-high text-base w-5 text-center"></i>
+          <span>Overview</span>
+        </NavLink>
+        
+        <NavLink to="/emp/profile" className={linkClass}>
+          <i className="fas fa-home text-base w-5 text-center"></i>
+          <span>Home</span>
+        </NavLink>
+      </div>
+      
+      <div 
+        className="w-full h-12 flex items-center px-6 text-xs gap-4 cursor-pointer transition-all duration-200 mt-auto text-red-500 hover:text-red-400 border-l-[3px] border-transparent"
+        onClick={handleLogout}
+      >
+        <i className="fas fa-right-from-bracket text-base w-5 text-center"></i>
+        <span>Logout</span>
+      </div>
+
+      <div className="w-full text-center pb-6 pt-2 text-[10px] text-gray-500 font-medium tracking-wide">
+        A <span className="font-bold">TEAMO</span> product
+      </div>
+    </div>
+  );
+}

@@ -13,11 +13,15 @@ export default function PublicRoute() {
       userRole = typeof roleClaim === 'string' ? parseInt(roleClaim, 10) : roleClaim;
     }
 
-    if (userRole === 3) {
+    if (userRole === 1) {
+      return <Navigate to="/superadmin/dashboard" replace />;
+    } else if (userRole === 2) {
+      return <Navigate to="/tenant/dashboard" replace />;
+    } else if (userRole === 3) {
       return <Navigate to="/tenant-admin/dashboard" replace />;
+    } else if (userRole === 4 || userRole === 5 || userRole === 6) {
+      return <Navigate to="/emp/dashboard" replace />;
     }
-    // You can add other role checks here if needed, 
-    // but the request was specifically for userRole === 6
   }
 
   return <Outlet />;

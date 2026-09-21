@@ -37,6 +37,12 @@ const TenantAdminDashboard = lazy(() => import('../pages/tenant-admin/TenantAdmi
 const TenantAdminEmployees = lazy(() => import('../pages/tenant-admin/TenantAdminEmployees'));
 const TenantAdminRegisterUser = lazy(() => import('../pages/tenant-admin/TenantAdminRegisterUser'));
 
+// Employee Pages
+const EmployeeRoute = lazy(() => import('./EmployeeRoute'));
+const EmployeeLayout = lazy(() => import('../layouts/EmployeeLayout'));
+const EmployeeDashboard = lazy(() => import('../pages/employee/EmployeeDashboard'));
+const EmployeeProfile = lazy(() => import('../pages/employee/EmployeeProfile'));
+
 const TenantRegistration = lazy(() => import('../pages/public/Register'));
 const Login = lazy(() => import('../pages/public/Login'));
 
@@ -91,7 +97,9 @@ export default function AppRoutes() {
         {/* Login routes that should redirect away if already logged in */}
         <Route element={<PublicOnlyRoute />}>
           <Route path="/login" element={<Login />} />
-          <Route path="/sign-up" element={<TenantRegistration />} />
+          <Route element={<PublicLayout />}>
+          <Route path="/sign-up" element={<TenantRegistration />} />          
+          </Route>
           <Route path="/superadmin/login" element={<SuperAdminLogin />} />
         </Route>
 
@@ -139,6 +147,15 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<TenantAdminDashboard />} />
             <Route path="users" element={<TenantAdminEmployees />} />
             <Route path="add-user" element={<TenantAdminRegisterUser />} />
+          </Route>
+        </Route>
+
+        {/* Employee Routes */}
+        <Route element={<EmployeeRoute />}>
+          <Route path="/emp" element={<EmployeeLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<EmployeeDashboard />} />
+            <Route path="profile" element={<EmployeeProfile />} />
           </Route>
         </Route>
 
