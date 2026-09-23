@@ -7,28 +7,30 @@ export const FeatureProvider = ({ children }) => {
     const [features, setFeatures] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const loadFeatures = async () => {
+        setLoading(true);
+        const token = getToken();
+        if (!token) {
+            setFeatures([]);
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const response = await axiosClient.get('/tenant/features');
+            // According to our ApiResponse wrapper, the data is inside response.data.data
+            const data = response.data?.data || response.data;
+            if (data && data.features) {
+                setFeatures(data.features);
+            }
+        } catch (error) {
+            console.error("Failed to load tenant features:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const loadFeatures = async () => {
-            const token = getToken();
-            if (!token) {
-                setLoading(false);
-                return;
-            }
-
-            try {
-                const response = await axiosClient.get('/tenant/features');
-                // According to our ApiResponse wrapper, the data is inside response.data.data
-                const data = response.data?.data || response.data;
-                if (data && data.features) {
-                    setFeatures(data.features);
-                }
-            } catch (error) {
-                console.error("Failed to load tenant features:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         loadFeatures();
     }, []);
 
@@ -44,7 +46,7 @@ export const FeatureProvider = ({ children }) => {
     };
 
     return (
-        <FeatureContext.Provider value={{ features, hasFeature, getFeatureLimit, loading }}>
+        <FeatureContext.Provider value={{ features, hasFeature, getFeatureLimit, loading, reloadFeatures: loadFeatures }}>
             {children}
         </FeatureContext.Provider>
     );

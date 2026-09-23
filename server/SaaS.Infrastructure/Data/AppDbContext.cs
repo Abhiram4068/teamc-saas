@@ -17,7 +17,9 @@ public class AppDbContext : DbContext
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<Designation> Designations => Set<Designation>();
-
+    public DbSet<LeaveType> LeaveTypes => Set<LeaveType>();
+    public DbSet<EmployeeLeaveBalance> EmployeeLeaveBalances => Set<EmployeeLeaveBalance>();
+    public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -72,5 +74,54 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Plan>()
             .Property(p => p.YearlyPrice)
             .HasPrecision(10, 2);
+
+        // ---- Leaves ----
+        modelBuilder.Entity<EmployeeLeaveBalance>()
+            .Property(e => e.TotalDays)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<EmployeeLeaveBalance>()
+            .Property(e => e.UsedDays)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<LeaveRequest>()
+            .Property(l => l.NumberOfDays)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<LeaveRequest>()
+            .HasOne(lr => lr.Employee)
+            .WithMany()
+            .HasForeignKey(lr => lr.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<LeaveRequest>()
+            .HasOne(lr => lr.Manager)
+            .WithMany()
+            .HasForeignKey(lr => lr.ManagerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<EmployeeLeaveBalance>()
+            .HasOne(elb => elb.Employee)
+            .WithMany()
+            .HasForeignKey(elb => elb.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<EmployeeLeaveBalance>()
+            .HasOne(elb => elb.Tenant)
+            .WithMany()
+            .HasForeignKey(elb => elb.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<LeaveRequest>()
+            .HasOne(lr => lr.Tenant)
+            .WithMany()
+            .HasForeignKey(lr => lr.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<LeaveType>()
+            .HasOne(lt => lt.Tenant)
+            .WithMany()
+            .HasForeignKey(lt => lt.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

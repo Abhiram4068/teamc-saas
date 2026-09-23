@@ -68,7 +68,7 @@ export default function EmployeeSidebar() {
           </FeatureGate>
         )}
 
-        {(parsedRole === 4 || parsedRole === 5) && (
+        {parsedRole === 5 && (
           <FeatureGate feature={FEATURES.LEAVES_MODULE}>
             <div className="flex flex-col">
               <div 
@@ -86,9 +86,41 @@ export default function EmployeeSidebar() {
                     <i className="fas fa-user-clock text-base w-5 text-center pl-2"></i>
                     <span>My Leaves</span>
                   </NavLink>
+                  <NavLink to="/emp/approvals" className={linkClass}>
+                    <i className="fas fa-check-double text-base w-5 text-center pl-2"></i>
+                    <span>Leaves to be Approved</span>
+                  </NavLink>
+                </div>
+              )}
+            </div>
+          </FeatureGate>
+        )}
+
+        {parsedRole === 4 && (
+          <FeatureGate feature={FEATURES.LEAVES_MODULE}>
+            <div className="flex flex-col">
+              <div 
+                className="w-full h-12 flex items-center px-6 text-xs gap-4 cursor-pointer transition-all duration-200 no-underline text-slate-300 hover:text-white hover:bg-slate-800"
+                onClick={() => setIsLeavesOpen(!isLeavesOpen)}
+              >
+                <i className="fas fa-calendar-alt text-base w-5 text-center"></i>
+                <span>Leaves</span>
+                <i className={`fas fa-chevron-down ml-auto transition-transform ${isLeavesOpen ? 'rotate-180' : ''}`}></i>
+              </div>
+              
+              {isLeavesOpen && (
+                <div className="flex flex-col bg-slate-800/50">
+                  <NavLink to="/emp/leaves" end className={linkClass}>
+                    <i className="fas fa-user-clock text-base w-5 text-center pl-2"></i>
+                    <span>My Leaves</span>
+                  </NavLink>
                   <NavLink to="/emp/leaves/approvals" className={linkClass}>
                     <i className="fas fa-check-double text-base w-5 text-center pl-2"></i>
                     <span>Leaves to be Approved</span>
+                  </NavLink>
+                  <NavLink to="/emp/leaves/manage" className={linkClass}>
+                    <i className="fas fa-users-cog text-base w-5 text-center pl-2"></i>
+                    <span>Manage Employee Leaves</span>
                   </NavLink>
                 </div>
               )}

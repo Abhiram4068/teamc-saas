@@ -36,6 +36,7 @@ const TenantAdminLayout = lazy(() => import('../layouts/TenantAdminLayout'));
 const TenantAdminDashboard = lazy(() => import('../pages/tenant-admin/TenantAdminDashboard'));
 const TenantAdminEmployees = lazy(() => import('../pages/tenant-admin/TenantAdminEmployees'));
 const TenantAdminRegisterUser = lazy(() => import('../pages/tenant-admin/TenantAdminRegisterUser'));
+const ManageLeaveTypes = lazy(() => import('../pages/tenant-admin/ManageLeaveTypes'));
 
 // Employee Pages
 const EmployeeRoute = lazy(() => import('./EmployeeRoute'));
@@ -44,6 +45,9 @@ const EmployeeDashboard = lazy(() => import('../pages/employee/EmployeeDashboard
 const EmployeeProfile = lazy(() => import('../pages/employee/EmployeeProfile'));
 const EmployeeList = lazy(() => import('../pages/employee/EmployeeList'));
 const EmployeeDetails = lazy(() => import('../pages/employee/EmployeeDetails'));
+const MyLeaves = lazy(() => import('../pages/employee/leaves/MyLeaves'));
+const TeamLeaves = lazy(() => import('../pages/employee/leaves/TeamLeaves'));
+const ManageEmployeeLeaves = lazy(() => import('../pages/employee/leaves/ManageEmployeeLeaves'));
 
 const TenantRegistration = lazy(() => import('../pages/public/Register'));
 const Login = lazy(() => import('../pages/public/Login'));
@@ -149,6 +153,7 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<TenantAdminDashboard />} />
             <Route path="users" element={<TenantAdminEmployees />} />
             <Route path="add-user" element={<TenantAdminRegisterUser />} />
+            <Route path="leave-types" element={<ManageLeaveTypes />} />
           </Route>
         </Route>
 
@@ -160,6 +165,10 @@ export default function AppRoutes() {
             <Route path="profile" element={<EmployeeProfile />} />
             <Route path="employees" element={<EmployeeList />} />
             <Route path="employees/:employeeId" element={<EmployeeDetails />} />
+            <Route path="leaves" element={<MyLeaves />} />
+            <Route path="approvals" element={<TeamLeaves />} />
+            <Route path="leaves/approvals" element={<TeamLeaves />} />
+            <Route path="leaves/manage" element={<ManageEmployeeLeaves />} />
           </Route>
         </Route>
 

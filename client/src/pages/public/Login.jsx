@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authApi } from '../../api/authApi';
+import { useFeatures } from '../../features/FeatureProvider';
 
 export default function TenantLogin() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { reloadFeatures } = useFeatures();
 
   // Check if redirected from a successful registration
   const queryParams = new URLSearchParams(location.search);
@@ -40,6 +42,8 @@ export default function TenantLogin() {
       if (result.success) {
         const { getRole } = await import('../../utils/tokenStorage');
         const role = getRole();
+
+        await reloadFeatures();
 
         if (role === 1) {
           navigate('/superadmin/dashboard');

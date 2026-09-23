@@ -35,6 +35,11 @@ export default function TenantAdminSidebar() {
           <i className="fas fa-user-plus text-base w-5 text-center"></i>
           <span>Add User</span>
         </NavLink>
+
+        <NavLink to="/tenant-admin/leave-types" className={linkClass}>
+          <i className="fas fa-calendar-alt text-base w-5 text-center"></i>
+          <span>Leave Types</span>
+        </NavLink>
       </div>
       
       <div 
