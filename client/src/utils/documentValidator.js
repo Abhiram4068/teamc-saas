@@ -25,3 +25,15 @@ export const validateDocumentUpload = (files) => {
 
   return { isValid: true, error: null };
 };
+
+export const validateDocumentUpdate = (displayName) => {
+  if (!displayName || displayName.trim() === '') {
+    return { isValid: false, error: "Display Name is required." };
+  }
+  
+  if (displayName.length > 255) {
+    return { isValid: false, error: "Display Name cannot exceed 255 characters." };
+  }
+  
+  return { isValid: true, error: null };
+};

@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using SaaS.Application.DTOs.Common;
+using SaaS.Application.DTOs.Requests;
+using SaaS.Application.DTOs.Response;
 using SaaS.Application.DTOs.Requests;
 using SaaS.Application.Interfaces.Service;
 using SaaS.Domain.Entities;
@@ -120,5 +123,127 @@ public class DocumentService : IDocumentService
         await _context.SaveChangesAsync();
 
         return ApiResponse<string>.SuccessResponse($"{request.Files.Count} document(s) uploaded successfully.");
+    }
+
+    public async Task<ApiResponse<PaginatedResponseDto<DocumentListResponseDto>>> GetAllDocumentsAsync(long tenantId, long userId, DocumentQueryRequestDto request)
+    {
+        var query = _context.Documents
+            .Where(d => d.TenantId == tenantId && d.UserId == userId && d.Status == DocumentStatus.Active);
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            query = query.Where(d => d.DisplayName.Contains(request.Search) || (d.Description != null && d.Description.Contains(request.Search)));
+        }
+
+        query = request.SortBy?.ToLower() switch
+        {
+            "size" => query.OrderBy(d => d.SizeInBytes),
+            "size_desc" => query.OrderByDescending(d => d.SizeInBytes),
+            "date" => query.OrderBy(d => d.UploadedAt),
+            "name" => query.OrderBy(d => d.DisplayName),
+            _ => query.OrderByDescending(d => d.UploadedAt) // default sort
+        };
+
+        var totalCount = await query.CountAsync();
+        
+        var documents = await query
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .Select(d => new DocumentListResponseDto
+            {
+                Id = d.Id,
+                DisplayName = d.DisplayName,
+                SizeInBytes = d.SizeInBytes,
+                UploadedAt = d.UploadedAt,
+                PreviewUrl = $"/api/Document/{d.Id}/preview"
+            })
+            .ToListAsync();
+
+        var paginatedResponse = new PaginatedResponseDto<DocumentListResponseDto>
+        {
+            Items = documents,
+            TotalCount = totalCount,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize
+        };
+
+        return ApiResponse<PaginatedResponseDto<DocumentListResponseDto>>.SuccessResponse(paginatedResponse);
+    }
+
+    public async Task<ApiResponse<DocumentResponseDto>> GetDocumentByIdAsync(long tenantId, long userId, long documentId)
+    {
+        var document = await _context.Documents
+            .FirstOrDefaultAsync(d => d.Id == documentId && d.TenantId == tenantId && d.UserId == userId && d.Status == DocumentStatus.Active);
+
+        if (document == null)
+        {
+            return ApiResponse<DocumentResponseDto>.FailureResponse("Document not found.", 404);
+        }
+
+        var response = new DocumentResponseDto
+        {
+            Id = document.Id,
+            DisplayName = document.DisplayName,
+            Description = document.Description,
+            ContentType = document.ContentType,
+            SizeInBytes = document.SizeInBytes,
+            UploadedAt = document.UploadedAt,
+            PreviewUrl = $"/api/Document/{document.Id}/preview"
+        };
+
+        return ApiResponse<DocumentResponseDto>.SuccessResponse(response);
+    }
+
+    public async Task<(byte[] FileBytes, string ContentType, string FileName)?> GetDocumentFileAsync(long tenantId, long userId, long documentId)
+    {
+        var document = await _context.Documents
+            .FirstOrDefaultAsync(d => d.Id == documentId && d.TenantId == tenantId && d.UserId == userId && d.Status == DocumentStatus.Active);
+
+        if (document == null)
+            return null;
+
+        var filePath = Path.Combine(_storagePath, document.StorageName);
+        if (!File.Exists(filePath))
+            return null;
+
+        var fileBytes = await File.ReadAllBytesAsync(filePath);
+        return (fileBytes, document.ContentType, document.DisplayName);
+    }
+
+    public async Task<ApiResponse<string>> UpdateDocumentAsync(long tenantId, long userId, long documentId, DocumentUpdateRequestDto request)
+    {
+        var document = await _context.Documents
+            .FirstOrDefaultAsync(d => d.Id == documentId && d.TenantId == tenantId && d.UserId == userId && d.Status == DocumentStatus.Active);
+
+        if (document == null)
+        {
+            return ApiResponse<string>.FailureResponse("Document not found.", 404);
+        }
+
+        document.DisplayName = request.DisplayName;
+        document.Description = request.Description;
+
+        _context.Documents.Update(document);
+        await _context.SaveChangesAsync();
+
+        return ApiResponse<string>.SuccessResponse("Document updated successfully.", "Success", 200);
+    }
+
+    public async Task<ApiResponse<string>> DeleteDocumentAsync(long tenantId, long userId, long documentId)
+    {
+        var document = await _context.Documents
+            .FirstOrDefaultAsync(d => d.Id == documentId && d.TenantId == tenantId && d.UserId == userId && d.Status == DocumentStatus.Active);
+
+        if (document == null)
+        {
+            return ApiResponse<string>.FailureResponse("Document not found.", 404);
+        }
+
+        document.Status = DocumentStatus.Deleted;
+
+        _context.Documents.Update(document);
+        await _context.SaveChangesAsync();
+
+        return ApiResponse<string>.SuccessResponse("Document deleted successfully.", "Success", 200);
     }
 }

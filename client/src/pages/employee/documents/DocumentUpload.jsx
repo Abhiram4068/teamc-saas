@@ -172,7 +172,7 @@ export default function DocumentUpload() {
                 <span>
                   Upload{" "}
                   {files.length > 0 ? `${files.length} ` : ""}
-                  {files.length === 1 ? "File" : "Files"}
+                  {files.length === 1 ? "Document" : "Documents"}
                 </span>
               </>
             )}

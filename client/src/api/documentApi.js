@@ -10,5 +10,31 @@ export const documentApi = {
       },
     });
     return response.data;
+  },
+
+  getDocuments: async (params) => {
+    const response = await axiosClient.get('/Document', { params });
+    return response.data;
+  },
+
+  getDocumentById: async (id) => {
+    const response = await axiosClient.get(`/Document/${id}`);
+    return response.data;
+  },
+
+  getPreviewBlobUrl: async (id) => {
+    // Fetches the secure preview endpoint as a blob, so we can render it in an <img> tag without exposing the token in the URL.
+    const response = await axiosClient.get(`/Document/${id}/preview`, { responseType: 'blob' });
+    return URL.createObjectURL(response.data);
+  },
+
+  updateDocument: async (id, data) => {
+    const response = await axiosClient.put(`/Document/${id}`, data);
+    return response.data;
+  },
+
+  deleteDocument: async (id) => {
+    const response = await axiosClient.delete(`/Document/${id}`);
+    return response.data;
   }
 };
