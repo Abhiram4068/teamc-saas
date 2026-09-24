@@ -129,6 +129,7 @@ builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<ITenantEmployeeService, TenantEmployeeService>();
 builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();
 builder.Services.AddScoped<ILeaveManagementService, LeaveManagementService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
 
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, FeaturePolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, FeatureAuthorizationHandler>();

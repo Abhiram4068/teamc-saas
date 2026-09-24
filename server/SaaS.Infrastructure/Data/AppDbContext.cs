@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<LeaveType> LeaveTypes => Set<LeaveType>();
     public DbSet<EmployeeLeaveBalance> EmployeeLeaveBalances => Set<EmployeeLeaveBalance>();
     public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
+    public DbSet<Document> Documents => Set<Document>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -122,6 +123,19 @@ public class AppDbContext : DbContext
             .HasOne(lt => lt.Tenant)
             .WithMany()
             .HasForeignKey(lt => lt.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // ---- Documents ----
+        modelBuilder.Entity<Document>()
+            .HasOne(d => d.Tenant)
+            .WithMany()
+            .HasForeignKey(d => d.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Document>()
+            .HasOne(d => d.User)
+            .WithMany()
+            .HasForeignKey(d => d.UserId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

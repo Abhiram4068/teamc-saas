@@ -48,6 +48,7 @@ const EmployeeDetails = lazy(() => import('../pages/employee/EmployeeDetails'));
 const MyLeaves = lazy(() => import('../pages/employee/leaves/MyLeaves'));
 const TeamLeaves = lazy(() => import('../pages/employee/leaves/TeamLeaves'));
 const ManageEmployeeLeaves = lazy(() => import('../pages/employee/leaves/ManageEmployeeLeaves'));
+const DocumentUpload = lazy(() => import('../pages/employee/documents/DocumentUpload'));
 
 const TenantRegistration = lazy(() => import('../pages/public/Register'));
 const Login = lazy(() => import('../pages/public/Login'));
@@ -169,6 +170,7 @@ export default function AppRoutes() {
             <Route path="approvals" element={<TeamLeaves />} />
             <Route path="leaves/approvals" element={<TeamLeaves />} />
             <Route path="leaves/manage" element={<ManageEmployeeLeaves />} />
+            <Route path="documents/upload" element={<DocumentUpload />} />
           </Route>
         </Route>
 

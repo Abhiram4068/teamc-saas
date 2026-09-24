@@ -9,6 +9,7 @@ export default function EmployeeSidebar() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isLeavesOpen, setIsLeavesOpen] = useState(false);
+  const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -127,6 +128,32 @@ export default function EmployeeSidebar() {
             </div>
           </FeatureGate>
         )}
+
+        <FeatureGate feature={FEATURES.DOCUMENT_STORAGE}>
+          <div className="flex flex-col">
+            <div 
+              className="w-full h-12 flex items-center px-6 text-xs gap-4 cursor-pointer transition-all duration-200 no-underline text-slate-300 hover:text-white hover:bg-slate-800"
+              onClick={() => setIsDocumentsOpen(!isDocumentsOpen)}
+            >
+              <i className="fas fa-folder-open text-base w-5 text-center"></i>
+              <span>Documents</span>
+              <i className={`fas fa-chevron-down ml-auto transition-transform ${isDocumentsOpen ? 'rotate-180' : ''}`}></i>
+            </div>
+            
+            {isDocumentsOpen && (
+              <div className="flex flex-col bg-slate-800/50">
+                <NavLink to="/emp/documents/upload" className={linkClass}>
+                  <i className="fas fa-cloud-upload-alt text-base w-5 text-center pl-2"></i>
+                  <span>Upload</span>
+                </NavLink>
+                <NavLink to="/emp/documents" end className={linkClass}>
+                  <i className="fas fa-file-alt text-base w-5 text-center pl-2"></i>
+                  <span>My Documents</span>
+                </NavLink>
+              </div>
+            )}
+          </div>
+        </FeatureGate>
       </div>
       
       <div 
