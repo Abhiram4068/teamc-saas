@@ -341,11 +341,8 @@ export default function DocumentDetails() {
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 p-8 text-center">
-            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <i className="fas fa-trash-alt text-2xl text-red-500"></i>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-2 tracking-tight">Delete Document?</h3>
-            <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+            <h3 className="text-lg font-medium text-slate-900 mb-2">Delete Document</h3>
+            <p className="text-sm text-slate-500 mb-6">
               This action cannot be undone. This document will be permanently removed from your workspace.
             </p>
             <div className="flex gap-4 justify-center">
