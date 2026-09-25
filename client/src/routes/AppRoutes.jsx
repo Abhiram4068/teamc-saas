@@ -36,6 +36,24 @@ const TenantAdminLayout = lazy(() => import('../layouts/TenantAdminLayout'));
 const TenantAdminDashboard = lazy(() => import('../pages/tenant-admin/TenantAdminDashboard'));
 const TenantAdminEmployees = lazy(() => import('../pages/tenant-admin/TenantAdminEmployees'));
 const TenantAdminRegisterUser = lazy(() => import('../pages/tenant-admin/TenantAdminRegisterUser'));
+const ManageLeaveTypes = lazy(() => import('../pages/tenant-admin/ManageLeaveTypes'));
+const ManageWorkTypes = lazy(() => import('../pages/tenant-admin/ManageWorkTypes'));
+
+// Employee Pages
+const EmployeeRoute = lazy(() => import('./EmployeeRoute'));
+const EmployeeLayout = lazy(() => import('../layouts/EmployeeLayout'));
+const EmployeeDashboard = lazy(() => import('../pages/employee/EmployeeDashboard'));
+const EmployeeProfile = lazy(() => import('../pages/employee/EmployeeProfile'));
+const EmployeeList = lazy(() => import('../pages/employee/EmployeeList'));
+const EmployeeDetails = lazy(() => import('../pages/employee/EmployeeDetails'));
+const MyLeaves = lazy(() => import('../pages/employee/leaves/MyLeaves'));
+const TeamLeaves = lazy(() => import('../pages/employee/leaves/TeamLeaves'));
+const ManageEmployeeLeaves = lazy(() => import('../pages/employee/leaves/ManageEmployeeLeaves'));
+const DocumentUpload = lazy(() => import('../pages/employee/documents/DocumentUpload'));
+const MyDocuments = lazy(() => import('../pages/employee/documents/MyDocuments'));
+const DocumentDetails = lazy(() => import('../pages/employee/documents/DocumentDetails'));
+const WorkReport = lazy(() => import('../pages/employee/WorkReport'));
+const TeamWorkReportsList = lazy(() => import('../pages/employee/TeamWorkReportsList'));
 
 const TenantRegistration = lazy(() => import('../pages/public/Register'));
 const Login = lazy(() => import('../pages/public/Login'));
@@ -91,7 +109,9 @@ export default function AppRoutes() {
         {/* Login routes that should redirect away if already logged in */}
         <Route element={<PublicOnlyRoute />}>
           <Route path="/login" element={<Login />} />
-          <Route path="/sign-up" element={<TenantRegistration />} />
+          <Route element={<PublicLayout />}>
+          <Route path="/sign-up" element={<TenantRegistration />} />          
+          </Route>
           <Route path="/superadmin/login" element={<SuperAdminLogin />} />
         </Route>
 
@@ -139,6 +159,29 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<TenantAdminDashboard />} />
             <Route path="users" element={<TenantAdminEmployees />} />
             <Route path="add-user" element={<TenantAdminRegisterUser />} />
+            <Route path="leave-types" element={<ManageLeaveTypes />} />
+            <Route path="work-types" element={<ManageWorkTypes />} />
+          </Route>
+        </Route>
+
+        {/* Employee Routes */}
+        <Route element={<EmployeeRoute />}>
+          <Route path="/emp" element={<EmployeeLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<EmployeeDashboard />} />
+            <Route path="profile" element={<EmployeeProfile />} />
+            <Route path="employees" element={<EmployeeList />} />
+            <Route path="employees/:employeeId" element={<EmployeeDetails />} />
+            <Route path="leaves" element={<MyLeaves />} />
+            <Route path="approvals" element={<TeamLeaves />} />
+            <Route path="leaves/approvals" element={<TeamLeaves />} />
+            <Route path="leaves/manage" element={<ManageEmployeeLeaves />} />
+            <Route path="documents" element={<MyDocuments />} />
+            <Route path="documents/upload" element={<DocumentUpload />} />
+            <Route path="documents/:id" element={<DocumentDetails />} />
+            <Route path="work-reports" element={<WorkReport />} />
+            <Route path="work-reports/team" element={<TeamWorkReportsList />} />
+            <Route path="work-reports/team/:targetUserId" element={<WorkReport />} />
           </Route>
         </Route>
 

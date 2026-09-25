@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authApi } from '../../api/authApi';
+import { useFeatures } from '../../features/FeatureProvider';
 
 export default function TenantLogin() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { reloadFeatures } = useFeatures();
 
   // Check if redirected from a successful registration
   const queryParams = new URLSearchParams(location.search);
@@ -41,12 +43,16 @@ export default function TenantLogin() {
         const { getRole } = await import('../../utils/tokenStorage');
         const role = getRole();
 
+        await reloadFeatures();
+
         if (role === 1) {
           navigate('/superadmin/dashboard');
         } else if (role === 2) {
-          navigate('/price');
+          navigate('/tenant/dashboard');
         } else if (role === 3) {
           navigate('/tenant-admin/dashboard');
+        } else if (role === 4 || role === 5 || role === 6) {
+          navigate('/emp/dashboard');
         } else {
           navigate('/price');
         }
@@ -62,56 +68,9 @@ export default function TenantLogin() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row font-sans text-slate-800 bg-white">
-            {/* RIGHT SIDE: PROMOTIONAL / REGISTER CALL-TO-ACTION PANEL */}
-      <div className="hidden lg:flex lg:w-1/2 min-h-screen bg-[#091E42] text-white flex-col justify-between p-12 lg:p-16 relative overflow-hidden">
-        
-        {/* Decorative Background Accents */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Main CTA Block */}
-        <div className="relative z-10 max-w-lg my-auto space-y-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-            New to Teamo?
-          </h2>
-          <p className="text-sm text-slate-300 leading-relaxed">
-            Set up an isolated corporate workspace for your organization today. Seamlessly manage teams, permissions, and security controls in one unified platform.
-          </p>
-
-          <div className="pt-2">
-            <Link
-              to="/sign-up"
-              className="inline-flex items-center justify-center px-6 py-3 bg-white text-[#091E42] hover:bg-slate-100 text-xs font-bold rounded-lg transition shadow-md group"
-            >
-              Register Your Company
-              <svg 
-                className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-
-        {/* Feature Highlights */}
-        <div className="relative z-10 pt-8 border-t border-slate-800 grid grid-cols-2 gap-4 text-xs text-slate-300">
-          <div>
-            <h4 className="font-semibold text-white mb-1">Corporate Registration</h4>
-            <p className="text-[11px] text-slate-400">Instantly provision an environment using your Corporate Identification Number (CIN).</p>
-          </div>
-          <div>
-            <h4 className="font-semibold text-white mb-1">Secure Architecture</h4>
-            <p className="text-[11px] text-slate-400">Isolated data environments with encrypted session handling.</p>
-          </div>
-        </div>
-
-      </div>
-      {/* LEFT SIDE: LOGIN FORM AREA */}
-      <div className="w-full lg:w-1/2 min-h-screen flex flex-col justify-between p-6 sm:p-12 lg:p-16">
+    <div className="min-h-screen w-full flex font-sans text-slate-800 bg-white justify-center">
+      {/* LOGIN FORM AREA */}
+      <div className="w-full max-w-xl min-h-screen flex flex-col justify-between p-6 sm:p-12 lg:p-16">
         
         {/* Top Navigation / Brand */}
         <div className="flex flex-col items-start gap-5">
@@ -217,19 +176,27 @@ export default function TenantLogin() {
             </button>
           </form>
 
-          {/* Mobile Fallback Link */}
-          <div className="mt-8 pt-6 border-t border-slate-100 text-center lg:hidden">
-            <p className="text-xs text-slate-500">
-              New to Teamo?{' '}
-              <Link to="/register" className="text-blue-600 hover:underline font-semibold">
-                Register your company
-              </Link>
-            </p>
+          <div className="relative mt-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-white px-3 text-slate-500">New to Teamo?</span>
+            </div>
+          </div>
+
+          <div className="mt-6 text-center">
+            <Link 
+              to="/sign-up" 
+              className="py-3 px-4 hover: text-slate-700 text-xs font-semibold"
+            >
+              Register your organization
+            </Link>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="text-xs text-slate-400 text-center lg:text-left">
+        <div className="text-xs text-slate-400 text-center">
           &copy; {new Date().getFullYear()} Teamo Systems. All rights reserved.
         </div>
       </div>

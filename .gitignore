@@ -4,6 +4,7 @@ server/**/obj/
 server/**/*.user
 server/**/appsettings.Development.json
 server/**/appsettings.Local.json
+server/**/documents/
 *.suo
 *.user
 .vs/

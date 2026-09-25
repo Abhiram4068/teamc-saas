@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SaaS.Application.Configurations;
-using SaaS.Application.DTOs.Requests;
 using SaaS.Application.Interfaces.Payment;
 using SaaS.Application.Interfaces.Payments;
 using SaaS.Application.Interfaces.Repository;
@@ -127,6 +126,12 @@ builder.Services.AddScoped<IDesignationRepository, DesignationRepository>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<ITenantEmployeeService, TenantEmployeeService>();
+builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();
+builder.Services.AddScoped<ILeaveManagementService, LeaveManagementService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<IWorkReportRepository, WorkReportRepository>();
+builder.Services.AddScoped<IWorkReportService, WorkReportService>();
+
 
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, FeaturePolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, FeatureAuthorizationHandler>();

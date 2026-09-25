@@ -1,5 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { FeatureGate } from '../../features/FeatureGate';
+import { FEATURES } from '../../features/featureCodes';
 
 export default function TenantAdminSidebar() {
   const navigate = useNavigate();
@@ -26,15 +28,31 @@ export default function TenantAdminSidebar() {
           <span>Overview</span>
         </NavLink>
         
-        <NavLink to="/tenant-admin/users" className={linkClass}>
-          <i className="fas fa-users text-base w-5 text-center"></i>
-          <span>Users</span>
-        </NavLink>
-        
-        <NavLink to="/tenant-admin/add-user" className={linkClass}>
-          <i className="fas fa-user-plus text-base w-5 text-center"></i>
-          <span>Add User</span>
-        </NavLink>
+        <FeatureGate feature={FEATURES.EMPLOYEE_MANAGEMENT}>
+          <NavLink to="/tenant-admin/users" className={linkClass}>
+            <i className="fas fa-users text-base w-5 text-center"></i>
+            <span>Users</span>
+          </NavLink>
+          
+          <NavLink to="/tenant-admin/add-user" className={linkClass}>
+            <i className="fas fa-user-plus text-base w-5 text-center"></i>
+            <span>Add User</span>
+          </NavLink>
+        </FeatureGate>
+
+        <FeatureGate feature={FEATURES.LEAVES_MODULE}>
+          <NavLink to="/tenant-admin/leave-types" className={linkClass}>
+            <i className="fas fa-calendar-alt text-base w-5 text-center"></i>
+            <span>Leave Types</span>
+          </NavLink>
+        </FeatureGate>
+
+        <FeatureGate feature={FEATURES.DAILY_WORK_REPORT}>
+          <NavLink to="/tenant-admin/work-types" className={linkClass}>
+            <i className="fas fa-clipboard-list text-base w-5 text-center"></i>
+            <span>Work Report Types</span>
+          </NavLink>
+        </FeatureGate>
       </div>
       
       <div 
