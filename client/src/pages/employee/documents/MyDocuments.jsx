@@ -7,6 +7,7 @@ export default function MyDocuments() {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortBy, setSortBy] = useState('date');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -16,7 +17,7 @@ export default function MyDocuments() {
   const fetchDocuments = async () => {
     setIsLoading(true);
     try {
-      const response = await documentApi.getDocuments({ search, sortBy, pageNumber: page, pageSize: 12 });
+      const response = await documentApi.getDocuments({ search: debouncedSearch, sortBy, pageNumber: page, pageSize: 12 });
       if (response.success) {
         setDocuments(response.data.items);
         setTotalPages(response.data.totalPages);
@@ -30,9 +31,19 @@ export default function MyDocuments() {
   };
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search !== debouncedSearch) {
+        setDebouncedSearch(search);
+        setPage(1);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search, debouncedSearch]);
+
+  useEffect(() => {
     fetchDocuments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, sortBy, page]);
+  }, [debouncedSearch, sortBy, page]);
 
   const formatSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
@@ -70,7 +81,7 @@ export default function MyDocuments() {
               placeholder="Search files..."
               className="px-4 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => setSearch(e.target.value)}
             />
             <select 
               className="px-4 py-2 border border-slate-200 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-900"
@@ -116,7 +127,7 @@ export default function MyDocuments() {
             <i className="fas fa-spinner fa-spin text-3xl text-slate-400"></i>
           </div>
         ) : documents.length === 0 ? (
-          <div className="bg-white rounded-md border border-slate-200 p-16 text-center shadow-sm">
+          <div className="p-16 text-center">
             <i className="fas fa-folder-open text-4xl text-slate-300 mb-4"></i>
             <h3 className="text-lg font-medium text-slate-700">No documents found</h3>
             <p className="text-slate-500 mt-1 text-sm">Upload some files or try a different search.</p>
@@ -128,28 +139,7 @@ export default function MyDocuments() {
                 <DocumentTile key={doc.id} doc={doc} formatSize={formatSize} formatDate={formatDate} />
               ))}
             </div>
-            
-            <div className="mt-8 flex justify-end gap-2">
-              <button 
-                disabled={page === 1} 
-                onClick={() => setPage(p => p - 1)}
-                className="w-9 h-9 flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Previous Page"
-              >
-                <i className="fas fa-chevron-left text-xs text-slate-600"></i>
-              </button>
-              <div className="flex items-center px-4 py-2 text-sm text-slate-600 font-medium">
-                Page {page} of {totalPages === 0 ? 1 : totalPages}
-              </div>
-              <button 
-                disabled={page === totalPages || totalPages === 0 || totalPages === 1} 
-                onClick={() => setPage(p => p + 1)}
-                className="w-9 h-9 flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Next Page"
-              >
-                <i className="fas fa-chevron-right text-xs text-slate-600"></i>
-              </button>
-            </div>
+           
           </>
         )}
       </div>
