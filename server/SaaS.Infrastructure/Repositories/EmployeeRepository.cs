@@ -86,6 +86,12 @@ public class EmployeeRepository : IEmployeeRepository
                     ? query.OrderByDescending(e => e.User.Role)
                     : query.OrderBy(e => e.User.Role);
             }
+            else if (sort == "name")
+            {
+                query = request.SortDescending 
+                    ? query.OrderByDescending(e => e.User.FirstName).ThenByDescending(e => e.User.LastName)
+                    : query.OrderBy(e => e.User.FirstName).ThenBy(e => e.User.LastName);
+            }
             else
             {
                 query = request.SortDescending ? query.OrderByDescending(e => e.Id) : query.OrderBy(e => e.Id);

@@ -37,6 +37,7 @@ const TenantAdminDashboard = lazy(() => import('../pages/tenant-admin/TenantAdmi
 const TenantAdminEmployees = lazy(() => import('../pages/tenant-admin/TenantAdminEmployees'));
 const TenantAdminRegisterUser = lazy(() => import('../pages/tenant-admin/TenantAdminRegisterUser'));
 const ManageLeaveTypes = lazy(() => import('../pages/tenant-admin/ManageLeaveTypes'));
+const ManageWorkTypes = lazy(() => import('../pages/tenant-admin/ManageWorkTypes'));
 
 // Employee Pages
 const EmployeeRoute = lazy(() => import('./EmployeeRoute'));
@@ -51,6 +52,8 @@ const ManageEmployeeLeaves = lazy(() => import('../pages/employee/leaves/ManageE
 const DocumentUpload = lazy(() => import('../pages/employee/documents/DocumentUpload'));
 const MyDocuments = lazy(() => import('../pages/employee/documents/MyDocuments'));
 const DocumentDetails = lazy(() => import('../pages/employee/documents/DocumentDetails'));
+const WorkReport = lazy(() => import('../pages/employee/WorkReport'));
+const TeamWorkReportsList = lazy(() => import('../pages/employee/TeamWorkReportsList'));
 
 const TenantRegistration = lazy(() => import('../pages/public/Register'));
 const Login = lazy(() => import('../pages/public/Login'));
@@ -157,6 +160,7 @@ export default function AppRoutes() {
             <Route path="users" element={<TenantAdminEmployees />} />
             <Route path="add-user" element={<TenantAdminRegisterUser />} />
             <Route path="leave-types" element={<ManageLeaveTypes />} />
+            <Route path="work-types" element={<ManageWorkTypes />} />
           </Route>
         </Route>
 
@@ -175,6 +179,9 @@ export default function AppRoutes() {
             <Route path="documents" element={<MyDocuments />} />
             <Route path="documents/upload" element={<DocumentUpload />} />
             <Route path="documents/:id" element={<DocumentDetails />} />
+            <Route path="work-reports" element={<WorkReport />} />
+            <Route path="work-reports/team" element={<TeamWorkReportsList />} />
+            <Route path="work-reports/team/:targetUserId" element={<WorkReport />} />
           </Route>
         </Route>
 

@@ -10,6 +10,7 @@ export default function EmployeeSidebar() {
   const [user, setUser] = useState(null);
   const [isLeavesOpen, setIsLeavesOpen] = useState(false);
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
+  const [isWorkReportOpen, setIsWorkReportOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -126,6 +127,41 @@ export default function EmployeeSidebar() {
                 </div>
               )}
             </div>
+          </FeatureGate>
+        )}
+
+        {[4, 5, 6].includes(parsedRole) && (
+          <FeatureGate feature={FEATURES.DAILY_WORK_REPORT}>
+            {parsedRole === 5 ? (
+              <div className="flex flex-col">
+                <div 
+                  className="w-full h-12 flex items-center px-6 text-xs gap-4 cursor-pointer transition-all duration-200 no-underline text-slate-300 hover:text-white hover:bg-slate-800"
+                  onClick={() => setIsWorkReportOpen(!isWorkReportOpen)}
+                >
+                  <i className="fas fa-clipboard-list text-base w-5 text-center"></i>
+                  <span>Work Reports</span>
+                  <i className={`fas fa-chevron-down ml-auto transition-transform ${isWorkReportOpen ? 'rotate-180' : ''}`}></i>
+                </div>
+                
+                {isWorkReportOpen && (
+                  <div className="flex flex-col bg-slate-800/50">
+                    <NavLink to="/emp/work-reports" end className={linkClass}>
+                      <i className="fas fa-file-contract text-base w-5 text-center pl-2"></i>
+                      <span>My Reports</span>
+                    </NavLink>
+                    <NavLink to="/emp/work-reports/team" className={linkClass}>
+                      <i className="fas fa-users-viewfinder text-base w-5 text-center pl-2"></i>
+                      <span>Team Reports</span>
+                    </NavLink>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <NavLink to="/emp/work-reports" className={linkClass}>
+                <i className="fas fa-clipboard-list text-base w-5 text-center"></i>
+                <span>Work Reports</span>
+              </NavLink>
+            )}
           </FeatureGate>
         )}
 

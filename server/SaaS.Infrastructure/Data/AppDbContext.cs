@@ -21,6 +21,9 @@ public class AppDbContext : DbContext
     public DbSet<EmployeeLeaveBalance> EmployeeLeaveBalances => Set<EmployeeLeaveBalance>();
     public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
     public DbSet<Document> Documents => Set<Document>();
+    public DbSet<Employee> Employees => Set<Employee>();
+    public DbSet<WorkType> WorkTypes => Set<WorkType>();
+    public DbSet<WorkReport> WorkReports => Set<WorkReport>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -136,6 +139,31 @@ public class AppDbContext : DbContext
             .HasOne(d => d.User)
             .WithMany()
             .HasForeignKey(d => d.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // ---- Work Reports ----
+        modelBuilder.Entity<WorkType>()
+            .HasOne(wt => wt.Tenant)
+            .WithMany()
+            .HasForeignKey(wt => wt.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<WorkReport>()
+            .HasOne(wr => wr.Tenant)
+            .WithMany()
+            .HasForeignKey(wr => wr.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<WorkReport>()
+            .HasOne(wr => wr.User)
+            .WithMany()
+            .HasForeignKey(wr => wr.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<WorkReport>()
+            .HasOne(wr => wr.WorkType)
+            .WithMany()
+            .HasForeignKey(wr => wr.WorkTypeId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
