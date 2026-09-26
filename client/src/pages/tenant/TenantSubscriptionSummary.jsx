@@ -8,6 +8,9 @@ export default function TenantSubscriptionSummary() {
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState(null);
   const [currentPlan, setCurrentPlan] = useState(null);
+  
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -38,6 +41,24 @@ export default function TenantSubscriptionSummary() {
       setLoading(false);
     }
   }
+
+  const handleCancelSubscription = async () => {
+    try {
+      setIsCancelling(true);
+      const res = await subscriptionApi.cancelSubscription();
+      if (res?.success) {
+        showToast("Subscription cancelled successfully.", "success");
+        setIsCancelModalOpen(false);
+        fetchData();
+      } else {
+        showToast(res?.message || "Failed to cancel subscription.", "error");
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Error cancelling subscription.", "error");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -174,14 +195,14 @@ export default function TenantSubscriptionSummary() {
                 >
                   Change Plan
                 </Link>
-                <button
-                  className="text-xs font-semibold text-red-600 hover:text-red-800 hover:underline transition-colors"
-                  onClick={() =>
-                    showToast("Cancellation flow to be implemented", "info")
-                  }
-                >
-                  Cancel Subscription
-                </button>
+                {currentPlan?.rank > 1 && (
+                  <button
+                    className="text-xs font-semibold text-red-600 hover:text-red-800 hover:underline transition-colors"
+                    onClick={() => setIsCancelModalOpen(true)}
+                  >
+                    Cancel Subscription
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -277,6 +298,47 @@ export default function TenantSubscriptionSummary() {
           </div>
         </div>
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      {isCancelModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-900">
+                Cancel Subscription?
+              </h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-slate-600">
+                Are you sure you want to cancel your active subscription?
+              </p>
+              <div className="p-4">
+                <ul className="text-xs text-red-800 list-disc list-inside space-y-1.5">
+                  <li>Your plan will instantly revert to the Free Plan.</li>
+                  <li>You will <strong>not</strong> be refunded for the remainder of your billing cycle.</li>
+                  <li>Premium features and data access will be restricted immediately.</li>
+                </ul>
+              </div>
+            </div>
+            <div className="p-4 flex justify-end gap-3">
+              <button
+                onClick={() => setIsCancelModalOpen(false)}
+                disabled={isCancelling}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+              >
+                Keep Subscription
+              </button>
+              <button
+                onClick={handleCancelSubscription}
+                disabled={isCancelling}
+                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isCancelling ? "Cancelling..." : "Yes, Cancel Now"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

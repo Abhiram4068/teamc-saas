@@ -286,4 +286,73 @@ public class SubscriptionService : ISubscriptionService
 
         return ApiResponse<IEnumerable<PlanFeatureResponseDto>>.SuccessResponse(dto);
     }
+
+    public async Task<ApiResponse<string>> CancelSubscriptionAsync(int tenantId)
+    {
+        var subscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
+        if (subscription == null)
+        {
+            return ApiResponse<string>.FailureResponse("No active subscription found.");
+        }
+
+        if (subscription.Plan?.Code == "FREE_PLAN")
+        {
+            return ApiResponse<string>.FailureResponse("You cannot cancel a free plan.");
+        }
+
+        if (!string.IsNullOrEmpty(subscription.StripeSubscriptionId))
+        {
+            try
+            {
+                var canceled = await _stripePaymentGateway.CancelSubscriptionAsync(subscription.StripeSubscriptionId);
+                if (!canceled)
+                {
+                    return ApiResponse<string>.FailureResponse("Failed to cancel subscription with the payment gateway.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<string>.FailureResponse($"Error communicating with payment gateway: {ex.Message}");
+            }
+        }
+
+        var freePlan = await _planRepository.GetByCodeAsync("FREE_PLAN");
+        if (freePlan == null)
+        {
+            return ApiResponse<string>.FailureResponse("System error: Free plan is not configured.");
+        }
+
+        // Mark existing subscription as canceled
+        subscription.Status = SubscriptionStatus.Cancelled;
+        subscription.EndDate = DateTime.UtcNow;
+        subscription.UpdatedAt = DateTime.UtcNow;
+        
+        await _subscriptionRepository.UpdateAsync(subscription);
+
+        // Create a brand new subscription for the Free Plan
+        var newFreeSubscription = new Subscription
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            PlanId = freePlan.Id,
+            Status = SubscriptionStatus.Active,
+            BillingCycle = BillingCycle.Monthly, 
+            StartDate = DateTime.UtcNow,
+            EndDate = null,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            
+            // Carry over billing info
+            OrganizationName = subscription.OrganizationName,
+            Address = subscription.Address,
+            City = subscription.City,
+            State = subscription.State,
+            Pincode = subscription.Pincode
+        };
+
+        await _subscriptionRepository.AddAsync(newFreeSubscription);
+        await _subscriptionRepository.SaveChangesAsync();
+
+        return ApiResponse<string>.SuccessResponse("Subscription canceled and successfully reverted to the Free Plan.", "Success");
+    }
 }

@@ -61,4 +61,22 @@ public class SubscriptionsController : ControllerBase
         
         return StatusCode(response.StatusCode, response);
     }
+
+    [HttpPost("cancel")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> CancelSubscription()
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("Cancel Subscription failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        _logger.LogInformation("Canceling subscription for Tenant: {TenantId}", tenantId);
+        var response = await _subscriptionService.CancelSubscriptionAsync(tenantId);
+        
+        return StatusCode(response.StatusCode, response);
+    }
 }
