@@ -169,17 +169,10 @@ export default function PublicViewPlan() {
 
           {/* Error State */}
           {!loading && error && (
-            <div className="max-w-md mx-auto text-center py-12 px-6 bg-rose-50 border border-rose-200 rounded-xl">
+            <div className="max-w-md mx-auto text-center py-12 px-6 ">
               <svg className="w-10 h-10 text-rose-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <p className="text-sm font-semibold text-rose-800 mb-4">{error}</p>
-              <button
-                onClick={fetchPublicPlans}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded transition shadow-xs cursor-pointer"
-              >
-                Try Again
-              </button>
             </div>
           )}
 
@@ -209,9 +202,10 @@ export default function PublicViewPlan() {
                   plan.code?.toUpperCase().includes('POPULAR') ||
                   (plans.length >= 3 && index === 1);
 
-                const isEnterprise =
-                  plan.code?.toUpperCase().includes('ENTERPRISE') ||
-                  plan.name?.toLowerCase().includes('enterprise');
+                const isEnterprise = plan.rank >= 4;
+
+                const isCurrentPlan = currentPlanId === plan.id;
+                const isDarkCard = isCurrentPlan;
 
                 const currencySymbol = getCurrencySymbol(plan.currency);
                 const priceValue = isAnnual ? plan.yearlyPrice : plan.monthlyPrice;
@@ -220,8 +214,8 @@ export default function PublicViewPlan() {
                 return (
                   <div
                     key={plan.id}
-                    className={`rounded-xl p-6 flex flex-col justify-between transition duration-200 relative ${isEnterprise
-                      ? 'border border-slate-700 bg-brand-800 text-white shadow-md hover:shadow-xl'
+                    className={`rounded-md p-6 flex flex-col justify-between transition duration-200 relative ${isCurrentPlan
+                      ? 'border border-[#141842] bg-[#141842] text-white shadow-[0_0_25px_rgba(20,24,66,0.4)] scale-110 z-10'
                       : 'border border-gray-200 bg-white hover:shadow-lg'
                       }`}
                   >
@@ -237,16 +231,22 @@ export default function PublicViewPlan() {
                       <div className="flex items-center justify-between gap-2">
                         <h3
                           title={plan.name}
-                          className={`text-xl font-bold tracking-tight truncate ${isEnterprise ? 'text-white' : 'text-brand-800'}`}
+                          className={`text-xl font-bold tracking-tight truncate flex items-center gap-1.5 ${isDarkCard ? 'text-white' : 'text-brand-800'}`}
                         >
                           {plan.name}
+                          {isEnterprise && <i className="fa-solid fa-crown text-[#141842] text-[15px]" title="Top rated"></i>}
                         </h3>
+                        {isCurrentPlan && (
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 text-white  uppercase tracking-wider shrink-0 shadow-sm">
+                            Active plan
+                          </span>
+                        )}
                       </div>
 
                       {/* Description with fixed height for perfect vertical alignment */}
                       <p
                         title={plan.description || 'Essential tools and capabilities designed for modern workforce operations.'}
-                        className={`text-xs mt-1.5 h-9 line-clamp-2 leading-relaxed ${isEnterprise ? 'text-gray-300' : 'text-gray-500'
+                        className={`text-xs mt-1.5 h-9 line-clamp-2 leading-relaxed ${isDarkCard ? 'text-gray-300' : 'text-gray-500'
                           }`}
                       >
                         {plan.description || 'Essential tools and capabilities designed for modern workforce operations.'}
@@ -254,25 +254,23 @@ export default function PublicViewPlan() {
 
                       {/* Pricing Block */}
                       <div className="my-5">
-                        <div className="flex items-baseline gap-1.5">
+                        <div className={`flex items-baseline gap-1.5 ${isFree ? 'invisible' : ''}`}>
                           <span
-                            title={isFree ? '₹ 0' : `${currencySymbol} ${Number(priceValue).toLocaleString()} ${isAnnual ? '/ year' : '/ month'}`}
-                            className={`text-3xl font-extrabold tracking-tight truncate ${isEnterprise ? 'text-white' : 'text-brand-800'
+                            title={isFree ? 'Free' : `${currencySymbol} ${Number(priceValue).toLocaleString()} ${isAnnual ? '/ year' : '/ month'}`}
+                            className={`text-3xl font-extrabold tracking-tight truncate ${isDarkCard ? 'text-white' : 'text-brand-800'
                               }`}
                           >
-                            {isFree ? '₹ 0' : `${currencySymbol} ${Number(priceValue).toLocaleString()}`}
+                            {isFree ? 'Free' : `${currencySymbol} ${Number(priceValue).toLocaleString()}`}
                           </span>
-                          {!isFree && (
-                            <span className={`text-xs font-medium ${isEnterprise ? 'text-gray-300' : 'text-gray-500'}`}>
-                              {isAnnual ? '/ year' : '/ month'}
-                            </span>
-                          )}
+                          <span className={`text-xs font-medium ${isDarkCard ? 'text-gray-300' : 'text-gray-500'}`}>
+                            {isAnnual ? '/ year' : '/ month'}
+                          </span>
                         </div>
 
                         {/* Always allocate h-7 (28px) so cards without trial maintain identical vertical button alignment */}
                         <div className="h-7 mt-2.5 flex items-center">
                           {plan.trialPeriodDays > 0 ? (
-                            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5  ${isEnterprise
+                            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5  ${isDarkCard
                               ? 'text-emerald-300'
                               : 'text-emerald-700 '
                               }`}>
@@ -282,28 +280,23 @@ export default function PublicViewPlan() {
                               {plan.trialPeriodDays}-day free trial included
                             </span>
                           ) : (
-                            <div className="h-full w-full" aria-hidden="true" />
+                            <div className="h-full w-full" aria-hidden="true"></div>
                           )}
                         </div>
                       </div>
 
                       {/* CTA Button (Now perfectly aligned across all cards) */}
-                      {currentPlanId === plan.id ? (
+                      {isCurrentPlan ? (
                         <button
                           disabled
-                          className="block text-center w-full text-sm font-bold py-2.5 rounded-md transition mb-6 shadow-xs bg-[#0f172a] text-white cursor-default"
+                          className="block text-center w-full text-sm font-bold py-2.5 rounded-md transition mb-6 shadow-xs bg-white text-[#141842] cursor-default"
                         >
                           Current Plan
                         </button>
                       ) : (
                         <Link
                           to={`/checkout/${plan.id}`}
-                          className={`block text-center w-full text-sm font-semibold py-2.5 rounded-md transition mb-6 shadow-xs cursor-pointer ${isEnterprise
-                            ? 'bg-white hover:bg-gray-100 text-brand-800 '
-                            : isPopular
-                              ? 'bg-brand-600 hover:bg-blue-700 text-white'
-                              : 'bg-brand-50 hover:bg-brand-100 text-brand-600'
-                            }`}
+                          className="block text-center w-full text-sm font-semibold py-2.5 rounded-md transition mb-6 shadow-xs cursor-pointer bg-[#141842] hover:bg-[#1c245c] text-white"
                         >
                           {currentPlanId
                             ? plan.rank > (plans.find(p => p.id === currentPlanId)?.rank ?? -1)
@@ -318,8 +311,8 @@ export default function PublicViewPlan() {
                       )}
 
                       {/* Included Features List */}
-                      <div className={`border-t pt-4 ${isEnterprise ? 'border-gray-700' : 'border-gray-100'}`}>
-                        <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${isEnterprise ? 'text-gray-300' : 'text-gray-700'
+                      <div className={`border-t pt-4 ${isDarkCard ? 'border-gray-700' : 'border-gray-100'}`}>
+                        <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDarkCard ? 'text-gray-300' : 'text-gray-700'
                           }`}>
                           Features Included:
                         </p>
@@ -341,7 +334,7 @@ export default function PublicViewPlan() {
                                 >
                                   {/* Checkmark icon */}
                                   <svg
-                                    className={`w-4 h-4 shrink-0 mt-0.5 ${isEnterprise ? 'text-blue-400' : 'text-emerald-500'
+                                    className={`w-4 h-4 shrink-0 mt-0.5 ${isDarkCard ? 'text-blue-400' : 'text-emerald-500'
                                       }`}
                                     fill="none"
                                     stroke="currentColor"
@@ -353,7 +346,7 @@ export default function PublicViewPlan() {
                                   {/* Feature Name — up to 3 lines, then truncates; title shows full text on hover */}
                                   <span
                                     title={feat.limitValue != null ? feat.name + ' ' + feat.limitValue : feat.name}
-                                    className={`font-semibold min-w-0 line-clamp-3 ${isEnterprise ? 'text-white' : 'text-gray-900'}`}
+                                    className={`font-semibold min-w-0 line-clamp-3 ${isDarkCard ? 'text-white' : 'text-gray-900'}`}
                                   >
                                     {feat.name}
                                     <span className='font-bold'>  {feat.limitValue != null && <span className="font-bold mr-1">{feat.limitValue}</span>}</span>
@@ -364,7 +357,7 @@ export default function PublicViewPlan() {
                                   <div className="relative inline-flex items-center group/tooltip shrink-0 ml-auto">
                                     <button
                                       type="button"
-                                      className={`inline-flex items-center justify-center w-4 h-4 rounded-full transition-colors cursor-pointer ${isEnterprise
+                                      className={`inline-flex items-center justify-center w-4 h-4 rounded-full transition-colors cursor-pointer ${isDarkCard
                                         ? 'text-slate-400 hover:text-white hover:bg-white/10'
                                         : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
                                         }`}
@@ -388,7 +381,7 @@ export default function PublicViewPlan() {
                               );
                             })
                           ) : (
-                            <li className={`italic text-xs ${isEnterprise ? 'text-gray-400' : 'text-gray-400'}`}>
+                            <li className={`italic text-xs ${isDarkCard ? 'text-gray-400' : 'text-gray-400'}`}>
                               Features coming soon
                             </li>
                           )}

@@ -7,13 +7,14 @@ export default function PublicOnlyRoute() {
 
   if (token) {
     const role = getRole();
-    
     if (role === 1) {
       return <Navigate to="/superadmin/dashboard" replace />;
     } else if (role === 2) {
       return <Navigate to="/tenant/dashboard" replace />;
     } else if (role === 3) {
       return <Navigate to="/tenant-admin/dashboard" replace />;
+    } else if (role === 4 || role === 5 || role === 6) {
+      return <Navigate to="/emp/dashboard" replace />;
     }
     
     // Fallback if role is unknown

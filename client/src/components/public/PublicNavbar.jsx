@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/authApi';
+import { removeToken, removeRefreshToken } from '../../utils/tokenStorage';
 
 export default function PublicNavbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -13,28 +14,26 @@ export default function PublicNavbar() {
   const isPriceActive = location.pathname === '/price' || location.pathname === '/pricing';
 
   useEffect(() => {
-    const currentUser = authApi.getCurrentUser();
-    setUser(currentUser);
+    const fetchUser = async () => {
+      const currentUser = await authApi.getCurrentUser();
+      setUser(currentUser);
+    };
+    fetchUser();
   }, [location.pathname]);
 
   const handleLogout = () => {
-    authApi.logout();
+    removeToken();
+    removeRefreshToken();
     setUser(null);
     navigate('/');
   };
 
   return (
     <>
-      {/* TOP ANNOUNCEMENT BAR */}
-      <div className="bg-[#091E42] text-white text-xs md:text-sm py-2 px-4 text-center font-medium">
-        <span>Scale your employee management as your business grows.</span>
-        <a href="/price" className=" hover:text-blue-200 ml-2 font-semibold transition">
-          Compare Plans &rarr;
-        </a>
-      </div>
+
 
       {/* NAVIGATION */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-xs">
+      <header className="sticky top-0 z-50 bg-white/40 backdrop-blur-md shadow-xs">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
           {/* Logo */}

@@ -1,11 +1,98 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getEmployees } from '../../api/tenantAdmin';
+import Toast from '../../components/common/Toast';
 
 export default function TenantAdminEmployees() {
   const navigate = useNavigate();
 
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  
+  // Pagination & Filters State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('');
+  const [sortDescending, setSortDescending] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const fetchEmployees = async () => {
+    setLoading(true);
+    try {
+      const response = await getEmployees({
+        searchTerm,
+        sortBy,
+        sortDescending,
+        pageNumber,
+        pageSize
+      });
+      if (response?.success && response?.data) {
+        setEmployees(response.data.data || []);
+        setTotalCount(response.data.totalRecords || 0);
+      } else {
+        setToast({ show: true, message: response.message || 'Failed to fetch employees', type: 'error' });
+      }
+    } catch (error) {
+      setToast({ show: true, message: 'An error occurred while fetching employees', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Debounce search term
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      setPageNumber(1); // Reset to first page on search change
+      fetchEmployees();
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
+  useEffect(() => {
+    fetchEmployees();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortBy, sortDescending, pageNumber, pageSize]);
+
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortDescending(!sortDescending);
+    } else {
+      setSortBy(field);
+      setSortDescending(false);
+    }
+    setPageNumber(1);
+  };
+
+  const totalPages = Math.ceil(totalCount / pageSize) || 1;
+
+  const handlePrevPage = () => {
+    if (pageNumber > 1) setPageNumber(pageNumber - 1);
+  };
+
+  const handleNextPage = () => {
+    if (pageNumber < totalPages) setPageNumber(pageNumber + 1);
+  };
+
+  const getRoleName = (roleValue) => {
+    switch(roleValue) {
+      case 1: return 'SUPERADMIN';
+      case 2: return 'TENANT';
+      case 3: return 'TENANT ADMIN';
+      case 4: return 'HR';
+      case 5: return 'MANAGER';
+      case 6: return 'EMPLOYEE';
+      default: return 'UNKNOWN';
+    }
+  };
+
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in relative">
+      <Toast {...toast} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
+
       {/* Header Card */}
       <div className="bg-white rounded-lg p-6 flex justify-between items-center shadow-sm mb-6 border border-gray-100">
         <div>
@@ -26,68 +113,83 @@ export default function TenantAdminEmployees() {
             <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
             <input 
               type="text" 
-              placeholder="Search by name, email or employee code..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by name, email or phone number..."
               className="w-full py-2 px-3 pl-8 border border-gray-100 bg-gray-50 rounded-md text-xs outline-none focus:border-brand-500 transition"
             />
           </div>
           <div className="flex items-center gap-4">
-            <select className="py-2 px-3 border border-gray-100 bg-white rounded-md text-xs text-gray-700 outline-none min-w-[120px] focus:border-brand-500">
-              <option>All Roles</option>
-            </select>
-            <span className="text-[11px] text-gray-400">Page 1 of 1</span>
-            <div className="flex gap-1 text-gray-300 text-[10px]">
-              <i className="fas fa-chevron-left cursor-pointer hover:text-gray-500"></i>
-              <i className="fas fa-chevron-right cursor-pointer hover:text-gray-500"></i>
+            <span className="text-[11px] text-gray-400">Page {pageNumber} of {totalPages}</span>
+            <div className="flex gap-1 text-gray-400 text-[10px]">
+              <i 
+                className={`fas fa-chevron-left cursor-pointer hover:text-gray-600 ${pageNumber === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={handlePrevPage}
+              ></i>
+              <i 
+                className={`fas fa-chevron-right cursor-pointer hover:text-gray-600 ${pageNumber === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={handleNextPage}
+              ></i>
             </div>
-            <span className="text-[11px] text-gray-500">Showing <b>8</b> of <b>8</b> results</span>
+            <span className="text-[11px] text-gray-500">Showing <b>{employees.length}</b> of <b>{totalCount}</b> results</span>
           </div>
         </div>
 
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-collapse relative">
+          {loading && (
+            <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
+              <i className="fas fa-circle-notch fa-spin text-brand-500 text-2xl"></i>
+            </div>
+          )}
           <thead>
             <tr className="bg-gray-50">
-              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100">EMP CODE <i className="fas fa-sort text-[8px] ml-1"></i></th>
-              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100">NAME <i className="fas fa-sort text-[8px] ml-1"></i></th>
-              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100">EMAIL ADDRESS <i className="fas fa-sort text-[8px] ml-1"></i></th>
-              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100">JOINED <i className="fas fa-sort text-[8px] ml-1"></i></th>
-              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100">MANAGER <i className="fas fa-sort text-[8px] ml-1"></i></th>
-              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100">STATUS <i className="fas fa-sort text-[8px] ml-1"></i></th>
-              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100">ROLE <i className="fas fa-sort text-[8px] ml-1"></i></th>
+              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100 cursor-pointer" onClick={() => handleSort('id')}>
+                EMP CODE <i className="fas fa-sort text-[8px] ml-1"></i>
+              </th>
+              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100">
+                NAME 
+              </th>
+              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100">
+                EMAIL ADDRESS
+              </th>
+              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100 cursor-pointer" onClick={() => handleSort('department')}>
+                DEPARTMENT <i className="fas fa-sort text-[8px] ml-1"></i>
+              </th>
+              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100 cursor-pointer" onClick={() => handleSort('designation')}>
+                DESIGNATION <i className="fas fa-sort text-[8px] ml-1"></i>
+              </th>
+              <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100 cursor-pointer" onClick={() => handleSort('role')}>
+                ROLE <i className="fas fa-sort text-[8px] ml-1"></i>
+              </th>
               <th className="py-3 px-5 text-[10px] font-bold text-gray-500 tracking-wide border-b border-gray-100">ACTION</th>
             </tr>
           </thead>
           <tbody className="text-gray-700 text-xs">
-            {/* Hardcoded sample data from template */}
-            {[
-              { id: 1057, name: 'Abhiiiram s', email: 'abhiiram12@gmail.com', date: '9/6/2026', manager: '', status: 'Active', role: 'MANAGER' },
-              { id: 1056, name: 'John Doe', email: 'john.doecompany@ss.coom', date: '8/19/2026', manager: '', status: 'Active', role: 'MANAGER' },
-              { id: 1055, name: 'John Doe', email: 'john.doecompany@ss', date: '8/19/2026', manager: '', status: 'Active', role: 'MANAGER' },
-              { id: 1054, name: 'John Doe', email: 'john.doecompany@s', date: '8/19/2026', manager: '', status: 'Active', role: 'MANAGER' },
-              { id: 1053, name: 'John Doe', email: 'john.doe@company', date: '8/19/2026', manager: '', status: 'Active', role: 'MANAGER' },
-              { id: 1052, name: 'John Doe', email: 'john.doe@company.com', date: '8/19/2026', manager: '', status: 'Active', role: 'MANAGER' },
-              { id: 1049, name: 'Abyram S', email: 'abyram394@gmail.com', date: '9/2/2026', manager: 'Abhiram S', status: 'Active', role: 'EMPLOYEE', isEmployee: true },
-            ].map((user, idx) => (
-              <tr key={idx} className="hover:bg-gray-50 transition border-b border-gray-100 last:border-b-0">
-                <td className="py-3.5 px-5 text-gray-400">{user.id}</td>
-                <td className="py-3.5 px-5 font-semibold text-gray-900">{user.name}</td>
-                <td className="py-3.5 px-5">{user.email}</td>
-                <td className="py-3.5 px-5 text-gray-400">{user.date}</td>
-                <td className="py-3.5 px-5">{user.manager}</td>
-                <td className="py-3.5 px-5">
-                  <span className="text-green-600 font-semibold">{user.status}</span>
-                </td>
-                <td className="py-3.5 px-5">
-                  <span className={`font-bold text-[11px] ${user.isEmployee ? 'text-brand-600' : 'text-brand-600'}`}>
-                    {user.role}
-                  </span>
-                </td>
-                <td className="py-3.5 px-5">
-                  <button className="bg-green-50 text-green-700 border border-green-200 py-1.5 px-3 rounded text-[11px] font-semibold hover:bg-green-100 transition">
-                    View Details
-                  </button>
-                </td>
+            {employees.length === 0 && !loading ? (
+              <tr>
+                <td colSpan="7" className="py-8 text-center text-gray-500">No employees found.</td>
               </tr>
-            ))}
+            ) : (
+              employees.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-50 transition border-b border-gray-100 last:border-b-0">
+                  <td className="py-3.5 px-5 text-gray-400">EMP-{user.id}</td>
+                  <td className="py-3.5 px-5 font-semibold text-gray-900">{user.firstName} {user.lastName}</td>
+                  <td className="py-3.5 px-5">{user.email}</td>
+                  <td className="py-3.5 px-5">{user.departmentName || '-'}</td>
+                  <td className="py-3.5 px-5">{user.designationName || '-'}</td>
+                  <td className="py-3.5 px-5">
+                    <span className="font-bold text-[11px] text-brand-600">
+                      {getRoleName(user.role)}
+                    </span>
+                  </td>
+                  <td className="py-3.5 px-5">
+                    <button className="bg-green-50 text-green-700 border border-green-200 py-1.5 px-3 rounded text-[11px] font-semibold hover:bg-green-100 transition">
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

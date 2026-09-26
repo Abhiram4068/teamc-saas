@@ -9,6 +9,10 @@ export default {
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
         jakarta: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+        nunito: ['"Nunito"', 'sans-serif'],
+        Nunito: ['"Nunito"', 'sans-serif'],
+        outfit: ['"Outfit"', 'sans-serif'],
+        rounded: ['"Nunito"', '"Outfit"', '"Plus Jakarta Sans"', 'sans-serif'],
       },
       keyframes: {
         'slide-up': {

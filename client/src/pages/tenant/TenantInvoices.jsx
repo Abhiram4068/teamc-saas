@@ -70,12 +70,12 @@ export default function TenantInvoices() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6">
+    <div className="min-h-screen bg-slate-50/50 p-6" style={{ fontFamily: "'Inter', sans-serif" }}>
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Header Section */}
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-slate-800">Invoices</h1>
+          <h1 className="text-lg font-semibold text-slate-800">Invoices</h1>
           {/* <div className="flex items-center gap-3">
             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
               <Filter className="w-4 h-4" />
@@ -104,7 +104,7 @@ export default function TenantInvoices() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
 
                     <th className="px-6 py-2">Invoice</th>
                     <th className="px-6 py-2">Date</th>
@@ -114,7 +114,7 @@ export default function TenantInvoices() {
                     <th className="px-6 py-2 text-center w-24">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
+                <tbody className="divide-y divide-slate-100 text-xs">
                   {invoices.map((invoice) => (
                     <tr key={invoice.id} className="hover:bg-slate-50/50 transition-colors group">
                       <td className="px-6 py-3">
@@ -171,7 +171,7 @@ export default function TenantInvoices() {
           {/* Pagination Footer */}
           {!loading && invoices.length > 0 && (
             <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-              <p className="text-sm text-slate-500">
+              <p className="text-xs text-slate-500">
                 Showing <span className="font-medium">1</span> to <span className="font-medium">{invoices.length}</span> of <span className="font-medium">{invoices.length}</span> results
               </p>
               <div className="flex gap-1">

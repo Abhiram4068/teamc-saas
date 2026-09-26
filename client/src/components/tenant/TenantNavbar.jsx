@@ -7,8 +7,11 @@ export default function TenantNavbar() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const currentUser = authApi.getCurrentUser();
-    setUser(currentUser);
+    const fetchUser = async () => {
+      const currentUser = await authApi.getCurrentUser();
+      setUser(currentUser);
+    };
+    fetchUser();
   }, []);
 
   // Get initials from user or default to "T"
@@ -22,34 +25,11 @@ export default function TenantNavbar() {
       <div className="flex items-center w-1/3">
         {/* Placeholder for left side if needed, currently logo is public */}
         <h1 className="text-lg font-bold text-gray-800 tracking-tight">
-          Teamo Tenant Portal
+          Teamo Tenant Portal <span className="text-xs font-medium text-gray-600"> Billing Admin</span>
         </h1>
       </div>
 
-      <div className="flex-1 flex justify-center w-1/3">
-        <div className="relative w-full max-w-md hidden sm:block">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <i className="fa-solid fa-search text-gray-400 text-sm"></i>
-          </div>
-          <input
-            type="text"
-            className="block w-full pl-10 pr-3 py-1.5 border border-gray-300 rounded-full leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            placeholder="Search..."
-          />
-        </div>
-      </div>
-
       <div className="flex items-center justify-end space-x-4 w-1/3">
-
-        <button className="text-gray-400 hover:text-gray-600 transition-colors">
-          <i className="fa-regular fa-sun text-lg"></i>
-        </button>
-        <button className="text-gray-400 hover:text-gray-600 transition-colors">
-          <i className="fa-regular fa-bell text-lg"></i>
-        </button>
-        <button className="text-gray-400 hover:text-gray-600 transition-colors hidden sm:block">
-          <i className="fa-solid fa-border-all text-lg"></i>
-        </button>
 
         {/* User Profile Avatar */}
         <div className="flex items-center ml-2">

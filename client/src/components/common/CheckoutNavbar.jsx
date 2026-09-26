@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getToken, parseJwt } from '../../utils/tokenStorage';
+import { authApi } from '../../api/authApi';
 
 export default function CheckoutNavbar() {
   const navigate = useNavigate();
-  const token = getToken();
-  const decoded = parseJwt(token);
-  
-  // Attempt to extract company name from the custom JWT claim
-  const companyName = decoded?.companyName 
-    || decoded?.CompanyName 
-    || 'your company';
+  const [companyName, setCompanyName] = useState('your company');
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await authApi.getCurrentUser();
+      if (currentUser?.companyName) {
+        setCompanyName(currentUser.companyName);
+      }
+    };
+    fetchUser();
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">

@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SaaS.Application.Configurations;
-using SaaS.Application.DTOs.Requests;
 using SaaS.Application.Interfaces.Payment;
 using SaaS.Application.Interfaces.Payments;
 using SaaS.Application.Interfaces.Repository;
@@ -23,6 +22,7 @@ using SaaS.Api.Policies.Features;
 using Microsoft.AspNetCore.Authorization;
 using System.Text;
 using Serilog;
+using SaaS.API.BackgroundServices;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -52,19 +52,19 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateFeatureRequestValidat
 
 #endregion
 
-// Configure CORS for render
+// Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("https://useteamo.vercel.app")
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configure JWT Settings & Authentication Scheme
 var jwtSection = builder.Configuration.GetSection("JwtSettings");
@@ -122,6 +122,18 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ITenantFeatureService, TenantFeatureService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<ITenantAdminService, TenantAdminService>();
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddScoped<IDesignationRepository, DesignationRepository>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<ITenantEmployeeService, TenantEmployeeService>();
+builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();
+builder.Services.AddScoped<ILeaveManagementService, LeaveManagementService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<IWorkReportRepository, WorkReportRepository>();
+builder.Services.AddScoped<IWorkReportService, WorkReportService>();
+
+builder.Services.AddHostedService<SubscriptionTransitionJob>();
 
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, FeaturePolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, FeatureAuthorizationHandler>();
@@ -140,7 +152,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseCors("AllowFrontend");
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

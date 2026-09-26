@@ -54,10 +54,6 @@ public class PaymentConfiguration
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // A Stripe Checkout Session represents one checkout attempt
-        builder.HasIndex(x => x.StripeCheckoutSessionId)
-            .IsUnique();
-
         // Useful for Stripe reconciliation
         builder.HasIndex(x => x.StripePaymentIntentId);
         builder.HasIndex(x => x.StripeInvoiceId);
