@@ -91,6 +91,10 @@ public class SubscriptionService : ISubscriptionService
                 TenantId = tenantId,
                 PlanId = plan.Id,
                 BillingCycle = request.BillingCycle,
+                StartDate = DateTime.UtcNow,
+                EndDate = request.BillingCycle == BillingCycle.Monthly 
+                    ? DateTime.UtcNow.AddMonths(1) 
+                    : DateTime.UtcNow.AddYears(1),
                 Status = SubscriptionStatus.Pending,
                 OrganizationName = request.OrganizationName,
                 Address = request.Address,
@@ -104,16 +108,31 @@ public class SubscriptionService : ISubscriptionService
         }
         else
         {
-            subscription.PlanId = plan.Id;
-            subscription.BillingCycle = request.BillingCycle;
-            subscription.Status = SubscriptionStatus.Pending;
-            subscription.OrganizationName = request.OrganizationName;
-            subscription.Address = request.Address;
-            subscription.City = request.City;
-            subscription.State = request.State;
-            subscription.Pincode = request.Pincode;
-            subscription.UpdatedAt = DateTime.UtcNow;
-            await _subscriptionRepository.UpdateAsync(subscription);
+            // Instead of mutating the active subscription, we create a new one
+            var startDate = subscription.EndDate ?? DateTime.UtcNow;
+            var newSubscription = new Subscription
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenantId,
+                PlanId = plan.Id,
+                BillingCycle = request.BillingCycle,
+                StartDate = startDate,
+                EndDate = request.BillingCycle == BillingCycle.Monthly 
+                    ? startDate.AddMonths(1) 
+                    : startDate.AddYears(1),
+                Status = SubscriptionStatus.Pending,
+                OrganizationName = request.OrganizationName,
+                Address = request.Address,
+                City = request.City,
+                State = request.State,
+                Pincode = request.Pincode,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _subscriptionRepository.AddAsync(newSubscription);
+
+            // Point 'subscription' to the new one so the Payment record links to it
+            subscription = newSubscription;
         }
 
         // Create Pending Payment with that session id returned from stripe
@@ -167,7 +186,12 @@ public class SubscriptionService : ISubscriptionService
         await _paymentRepository.UpdateAsync(payment);
 
         // Update Subscription
-        subscription.Status = SubscriptionStatus.Active;
+        // Since GetByTenantIdAsync returns the most recently created, this correctly fetches the new one we created.
+        // If it starts in the future, it should be Scheduled. If it starts now, it's Active.
+        subscription.Status = subscription.StartDate > DateTime.UtcNow 
+            ? SubscriptionStatus.Scheduled 
+            : SubscriptionStatus.Active;
+            
         subscription.StripeCustomerId = customerId;
         subscription.StripeSubscriptionId = subscriptionId;
         subscription.UpdatedAt = DateTime.UtcNow;
