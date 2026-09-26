@@ -1,105 +1,118 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { removeToken, removeRefreshToken } from '../../utils/tokenStorage';
 
 
 export default function TenantSidebar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    clearToken();
-    clearRole();
+    removeToken();
+    removeRefreshToken();
     navigate('/login');
   };
 
-  const navGroups = [
+  const navItems = [
+    { label: 'Home', to: '/tenant/dashboard', icon: 'fa-solid fa-house' },
     {
-      title: 'Overview',
-      items: [
-        { to: '/tenant/dashboard', label: 'Dashboard', icon: 'fa-solid fa-chart-line' },
+      label: 'People',
+      icon: 'fa-solid fa-user-group',
+      subItems: [
+        { label: 'Admins', to: '/tenant/administrators' },
+        { label: 'Users', to: '/tenant/users' },
+        { label: 'Add Admins', to: '/tenant/add-admin' },
       ],
     },
     {
-      title: 'Subscription',
-      items: [
-        { to: '/tenant/my-plan', label: 'My Plan', icon: 'fa-solid fa-crown' },
-        // { to: '/tenant/plans', label: 'Explore Plans', icon: 'fa-solid fa-compass' },
-        // { to: '/tenant/history', label: 'Payment History', icon: 'fa-solid fa-clock-rotate-left' },
-        // { to: '/tenant/billing', label: 'Billing Information', icon: 'fa-solid fa-file-invoice-dollar' },
-        { to: '/tenant/invoices', label: 'Invoices', icon: 'fa-solid fa-receipt' },
+      label: 'Subscriptions',
+      icon: 'fa-solid fa-credit-card',
+      subItems: [
+        { label: 'Billings', to: '/tenant/billing' },
+        { label: 'Change Plan', to: '/tenant/plans' },
+        { label: 'Subscription Summary', to: '/tenant/subscription-summary' },
+        { label: 'Invoices', to: '/tenant/invoices' },
+        { label: 'Payments', to: '/tenant/payments' },
       ],
     },
     {
-      title: 'Organization',
-      items: [
-        { to: '/tenant/administrators', label: 'Administrators', icon: 'fa-solid fa-users-gear' },
-        // { to: '/tenant/profile', label: 'Organization Profile', icon: 'fa-solid fa-building' },
+      label: 'Support',
+      icon: 'fa-solid fa-headset',
+      subItems: [
+        { label: 'Manage Tickets', to: '/tenant/support-tickets' },
+        { label: 'Contact Support', to: '/tenant/contact-support' },
       ],
-    },
-    // {
-    //   title: 'Settings',
-    //   items: [
-    //     { to: '/tenant/account', label: 'Account Settings', icon: 'fa-solid fa-user-cog' },
-    //     { to: '/tenant/security', label: 'Security', icon: 'fa-solid fa-shield-halved' },
-    //     { to: '/tenant/notifications', label: 'Notifications', icon: 'fa-solid fa-bell' },
-    //   ],
-    // },
+    }
   ];
 
   return (
-    <aside className="w-64 bg-[#1A1E29] text-white flex-shrink-0 border-r border-gray-200 flex flex-col pt-14 pb-4 select-none h-screen">
+    <aside className="w-56 bg-[#1A1E29] text-white flex-shrink-0 border-r border-gray-200 flex flex-col pt-8 pb-4 select-none h-screen">
+      <div className="px-4 mb-6">
+        <NavLink 
+          to="/"
+          className="flex items-center py-1.5 px-3 text-gray-400 hover:text-white transition-colors text-[12px] font-medium rounded-md hover:bg-white/5"
+        >
+          <i className="fa-solid fa-arrow-left mr-3 text-[11px]"></i>
+          Back to Teamo
+        </NavLink>
+      </div>
       <div className="flex-1 overflow-y-auto px-4 custom-scrollbar space-y-6">
-        {navGroups.map((group, index) => (
-          <div key={index}>
-            <div className="text-[11px] font-bold text-gray-200 uppercase tracking-wider mb-2 ml-2">
-              {group.title}
-            </div>
-            <div className="space-y-1">
-              {group.items.map((item) => (
-                <NavLink
-                  key={item.label}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    `flex items-center py-2 px-3 rounded-md transition-colors duration-200 ${
-                      isActive
-                        ? 'text-white font-semibold '
-                        : 'text-white hover:text-white font-medium'
-                    }`
-                  }
-                >
-                  <i className={`${item.icon} w-5 text-center text-[13px] mr-2 text-gray-400`}></i>
-                  <span className="text-[12px] text-gray-400">{item.label}</span>
-                </NavLink>
-              ))}
-            </div>
+        {navItems.map((item, index) => (
+          <div key={index} className="mb-2">
+            {item.to ? (
+              <NavLink
+                to={item.to}
+                className={({ isActive }) =>
+                  `flex items-center py-1.5 px-3 transition-all duration-200 ${
+                    isActive
+                      ? 'text-white font-semibold'
+                      : 'text-gray-400 hover:text-white font-medium'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <i className={`${item.icon} w-5 text-center text-[13px] mr-3 ${isActive ? 'text-white' : 'text-gray-400'}`}></i>
+                    <span className="text-[13px]">{item.label}</span>
+                  </>
+                )}
+              </NavLink>
+            ) : (
+              <div className="flex items-center py-1.5 px-3 text-gray-400 font-medium select-none cursor-default hover:text-white transition-colors">
+                <i className={`${item.icon} w-5 text-center text-[13px] mr-3`}></i>
+                <span className="text-[13px]">{item.label}</span>
+              </div>
+            )}
+            
+            {item.subItems && (
+              <div className="flex flex-col space-y-1 ml-11 mt-1 mb-2">
+                {item.subItems.map((sub) => (
+                  <NavLink
+                    key={sub.label}
+                    to={sub.to}
+                    className={({ isActive }) =>
+                      `block py-1 transition-all duration-200 text-[12px] ${
+                        isActive
+                          ? 'text-white font-semibold'
+                          : 'text-gray-400 hover:text-white font-medium'
+                      }`
+                    }
+                  >
+                    {sub.label}
+                  </NavLink>
+                ))}
+              </div>
+            )}
           </div>
         ))}
-{/* 
-        <div>
-          <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 ml-2">
-            Help & Support
-          </div>
-          <NavLink
-            to="/tenant/support"
-            className={({ isActive }) =>
-              `flex items-center py-2 px-3 rounded-md transition-colors duration-200 ${
-                isActive
-                  ? 'text-white font-semibold bg-white/10'
-                  : 'text-blue-100 hover:text-white hover:bg-white/5 font-medium'
-              }`
-            }
-          >
-            <i className={`fa-solid fa-circle-question w-5 text-center text-[13px] mr-2`}></i>
-            <span className="text-[13px]">Help & Support</span>
-          </NavLink>
-        </div> */}
       </div>
 
-      <div className="px-4 mt-6">
+      <div className="px-4 mt-2 mb-2">
+        <div className="h-px bg-gray-700/50 mb-2 mx-1"></div>
         <button
           onClick={handleLogout}
-          className="flex items-center w-full py-2 px-3 rounded-md transition-colors duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600 font-medium"
+          className="flex items-center w-full py-1.5 px-3 rounded-md transition-colors duration-200 text-gray-400 hover:bg-white/5 hover:text-white font-medium"
         >
-          <i className="fa-solid fa-arrow-right-from-bracket w-5 text-center text-[13px] mr-2"></i>
+          <i className="fa-solid fa-arrow-right-from-bracket w-5 text-center text-[13px] mr-3"></i>
           <span className="text-[13px]">Logout</span>
         </button>
       </div>

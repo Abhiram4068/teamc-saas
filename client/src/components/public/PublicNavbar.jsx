@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/authApi';
+import { removeToken, removeRefreshToken } from '../../utils/tokenStorage';
 
 export default function PublicNavbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -13,36 +14,32 @@ export default function PublicNavbar() {
   const isPriceActive = location.pathname === '/price' || location.pathname === '/pricing';
 
   useEffect(() => {
-    const currentUser = authApi.getCurrentUser();
-    setUser(currentUser);
+    const fetchUser = async () => {
+      const currentUser = await authApi.getCurrentUser();
+      setUser(currentUser);
+    };
+    fetchUser();
   }, [location.pathname]);
 
   const handleLogout = () => {
-    authApi.logout();
+    removeToken();
+    removeRefreshToken();
     setUser(null);
     navigate('/');
   };
 
   return (
     <>
-      {/* TOP ANNOUNCEMENT BAR */}
-      <div className="bg-[#091E42] text-white text-xs md:text-sm py-2 px-4 text-center font-medium">
-        <span>Scale your employee management as your business grows.</span>
-        <a href="/price" className=" hover:text-blue-200 ml-2 font-semibold transition">
-          Compare Plans &rarr;
-        </a>
-      </div>
+
 
       {/* NAVIGATION */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-xs">
+      <header className="sticky top-0 z-50 bg-white/40 backdrop-blur-md shadow-xs">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2 group">
-              <svg className="w-8 h-8 text-brand-600 transition group-hover:scale-105" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5 10-5Z2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
+
               <span className="text-xl font-bold text-brand-800 tracking-tight">Teamo</span>
             </Link>
           </div>

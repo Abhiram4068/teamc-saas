@@ -21,6 +21,9 @@ public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly ITenantRepository _tenantRepository;
+    private readonly IPlanRepository _planRepository;
+    private readonly ISubscriptionRepository _subscriptionRepository;
+    private readonly IPaymentRepository _paymentRepository;
     private readonly IJwtService _jwtService;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly JwtSettings _jwtSettings;
@@ -37,6 +40,9 @@ public class AuthService : IAuthService
     public AuthService(
         IUserRepository userRepository,
         ITenantRepository tenantRepository,
+        IPlanRepository planRepository,
+        ISubscriptionRepository subscriptionRepository,
+        IPaymentRepository paymentRepository,
         IJwtService jwtService,
         IPasswordHasher<User> passwordHasher,
         IOptions<JwtSettings> jwtOptions,
@@ -44,6 +50,9 @@ public class AuthService : IAuthService
     {
         _userRepository = userRepository;
         _tenantRepository = tenantRepository;
+        _planRepository = planRepository;
+        _subscriptionRepository = subscriptionRepository;
+        _paymentRepository = paymentRepository;
         _jwtService = jwtService;
         _passwordHasher = passwordHasher;
         _jwtSettings = jwtOptions.Value;
@@ -152,7 +161,7 @@ public class AuthService : IAuthService
         // Without normalize per user request
         var user = await _userRepository.GetByEmailAsync(request.Email);
 
-        if (user is null || user.Role != Role.Tenant)
+        if (user is null || user.Role == Role.SuperAdmin)
         {
             _logger.LogWarning(
                 "Login failed. User with email {Email} was not found.",
@@ -311,7 +320,7 @@ public class AuthService : IAuthService
         var tenant = new Tenant
         {
             CIN = normalizedCin!,
-            CompanyName = request.CompanyName?.Trim().ToUpperInvariant() ?? string.Empty,
+            CompanyName = request.CompanyName?.Trim() ?? string.Empty,
             Address = request.Address?.Trim(),
             Pincode = request.Pincode?.Trim(),
             Status = TenantStatus.Active,
@@ -335,7 +344,45 @@ public class AuthService : IAuthService
         await _tenantRepository.AddAsync(tenant);
         await _userRepository.AddAsync(user);
 
-        // Saves both entities transactionally because EF Core SaveChanges is implicitly a transaction
+        // 3. Provision FREE Plan if it exists
+        var freePlan = await _planRepository.GetByCodeAsync("FREE_PLAN");
+        if (freePlan != null)
+        {
+            var subscription = new Subscription
+            {
+                Tenant = tenant,
+                PlanId = freePlan.Id,
+                Status = SubscriptionStatus.Active,
+                BillingCycle = BillingCycle.Monthly,
+                StartDate = DateTime.UtcNow,
+                EndDate = null,
+                OrganizationName = tenant.CompanyName,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var payment = new Payment
+            {
+                Tenant = tenant,
+                Subscription = subscription,
+                User = user,
+                Amount = 0,
+                Status = PaymentStatus.Succeeded,
+                PaymentDate = DateTime.UtcNow,
+                StripeCheckoutSessionId = "FREE_SIGNUP",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _subscriptionRepository.AddAsync(subscription);
+            await _paymentRepository.AddAsync(payment);
+        }
+        else
+        {
+            _logger.LogWarning("No 'FREE' plan found in the database. Tenant {CompanyName} registered without a subscription.", tenant.CompanyName);
+        }
+
+        // Saves all entities transactionally because EF Core SaveChanges is implicitly a transaction
         await _userRepository.SaveChangesAsync();
 
         _logger.LogInformation("Successfully registered tenant {CompanyName} and user {Email}.", tenant.CompanyName, user.Email);
@@ -383,5 +430,42 @@ public class AuthService : IAuthService
         };
 
         return ApiResponse<TenantCreateTenantAdminResponseDto>.SuccessResponse(response, "Tenant Admin created successfully.", 201);
+    }
+
+    public async Task<ApiResponse<ProfileResponseDto>> GetProfileAsync(long userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null || user.Status != UserStatus.Active)
+        {
+            return ApiResponse<ProfileResponseDto>.FailureResponse("Unauthorized", 401);
+        }
+
+        var dto = new ProfileResponseDto
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Role = user.Role,
+            TenantId = user.TenantId
+        };
+
+        if (user.TenantId.HasValue)
+        {
+            var tenantId = (int)user.TenantId.Value;
+            var tenant = await _tenantRepository.GetByIdAsync(tenantId);
+            if (tenant != null)
+            {
+                dto.CompanyName = tenant.CompanyName;
+            }
+
+            var sub = await _subscriptionRepository.GetActiveSubscriptionWithFeaturesAsync(tenantId);
+            if (sub != null && sub.Plan != null)
+            {
+                dto.CurrentPlanName = sub.Plan.Name;
+            }
+        }
+
+        return ApiResponse<ProfileResponseDto>.SuccessResponse(dto, "Profile retrieved successfully.", 200);
     }
 }

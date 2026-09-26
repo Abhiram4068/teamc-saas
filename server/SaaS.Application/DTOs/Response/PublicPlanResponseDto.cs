@@ -8,6 +8,8 @@ public class PublicPlanResponseDto
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public int Rank { get; set; }
+    public string? TransitionType { get; set; }
     public decimal MonthlyPrice { get; set; }
     public decimal YearlyPrice { get; set; }
     public PlanCurrency Currency { get; set; }

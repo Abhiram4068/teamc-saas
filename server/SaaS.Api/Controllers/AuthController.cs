@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
     /// </summary>
     /// <param name="request">The user login credentials request DTO.</param>
     /// <returns>An <see cref="IActionResult"/> containing the API response with authentication tokens.</returns>
-    [HttpPost("admin/login")]
+    [HttpPost("superadmin/login")]
     [ProducesResponseType(typeof(ApiResponse<LoginResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<LoginResponseDto>), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> SuperAdminLogin([FromBody] LoginRequestDto request)
@@ -107,6 +107,34 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> RegisterTenant([FromBody] RegisterTenantRequestDto request)
     {
         var response = await _authService.RegisterTenantAsync(request);
+        return StatusCode(response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Retrieves the profile for the currently authenticated user.
+    /// </summary>
+    /// <returns>An <see cref="IActionResult"/> containing the user's profile.</returns>
+    [HttpGet("profile")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [ProducesResponseType(typeof(ApiResponse<ProfileResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ProfileResponseDto>), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetProfile()
+    {
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                        ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+
+        if (string.IsNullOrEmpty(userIdStr) || !long.TryParse(userIdStr, out var userId))
+        {
+            return Unauthorized(ApiResponse<ProfileResponseDto>.FailureResponse("Unauthorized", 401));
+        }
+
+        var response = await _authService.GetProfileAsync(userId);
+        
+        if (response.StatusCode == 401)
+        {
+            return Unauthorized(response);
+        }
+
         return StatusCode(response.StatusCode, response);
     }
 }

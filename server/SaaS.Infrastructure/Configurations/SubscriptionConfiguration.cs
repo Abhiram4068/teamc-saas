@@ -23,7 +23,7 @@ public class SubscriptionConfiguration
             .IsRequired();
 
         builder.Property(x => x.EndDate)
-            .IsRequired();
+            .IsRequired(false);
 
         builder.Property(x => x.StripeCustomerId)
             .HasMaxLength(100);
@@ -53,10 +53,10 @@ public class SubscriptionConfiguration
         builder.Property(x => x.UpdatedAt)
             .IsRequired();
 
-        // Tenant → Subscription
+        // Tenant → Subscriptions
         builder.HasOne(x => x.Tenant)
-            .WithOne(x => x.Subscription)
-            .HasForeignKey<Subscription>(x => x.TenantId)
+            .WithMany(x => x.Subscriptions)
+            .HasForeignKey(x => x.TenantId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Plan → Subscription
@@ -69,8 +69,7 @@ public class SubscriptionConfiguration
         builder.HasIndex(x => x.StripeSubscriptionId)
             .IsUnique();
 
-        // One active subscription per tenant
-        builder.HasIndex(x => x.TenantId)
-            .IsUnique();
+        // Multiple subscriptions per tenant allowed now
+        builder.HasIndex(x => x.TenantId);
     }
 }

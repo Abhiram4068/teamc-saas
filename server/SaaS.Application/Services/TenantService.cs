@@ -9,10 +9,12 @@ namespace SaaS.Application.Services;
 public class TenantService : ITenantService
 {
     private readonly ITenantRepository _tenantRepository;
+    private readonly ISubscriptionRepository _subscriptionRepository;
 
-    public TenantService(ITenantRepository tenantRepository)
+    public TenantService(ITenantRepository tenantRepository, ISubscriptionRepository subscriptionRepository)
     {
         _tenantRepository = tenantRepository;
+        _subscriptionRepository = subscriptionRepository;
     }
 
     public async Task<PagedResponseDto<TenantListResponseDto>> GetTenantsPaginatedAsync(TenantQueryRequestDto query)
@@ -44,5 +46,33 @@ public class TenantService : ITenantService
             PageNumber = query.PageNumber,
             PageSize = query.PageSize
         };
+    }
+
+    public async Task<SaaS.Application.DTOs.Common.ApiResponse<TenantFeaturesResponseDto>> GetTenantFeaturesAsync(int tenantId)
+    {
+        var subscription = await _subscriptionRepository.GetActiveSubscriptionWithFeaturesAsync(tenantId);
+
+        if (subscription == null || subscription.Plan == null)
+        {
+            return SaaS.Application.DTOs.Common.ApiResponse<TenantFeaturesResponseDto>.FailureResponse("No active subscription found.", 404);
+        }
+
+        var responseDto = new TenantFeaturesResponseDto
+        {
+            Plan = new PlanSummaryDto
+            {
+                Id = subscription.Plan.Id,
+                Name = subscription.Plan.Name
+            },
+            Features = subscription.Plan.PlanFeatures.Select(pf => new FeatureSummaryDto
+            {
+                Code = pf.Feature?.Code ?? string.Empty,
+                Type = pf.Feature?.Type.ToString() ?? string.Empty,
+                Enabled = pf.IsEnabled,
+                Limit = pf.Config?.LimitValue
+            }).ToList()
+        };
+
+        return SaaS.Application.DTOs.Common.ApiResponse<TenantFeaturesResponseDto>.SuccessResponse(responseDto, "Features retrieved successfully.", 200);
     }
 }

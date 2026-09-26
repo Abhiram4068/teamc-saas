@@ -17,7 +17,7 @@ public class Subscription
 
     // Current subscription period
     public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
+    public DateTime? EndDate { get; set; }
 
     // Pending / Active / PastDue / Cancelled / Expired
     public SubscriptionStatus Status { get; set; }
