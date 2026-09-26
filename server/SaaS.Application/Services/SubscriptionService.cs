@@ -244,7 +244,16 @@ public class SubscriptionService : ISubscriptionService
             Status = subscription.Status,
             SubscribedOn = subscription.CreatedAt,
             CurrentPeriodStart = subscription.StartDate,
-            CurrentPeriodEnd = subscription.EndDate
+            CurrentPeriodEnd = subscription.EndDate,
+            BillingCycle = subscription.BillingCycle,
+            PlanPrice = subscription.BillingCycle == BillingCycle.Monthly 
+                ? (subscription.Plan?.MonthlyPrice ?? 0) 
+                : (subscription.Plan?.YearlyPrice ?? 0),
+            OrganizationName = subscription.OrganizationName,
+            Address = subscription.Address,
+            City = subscription.City,
+            State = subscription.State,
+            Pincode = subscription.Pincode
         };
 
         return ApiResponse<SubscriptionResponseDto>.SuccessResponse(dto);

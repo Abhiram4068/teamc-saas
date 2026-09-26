@@ -100,7 +100,7 @@ export default function TenantViewPlans() {
             </Link>
             <button
               onClick={handleCancelPlan}
-              className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors font-medium"
+              className="text-sm text-red-600 hover:text-blue-800 hover:text-red-800 hover:underline transition-colors font-medium"
             >
               Cancel Subscription
             </button>
@@ -183,16 +183,18 @@ export default function TenantViewPlans() {
                       <div>
                         <span 
                           className="text-sm font-semibold text-slate-700 line-clamp-1"
-                          title={feat.name}
+                          title={feat.limitValue != null ? `${feat.name} ${feat.limitValue}` : feat.name}
                         >
                           {feat.name}
+                          {feat.limitValue != null && <span className="font-bold ml-1">{feat.limitValue}</span>}
                         </span>
                         {feat.description && (
                           <p 
                             className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2"
-                            title={feat.description}
+                            title={feat.limitValue != null ? `${feat.description} ${feat.limitValue}` : feat.description}
                           >
                             {feat.description}
+                            {feat.limitValue != null && <span className="font-bold ml-1">{feat.limitValue}</span>}
                           </p>
                         )}
                       </div>
