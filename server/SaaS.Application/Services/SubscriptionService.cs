@@ -73,15 +73,30 @@ public class SubscriptionService : ISubscriptionService
                 "Stripe price is not configured for this plan.");
         }
 
-        // Create Stripe Checkout Session
-        var checkoutResult =
-            await _stripePaymentGateway.CreateCheckoutSessionAsync(
-                tenantId,
-                userId,
-                stripePriceId);
+        // Check if there is already a scheduled subscription
+        var scheduledSubscription = await _subscriptionRepository.GetScheduledByTenantIdAsync(tenantId);
+        if (scheduledSubscription != null)
+        {
+            return ApiResponse<CheckoutResponseDto>.FailureResponse(
+                "You already have a scheduled plan change. Please wait for it to take effect or contact support.");
+        }
 
-        // Create or Update Pending Subscription
-        var subscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);
+        // Cleanup any stale/abandoned Pending subscriptions and their payments
+        var pendingSubscriptions = await _subscriptionRepository.GetPendingSubscriptionsByTenantIdAsync(tenantId);
+        var tenantPayments = await _paymentRepository.GetByTenantIdAsync(tenantId);
+        
+        foreach (var pendingSub in pendingSubscriptions)
+        {
+            var orphanedPayments = tenantPayments.Where(p => p.SubscriptionId == pendingSub.Id);
+            foreach (var orphanedPayment in orphanedPayments)
+            {
+                await _paymentRepository.DeleteAsync(orphanedPayment);
+            }
+            await _subscriptionRepository.DeleteAsync(pendingSub);
+        }
+
+        // Get explicit Active subscription to chain off of
+        var subscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
         
         if (subscription == null)
         {
@@ -135,8 +150,15 @@ public class SubscriptionService : ISubscriptionService
             subscription = newSubscription;
         }
 
+        // Create Stripe Checkout Session ONLY after all local validation has passed
+        var checkoutResult =
+            await _stripePaymentGateway.CreateCheckoutSessionAsync(
+                tenantId,
+                userId,
+                stripePriceId);
+
         // Create Pending Payment with that session id returned from stripe
-        var payment = new SaaS.Domain.Entities.Payment
+        var payment = new Payment
         {
             Id = Guid.NewGuid(),
             TenantId = tenantId,
@@ -172,7 +194,7 @@ public class SubscriptionService : ISubscriptionService
             return ApiResponse<string>.FailureResponse("Payment not found for session.");
         }
 
-        var subscription = await _subscriptionRepository.GetByTenantIdAsync((int)payment.TenantId);
+        var subscription = await _subscriptionRepository.GetByIdAsync(payment.SubscriptionId);
         
         if (subscription == null)
         {
@@ -186,7 +208,6 @@ public class SubscriptionService : ISubscriptionService
         await _paymentRepository.UpdateAsync(payment);
 
         // Update Subscription
-        // Since GetByTenantIdAsync returns the most recently created, this correctly fetches the new one we created.
         // If it starts in the future, it should be Scheduled. If it starts now, it's Active.
         subscription.Status = subscription.StartDate > DateTime.UtcNow 
             ? SubscriptionStatus.Scheduled 

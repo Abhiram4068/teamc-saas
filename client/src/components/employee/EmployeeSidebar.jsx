@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/authApi';
-import { getRole } from '../../utils/tokenStorage';
+import { getRole, removeToken, removeRefreshToken } from '../../utils/tokenStorage';
 import { FeatureGate } from '../../features/FeatureGate';
 import { FEATURES } from '../../features/featureCodes';
 
@@ -21,8 +21,8 @@ export default function EmployeeSidebar() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
+    removeToken();
+    removeRefreshToken();
     navigate('/login');
   };
 

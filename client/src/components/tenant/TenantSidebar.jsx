@@ -1,13 +1,14 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { removeToken, removeRefreshToken } from '../../utils/tokenStorage';
 
 
 export default function TenantSidebar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    clearToken();
-    clearRole();
+    removeToken();
+    removeRefreshToken();
     navigate('/login');
   };
 

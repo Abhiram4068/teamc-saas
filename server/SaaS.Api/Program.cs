@@ -22,6 +22,7 @@ using SaaS.Api.Policies.Features;
 using Microsoft.AspNetCore.Authorization;
 using System.Text;
 using Serilog;
+using SaaS.API.BackgroundServices;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -132,6 +133,7 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IWorkReportRepository, WorkReportRepository>();
 builder.Services.AddScoped<IWorkReportService, WorkReportService>();
 
+builder.Services.AddHostedService<SubscriptionTransitionJob>();
 
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, FeaturePolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, FeatureAuthorizationHandler>();

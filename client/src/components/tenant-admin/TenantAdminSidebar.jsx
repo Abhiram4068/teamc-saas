@@ -2,13 +2,14 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { FeatureGate } from '../../features/FeatureGate';
 import { FEATURES } from '../../features/featureCodes';
+import { removeToken, removeRefreshToken } from '../../utils/tokenStorage';
 
 export default function TenantAdminSidebar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
+    removeToken();
+    removeRefreshToken();
     navigate('/login');
   };
 

@@ -41,6 +41,12 @@ public class PaymentRepository : IPaymentRepository
         await _context.Payments.AddAsync(payment);
     }
 
+    public Task DeleteAsync(Payment payment)
+    {
+        _context.Payments.Remove(payment);
+        return Task.CompletedTask;
+    }
+
     public Task UpdateAsync(Payment payment)
     {
         _context.Payments.Update(payment);

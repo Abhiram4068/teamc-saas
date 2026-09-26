@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/authApi';
+import { removeToken, removeRefreshToken } from '../../utils/tokenStorage';
 
 export default function PublicNavbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,7 +22,8 @@ export default function PublicNavbar() {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    authApi.logout();
+    removeToken();
+    removeRefreshToken();
     setUser(null);
     navigate('/');
   };
