@@ -225,7 +225,7 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<ApiResponse<SubscriptionResponseDto>> GetCurrentSubscriptionAsync(int tenantId)
     {
-        var subscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);
+        var subscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
         
         if (subscription == null)
         {
