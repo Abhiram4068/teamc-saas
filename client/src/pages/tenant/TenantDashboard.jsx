@@ -13,12 +13,12 @@ export default function TenantDashboard() {
   const adminStatus = "Active";
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Header section with Date Picker */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-12">
         <div>
-          <h1 className="text-[28px] font-semibold text-[#141824] tracking-tight leading-tight">
-            Tenant Dashboard
+          <h1 className="text-xl font-semibold text-[#141824] tracking-tight leading-tight">
+            Dashboard
           </h1>
         </div>
       </div>
@@ -32,10 +32,10 @@ export default function TenantDashboard() {
           </div>
           <div>
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-extrabold text-[#141824]">32</span>
-              <span className="text-lg text-gray-600 font-medium">Projects</span>
+              <span className="text-2xl font-extrabold text-[#141824]">32</span>
+              <span className="text-sm text-gray-600 font-medium">Projects</span>
             </div>
-            <p className="text-[13px] text-gray-400 font-medium mt-0.5">Awaiting processing</p>
+            <p className="text-xs text-gray-400 font-medium mt-0.5">Awaiting processing</p>
           </div>
         </div>
 
@@ -45,10 +45,10 @@ export default function TenantDashboard() {
           </div>
           <div>
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-extrabold text-[#141824]">94</span>
-              <span className="text-lg text-gray-600 font-medium">Members</span>
+              <span className="text-2xl font-extrabold text-[#141824]">94</span>
+              <span className="text-sm text-gray-600 font-medium">Members</span>
             </div>
-            <p className="text-[13px] text-gray-400 font-medium mt-0.5">Working hard</p>
+            <p className="text-xs text-gray-400 font-medium mt-0.5">Working hard</p>
           </div>
         </div>
 
@@ -58,10 +58,10 @@ export default function TenantDashboard() {
           </div>
           <div>
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-extrabold text-[#141824]">23</span>
-              <span className="text-lg text-gray-600 font-medium">Invoices</span>
+              <span className="text-2xl font-extrabold text-[#141824]">23</span>
+              <span className="text-sm text-gray-600 font-medium">Invoices</span>
             </div>
-            <p className="text-[13px] text-gray-400 font-medium mt-0.5">Soon to be cleared</p>
+            <p className="text-xs text-gray-400 font-medium mt-0.5">Soon to be cleared</p>
           </div>
         </div>
 
@@ -71,10 +71,10 @@ export default function TenantDashboard() {
           </div>
           <div>
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-extrabold text-[#141824]">3</span>
-              <span className="text-lg text-gray-600 font-medium">Refunds</span>
+              <span className="text-2xl font-extrabold text-[#141824]">3</span>
+              <span className="text-sm text-gray-600 font-medium">Refunds</span>
             </div>
-            <p className="text-[13px] text-gray-400 font-medium mt-0.5">Fresh start</p>
+            <p className="text-xs text-gray-400 font-medium mt-0.5">Fresh start</p>
           </div>
         </div>
 
