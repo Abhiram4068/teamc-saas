@@ -8,17 +8,17 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # Copy all project files to restore dependencies
-COPY ["SaaS.API/SaaS.Api.csproj", "SaaS.API/"]
+COPY ["SaaS.Api/SaaS.Api.csproj", "SaaS.Api/"]
 COPY ["SaaS.Application/SaaS.Application.csproj", "SaaS.Application/"]
 COPY ["SaaS.Domain/SaaS.Domain.csproj", "SaaS.Domain/"]
 COPY ["SaaS.Infrastructure/SaaS.Infrastructure.csproj", "SaaS.Infrastructure/"]
 
 # Restore dependencies for the API project (this will implicitly restore the others)
-RUN dotnet restore "SaaS.API/SaaS.Api.csproj"
+RUN dotnet restore "SaaS.Api/SaaS.Api.csproj"
 
 # Copy the rest of the source code
 COPY . .
-WORKDIR "/src/SaaS.API"
+WORKDIR "/src/SaaS.Api"
 RUN dotnet build "SaaS.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
