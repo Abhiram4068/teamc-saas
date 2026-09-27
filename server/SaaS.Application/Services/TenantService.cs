@@ -10,11 +10,13 @@ public class TenantService : ITenantService
 {
     private readonly ITenantRepository _tenantRepository;
     private readonly ISubscriptionRepository _subscriptionRepository;
+    private readonly IUserRepository _userRepository;
 
-    public TenantService(ITenantRepository tenantRepository, ISubscriptionRepository subscriptionRepository)
+    public TenantService(ITenantRepository tenantRepository, ISubscriptionRepository subscriptionRepository, IUserRepository userRepository)
     {
         _tenantRepository = tenantRepository;
         _subscriptionRepository = subscriptionRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<PagedResponseDto<TenantListResponseDto>> GetTenantsPaginatedAsync(TenantQueryRequestDto query)
@@ -74,5 +76,38 @@ public class TenantService : ITenantService
         };
 
         return SaaS.Application.DTOs.Common.ApiResponse<TenantFeaturesResponseDto>.SuccessResponse(responseDto, "Features retrieved successfully.", 200);
+    }
+
+    public async Task<SaaS.Application.DTOs.Common.ApiResponse<TenantDashboardDto>> GetTenantDashboardAsync(long tenantId)
+    {
+        var adminsCount = await _userRepository.GetCountByRoleAsync(tenantId);
+        
+        var subscription = await _subscriptionRepository.GetActiveSubscriptionWithFeaturesAsync((int)tenantId);
+        
+        string currentPlan = "No Active Plan";
+        string nextPayment = "N/A";
+
+        if (subscription != null && subscription.Plan != null)
+        {
+            currentPlan = subscription.Plan.Name;
+            
+            if (currentPlan.Contains("Free", StringComparison.OrdinalIgnoreCase))
+            {
+                nextPayment = "N/A";
+            }
+            else
+            {
+                nextPayment = subscription.EndDate?.ToString("MMM dd, yyyy") ?? "N/A";
+            }
+        }
+
+        var dashboardData = new TenantDashboardDto
+        {
+            TotalAdmins = adminsCount,
+            CurrentActivePlan = currentPlan,
+            NextPaymentDate = nextPayment
+        };
+
+        return SaaS.Application.DTOs.Common.ApiResponse<TenantDashboardDto>.SuccessResponse(dashboardData, "Dashboard metrics retrieved successfully.", 200);
     }
 }
