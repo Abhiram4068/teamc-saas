@@ -132,6 +132,7 @@ builder.Services.AddScoped<ILeaveManagementService, LeaveManagementService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IWorkReportRepository, WorkReportRepository>();
 builder.Services.AddScoped<IWorkReportService, WorkReportService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddHostedService<SubscriptionTransitionJob>();
 
