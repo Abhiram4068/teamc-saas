@@ -19,7 +19,6 @@ export default function TenantSidebar() {
       icon: 'fa-solid fa-user-group',
       subItems: [
         { label: 'Admins', to: '/tenant/administrators' },
-        { label: 'Users', to: '/tenant/users' },
         { label: 'Add Admins', to: '/tenant/add-admin' },
       ],
     },
