@@ -57,37 +57,30 @@ export default function TenantAddAdmin() {
   };
 
   return (
-    <div className="bg-[#f4f5f7] min-h-screen py-10 px-8" style={{ fontFamily: "'Nunito Sans', sans-serif" }}>
+    <div className="bg-[#f4f5f7] min-h-screen py-10 px-8" style={{ fontFamily: "'Inter', sans-serif" }}>
       <form onSubmit={handleSubmit} className="max-w-7xl mx-auto">
-        
-        {/* Breadcrumbs */}
-        <div className="flex items-center text-xs font-semibold text-blue-600 uppercase tracking-wider mb-4">
-          <span className="cursor-pointer hover:underline" onClick={() => navigate('/tenant/administrators')}>ADMINISTRATORS</span>
-          <i className="fa-solid fa-chevron-right text-[9px] mx-2.5 text-gray-400"></i>
-          <span className="text-gray-500">Add Admin</span>
-        </div>
 
         {/* Header & Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-8 border-b border-gray-200">
           <div>
-            <h1 className="text-2xl font-bold text-[#141824] tracking-tight">
+            <h1 className="text-xl font-bold text-[#141824] tracking-tight">
               Add New Admin For Your Organization
             </h1>
-            <p className="text-sm text-gray-500 mt-1">Create a new administrative user with full organizational access.</p>
+            <p className="text-xs text-gray-500 mt-1">Create a new administrative user with full organizational access.</p>
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-3">
             <button
               type="button"
               onClick={() => navigate(-1)}
               disabled={isSubmitting}
-              className="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 font-semibold text-sm rounded-none hover:bg-gray-50 transition-colors"
+              className="px-5 py-2 bg-white border border-gray-300 text-gray-700 font-semibold text-xs rounded-none hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 bg-[#2b6cb0] hover:bg-blue-700 text-white font-semibold text-sm rounded-none shadow-sm transition-colors disabled:opacity-70 flex items-center"
+              className="px-5 py-2 bg-[#2b6cb0] hover:bg-blue-700 text-white font-semibold text-xs rounded-none shadow-sm transition-colors disabled:opacity-70 flex items-center"
             >
               {isSubmitting ? (
                 <><i className="fa-solid fa-spinner fa-spin mr-2"></i> Creating...</>
@@ -119,7 +112,7 @@ export default function TenantAddAdmin() {
               {/* First Name & Last Name row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
                     First Name
                   </label>
                   <input
@@ -134,7 +127,7 @@ export default function TenantAddAdmin() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
                     Last Name
                   </label>
                   <input
@@ -168,7 +161,7 @@ export default function TenantAddAdmin() {
               {/* Phone Number & Password row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
                     Phone Number
                   </label>
                   <input
@@ -182,7 +175,7 @@ export default function TenantAddAdmin() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
                     Temporary Password
                   </label>
                   <div className="relative">

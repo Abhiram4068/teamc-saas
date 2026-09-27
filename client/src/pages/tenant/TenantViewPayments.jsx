@@ -4,25 +4,27 @@ import { paymentApi } from "../../api/paymentApi";
 import { invoiceApi } from "../../api/invoiceApi";
 import { useToast } from "../../utils/Toast";
 
-export default function TenantInvoices() {
+export default function TenantPastPayments() {
   const [loading, setLoading] = useState(true);
   const [payments, setPayments] = useState([]);
   const navigate = useNavigate();
-  const { showToast } = useToast();
-
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
   const [sortColumn, setSortColumn] = useState("");
   const [sortOrder, setSortOrder] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
+  const { showToast } = useToast();
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       fetchPaymentHistory();
     }, 400);
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, pageNumber, sortColumn, sortOrder]);
+  }, [searchTerm, pageNumber, sortColumn, sortOrder, statusFilter]);
 
   async function fetchPaymentHistory() {
     try {
@@ -31,20 +33,20 @@ export default function TenantInvoices() {
         pageNumber,
         pageSize,
         sortColumn,
-        sortOrder
+        sortOrder,
+        status: statusFilter !== "" ? Number(statusFilter) : null
       };
-      const res = await invoiceApi.getInvoices(params);
+      const res = await paymentApi.getPaymentHistory(params);
 
-      // Because getInvoices is wrapped in ApiResponse, the payload is in res.data.data
-      if (res?.data?.data?.items) {
-        setPayments(res.data.data.items);
-        setTotalCount(res.data.data.totalCount || 0);
-      } else if (res?.data?.items) {
+      if (res?.data?.items) {
         setPayments(res.data.items);
         setTotalCount(res.data.totalCount || 0);
+      } else if (res?.data?.data?.items) {
+        setPayments(res.data.data.items);
+        setTotalCount(res.data.data.totalCount || 0);
       }
     } catch (err) {
-      showToast("Failed to load invoices.", "error");
+      showToast("Failed to load payment history.", "error");
     } finally {
       setLoading(false);
     }
@@ -136,7 +138,7 @@ export default function TenantInvoices() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            Invoices
+            Payment History
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             View and download past invoices and transaction details for your account.
@@ -158,6 +160,27 @@ export default function TenantInvoices() {
               className="w-full pl-9 pr-4 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
+          <div className="relative shrink-0 w-full sm:w-40">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPageNumber(1);
+              }}
+              className="w-full appearance-none bg-white border border-slate-200 text-slate-700 py-1.5 pl-3 pr-8 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer shadow-sm"
+            >
+              <option value="">All Status</option>
+              <option value="2">Paid</option>
+              <option value="1">Pending</option>
+              <option value="3">Failed</option>
+              <option value="4">Refunded</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -178,10 +201,10 @@ export default function TenantInvoices() {
             />
           </svg>
           <h3 className="text-base font-bold text-slate-900 mb-1">
-            No invoices found
+            No payments found
           </h3>
           <p className="text-xs text-slate-500">
-            You do not have any invoices yet.
+            You have not made any billing transactions yet.
           </p>
         </div>
       ) : (
@@ -240,9 +263,17 @@ export default function TenantInvoices() {
                 </th>
                 <th
                   scope="col"
-                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider"
+                  onClick={() => handleSort('status')}
+                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-800 select-none group transition-colors"
                 >
-                  Status
+                  <div className="flex items-center gap-1">
+                    Status
+                    {sortColumn === 'status' ? (
+                      <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    ) : (
+                      <span className="text-slate-300 transition-opacity">↕</span>
+                    )}
+                  </div>
                 </th>
                 <th
                   scope="col"
@@ -340,7 +371,6 @@ export default function TenantInvoices() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

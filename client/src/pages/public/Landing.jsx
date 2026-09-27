@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
-import heroBg from '../../assets/hero2.jpg';
+import heroBg from '../../assets/hero3.jpg';
 
 export default function PublicLanding() {
   const phrases = [
@@ -63,7 +63,7 @@ export default function PublicLanding() {
         />
 
         {/* Ambient Glassy Overlay */}
-        <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-md" />
+        <div className="absolute inset-0 bg-slate-700/30 backdrop-blur-xs" />
 
         {/* Centered Typewriter Text (Rotates through the 3 phrases) */}
         <div className="relative z-10 flex items-center justify-center w-full px-4 -mt-24 sm:-mt-32">

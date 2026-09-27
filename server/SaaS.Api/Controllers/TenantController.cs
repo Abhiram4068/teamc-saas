@@ -42,4 +42,23 @@ public class TenantController : ControllerBase
         
         return StatusCode(response.StatusCode, response);
     }
+
+    [HttpGet("dashboard")]
+    [ProducesResponseType(typeof(ApiResponse<TenantDashboardDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<TenantDashboardDto>), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetTenantDashboard()
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !long.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("Get Dashboard failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(ApiResponse<TenantDashboardDto>.FailureResponse("Tenant ID not found in token.", 401));
+        }
+
+        _logger.LogInformation("Getting dashboard for Tenant: {TenantId}", tenantId);
+        var response = await _tenantService.GetTenantDashboardAsync(tenantId);
+        
+        return StatusCode(response.StatusCode, response);
+    }
 }

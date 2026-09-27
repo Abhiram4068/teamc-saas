@@ -25,7 +25,7 @@ public class Tenant
 
     public ICollection<Employee> Employees { get; set; } = new List<Employee>();
 
-    public Subscription? Subscription { get; set; }
+    public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
 
     public ICollection<Payment> Payments { get; set; }= new List<Payment>();
 }

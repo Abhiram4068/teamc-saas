@@ -73,15 +73,30 @@ public class SubscriptionService : ISubscriptionService
                 "Stripe price is not configured for this plan.");
         }
 
-        // Create Stripe Checkout Session
-        var checkoutResult =
-            await _stripePaymentGateway.CreateCheckoutSessionAsync(
-                tenantId,
-                userId,
-                stripePriceId);
+        // Check if there is already a scheduled subscription
+        var scheduledSubscription = await _subscriptionRepository.GetScheduledByTenantIdAsync(tenantId);
+        if (scheduledSubscription != null)
+        {
+            return ApiResponse<CheckoutResponseDto>.FailureResponse(
+                "You already have a scheduled plan change. Please wait for it to take effect or contact support.");
+        }
 
-        // Create or Update Pending Subscription
-        var subscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);
+        // Cleanup any stale/abandoned Pending subscriptions and their payments
+        var pendingSubscriptions = await _subscriptionRepository.GetPendingSubscriptionsByTenantIdAsync(tenantId);
+        var tenantPayments = await _paymentRepository.GetByTenantIdAsync(tenantId);
+        
+        foreach (var pendingSub in pendingSubscriptions)
+        {
+            var orphanedPayments = tenantPayments.Where(p => p.SubscriptionId == pendingSub.Id);
+            foreach (var orphanedPayment in orphanedPayments)
+            {
+                await _paymentRepository.DeleteAsync(orphanedPayment);
+            }
+            await _subscriptionRepository.DeleteAsync(pendingSub);
+        }
+
+        // Get explicit Active subscription to chain off of
+        var subscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
         
         if (subscription == null)
         {
@@ -91,6 +106,10 @@ public class SubscriptionService : ISubscriptionService
                 TenantId = tenantId,
                 PlanId = plan.Id,
                 BillingCycle = request.BillingCycle,
+                StartDate = DateTime.UtcNow,
+                EndDate = request.BillingCycle == BillingCycle.Monthly 
+                    ? DateTime.UtcNow.AddMonths(1) 
+                    : DateTime.UtcNow.AddYears(1),
                 Status = SubscriptionStatus.Pending,
                 OrganizationName = request.OrganizationName,
                 Address = request.Address,
@@ -104,20 +123,42 @@ public class SubscriptionService : ISubscriptionService
         }
         else
         {
-            subscription.PlanId = plan.Id;
-            subscription.BillingCycle = request.BillingCycle;
-            subscription.Status = SubscriptionStatus.Pending;
-            subscription.OrganizationName = request.OrganizationName;
-            subscription.Address = request.Address;
-            subscription.City = request.City;
-            subscription.State = request.State;
-            subscription.Pincode = request.Pincode;
-            subscription.UpdatedAt = DateTime.UtcNow;
-            await _subscriptionRepository.UpdateAsync(subscription);
+            // Instead of mutating the active subscription, we create a new one
+            var startDate = subscription.EndDate ?? DateTime.UtcNow;
+            var newSubscription = new Subscription
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenantId,
+                PlanId = plan.Id,
+                BillingCycle = request.BillingCycle,
+                StartDate = startDate,
+                EndDate = request.BillingCycle == BillingCycle.Monthly 
+                    ? startDate.AddMonths(1) 
+                    : startDate.AddYears(1),
+                Status = SubscriptionStatus.Pending,
+                OrganizationName = request.OrganizationName,
+                Address = request.Address,
+                City = request.City,
+                State = request.State,
+                Pincode = request.Pincode,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _subscriptionRepository.AddAsync(newSubscription);
+
+            // Point 'subscription' to the new one so the Payment record links to it
+            subscription = newSubscription;
         }
 
+        // Create Stripe Checkout Session ONLY after all local validation has passed
+        var checkoutResult =
+            await _stripePaymentGateway.CreateCheckoutSessionAsync(
+                tenantId,
+                userId,
+                stripePriceId);
+
         // Create Pending Payment with that session id returned from stripe
-        var payment = new SaaS.Domain.Entities.Payment
+        var payment = new Payment
         {
             Id = Guid.NewGuid(),
             TenantId = tenantId,
@@ -153,7 +194,7 @@ public class SubscriptionService : ISubscriptionService
             return ApiResponse<string>.FailureResponse("Payment not found for session.");
         }
 
-        var subscription = await _subscriptionRepository.GetByTenantIdAsync((int)payment.TenantId);
+        var subscription = await _subscriptionRepository.GetByIdAsync(payment.SubscriptionId);
         
         if (subscription == null)
         {
@@ -167,7 +208,11 @@ public class SubscriptionService : ISubscriptionService
         await _paymentRepository.UpdateAsync(payment);
 
         // Update Subscription
-        subscription.Status = SubscriptionStatus.Active;
+        // If it starts in the future, it should be Scheduled. If it starts now, it's Active.
+        subscription.Status = subscription.StartDate > DateTime.UtcNow 
+            ? SubscriptionStatus.Scheduled 
+            : SubscriptionStatus.Active;
+            
         subscription.StripeCustomerId = customerId;
         subscription.StripeSubscriptionId = subscriptionId;
         subscription.UpdatedAt = DateTime.UtcNow;
@@ -180,7 +225,7 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<ApiResponse<SubscriptionResponseDto>> GetCurrentSubscriptionAsync(int tenantId)
     {
-        var subscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);
+        var subscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
         
         if (subscription == null)
         {
@@ -199,7 +244,16 @@ public class SubscriptionService : ISubscriptionService
             Status = subscription.Status,
             SubscribedOn = subscription.CreatedAt,
             CurrentPeriodStart = subscription.StartDate,
-            CurrentPeriodEnd = subscription.EndDate
+            CurrentPeriodEnd = subscription.EndDate,
+            BillingCycle = subscription.BillingCycle,
+            PlanPrice = subscription.BillingCycle == BillingCycle.Monthly 
+                ? (subscription.Plan?.MonthlyPrice ?? 0) 
+                : (subscription.Plan?.YearlyPrice ?? 0),
+            OrganizationName = subscription.OrganizationName,
+            Address = subscription.Address,
+            City = subscription.City,
+            State = subscription.State,
+            Pincode = subscription.Pincode
         };
 
         return ApiResponse<SubscriptionResponseDto>.SuccessResponse(dto);
@@ -231,5 +285,74 @@ public class SubscriptionService : ISubscriptionService
         }).ToList();
 
         return ApiResponse<IEnumerable<PlanFeatureResponseDto>>.SuccessResponse(dto);
+    }
+
+    public async Task<ApiResponse<string>> CancelSubscriptionAsync(int tenantId)
+    {
+        var subscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
+        if (subscription == null)
+        {
+            return ApiResponse<string>.FailureResponse("No active subscription found.");
+        }
+
+        if (subscription.Plan?.Code == "FREE_PLAN")
+        {
+            return ApiResponse<string>.FailureResponse("You cannot cancel a free plan.");
+        }
+
+        if (!string.IsNullOrEmpty(subscription.StripeSubscriptionId))
+        {
+            try
+            {
+                var canceled = await _stripePaymentGateway.CancelSubscriptionAsync(subscription.StripeSubscriptionId);
+                if (!canceled)
+                {
+                    return ApiResponse<string>.FailureResponse("Failed to cancel subscription with the payment gateway.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<string>.FailureResponse($"Error communicating with payment gateway: {ex.Message}");
+            }
+        }
+
+        var freePlan = await _planRepository.GetByCodeAsync("FREE_PLAN");
+        if (freePlan == null)
+        {
+            return ApiResponse<string>.FailureResponse("System error: Free plan is not configured.");
+        }
+
+        // Mark existing subscription as canceled
+        subscription.Status = SubscriptionStatus.Cancelled;
+        subscription.EndDate = DateTime.UtcNow;
+        subscription.UpdatedAt = DateTime.UtcNow;
+        
+        await _subscriptionRepository.UpdateAsync(subscription);
+
+        // Create a brand new subscription for the Free Plan
+        var newFreeSubscription = new Subscription
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            PlanId = freePlan.Id,
+            Status = SubscriptionStatus.Active,
+            BillingCycle = BillingCycle.Monthly, 
+            StartDate = DateTime.UtcNow,
+            EndDate = null,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            
+            // Carry over billing info
+            OrganizationName = subscription.OrganizationName,
+            Address = subscription.Address,
+            City = subscription.City,
+            State = subscription.State,
+            Pincode = subscription.Pincode
+        };
+
+        await _subscriptionRepository.AddAsync(newFreeSubscription);
+        await _subscriptionRepository.SaveChangesAsync();
+
+        return ApiResponse<string>.SuccessResponse("Subscription canceled and successfully reverted to the Free Plan.", "Success");
     }
 }

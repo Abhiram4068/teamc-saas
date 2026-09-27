@@ -127,17 +127,17 @@ export default function TenantAdministrators() {
   };
 
   return (
-    <div className="bg-[#f4f5f7] min-h-screen p-8" style={{ fontFamily: "'Nunito Sans', sans-serif" }}>
+    <div className="bg-[#f4f5f7] min-h-screen p-8" style={{ fontFamily: "'Inter', sans-serif" }}>
       <div className="max-w-7xl mx-auto">
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-8 border-b border-gray-200">
           <div>
-            <h1 className="text-2xl font-bold text-[#141824] tracking-tight">Administrators</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage organizational access and privileges.</p>
+            <h1 className="text-xl font-bold text-[#141824] tracking-tight">Administrators</h1>
+            <p className="text-xs text-gray-500 mt-1">Manage organizational access and privileges.</p>
           </div>
           <button
             onClick={() => navigate('/tenant/add-admin')}
-            className="mt-4 sm:mt-0 px-6 py-2.5 bg-[#2b6cb0] hover:bg-blue-700 text-white font-semibold text-sm shadow-sm transition-colors flex items-center gap-2"
+            className="mt-4 sm:mt-0 px-5 py-2 bg-[#2b6cb0] hover:bg-blue-700 text-white font-semibold text-xs shadow-sm transition-colors flex items-center gap-2"
           >
             <i className="fa-solid fa-plus"></i>
             Add Admin
@@ -165,11 +165,11 @@ export default function TenantAdministrators() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th scope="col" className="px-6 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">User</th>
-                    <th scope="col" className="px-6 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Contact</th>
-                    <th scope="col" className="px-6 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                    <th scope="col" className="px-6 py-3.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Joined</th>
-                    <th scope="col" className="px-6 py-3.5 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th scope="col" className="px-6 py-3.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">User</th>
+                    <th scope="col" className="px-6 py-3.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Contact</th>
+                    <th scope="col" className="px-6 py-3.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" className="px-6 py-3.5 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Joined</th>
+                    <th scope="col" className="px-6 py-3.5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -189,16 +189,16 @@ export default function TenantAdministrators() {
                               {admin.firstName.charAt(0)}{admin.lastName.charAt(0)}
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-semibold text-gray-900">{admin.firstName} {admin.lastName}</div>
-                              <div className="text-xs text-gray-500 mt-0.5">Role: Tenant Admin</div>
+                              <div className="text-xs font-semibold text-gray-900">{admin.firstName} {admin.lastName}</div>
+                              <div className="text-[10px] text-gray-500 mt-0.5">Role: Tenant Admin</div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 flex items-center gap-2">
+                          <div className="text-xs text-gray-900 flex items-center gap-2">
                             <i className="fa-regular fa-envelope text-gray-400"></i> {admin.email}
                           </div>
-                          <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                          <div className="text-[10px] text-gray-500 mt-1 flex items-center gap-2">
                             <i className="fa-solid fa-phone text-gray-400"></i> {admin.phone || 'N/A'}
                           </div>
                         </td>
@@ -209,7 +209,7 @@ export default function TenantAdministrators() {
                             {admin.status === 1 ? 'Active' : 'Inactive'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
                           {new Date(admin.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
