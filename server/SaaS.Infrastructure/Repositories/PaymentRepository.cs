@@ -68,9 +68,14 @@ public class PaymentRepository : IPaymentRepository
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var lowerSearchTerm = searchTerm.ToLower();
+            bool isDate = DateTime.TryParse(searchTerm, out var parsedDate);
+            
             query = query.Where(p => 
                 (p.Subscription.Plan.Name != null && p.Subscription.Plan.Name.ToLower().Contains(lowerSearchTerm)) ||
-                (p.StripeInvoiceId != null && p.StripeInvoiceId.ToLower().Contains(lowerSearchTerm))
+                (p.StripeInvoiceId != null && p.StripeInvoiceId.ToLower().Contains(lowerSearchTerm)) ||
+                p.Id.ToString().ToLower().Contains(lowerSearchTerm) ||
+                p.Amount.ToString().Contains(lowerSearchTerm) ||
+                (isDate && p.PaymentDate.HasValue && p.PaymentDate.Value.Date == parsedDate.Date)
             );
         }
 
@@ -104,5 +109,62 @@ public class PaymentRepository : IPaymentRepository
             .ToListAsync();
 
         return (items, totalCount);
+    }
+
+    public async Task<(IEnumerable<Payment> Items, int TotalCount)> GetPaginatedInvoicesAsync(long tenantId, string? searchTerm, string? sortColumn, string? sortOrder, int pageNumber, int pageSize)
+    {
+        var query = _context.Payments
+            .Include(p => p.Subscription)
+            .ThenInclude(s => s.Plan)
+            .Where(p => p.TenantId == tenantId && p.Status == SaaS.Domain.Enums.PaymentStatus.Succeeded); // STRICTLY SUCCESS ONLY
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var lowerSearchTerm = searchTerm.ToLower();
+            bool isDate = DateTime.TryParse(searchTerm, out var parsedDate);
+            
+            query = query.Where(p => 
+                (p.Subscription.Plan.Name != null && p.Subscription.Plan.Name.ToLower().Contains(lowerSearchTerm)) ||
+                (p.StripeInvoiceId != null && p.StripeInvoiceId.ToLower().Contains(lowerSearchTerm)) ||
+                p.Id.ToString().ToLower().Contains(lowerSearchTerm) ||
+                p.Amount.ToString().Contains(lowerSearchTerm) ||
+                (isDate && p.PaymentDate.HasValue && p.PaymentDate.Value.Date == parsedDate.Date)
+            );
+        }
+
+        var totalCount = await query.CountAsync();
+
+        if (!string.IsNullOrWhiteSpace(sortColumn))
+        {
+            bool isDesc = sortOrder?.ToLower() == "desc";
+            query = sortColumn.ToLower() switch
+            {
+                "amount" => isDesc ? query.OrderByDescending(p => p.Amount) : query.OrderBy(p => p.Amount),
+                "paymentdate" => isDesc ? query.OrderByDescending(p => p.PaymentDate) : query.OrderBy(p => p.PaymentDate),
+                "planname" => isDesc ? query.OrderByDescending(p => p.Subscription.Plan.Name) : query.OrderBy(p => p.Subscription.Plan.Name),
+                _ => isDesc ? query.OrderByDescending(p => p.CreatedAt) : query.OrderBy(p => p.CreatedAt)
+            };
+        }
+        else
+        {
+            query = query.OrderByDescending(p => p.CreatedAt);
+        }
+
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
+    }
+
+    public async Task<Payment?> GetPaymentForInvoiceAsync(Guid paymentId)
+    {
+        return await _context.Payments
+            .Include(p => p.Tenant)
+            .Include(p => p.Subscription)
+                .ThenInclude(s => s.Plan)
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.Id == paymentId);
     }
 }

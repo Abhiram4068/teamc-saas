@@ -20,6 +20,7 @@ const TenantViewPlans = lazy(() => import('../pages/tenant/TenantViewPlans'));
 const TenantSubscriptionSummary = lazy(() => import('../pages/tenant/TenantSubscriptionSummary'));
 const TenantViewPayments = lazy(() => import('../pages/tenant/TenantViewPayments'));
 const TenantInvoices = lazy(() => import('../pages/tenant/TenantInvoices'));
+const TenantInvoiceView = lazy(() => import('../pages/tenant/TenantInvoiceView'));
 const TenantAddAdmin = lazy(() => import('../pages/tenant/TenantAddAdmin'));
 const TenantAdministrators = lazy(() => import('../pages/tenant/TenantAdministrators'));
 const SuperAdminRoute = lazy(() => import('./SuperAdminRoute'));
@@ -144,6 +145,7 @@ export default function AppRoutes() {
             <Route path="subscription-summary" element={<TenantSubscriptionSummary />} />
             <Route path="payments" element={<TenantViewPayments />} />
             <Route path="invoices" element={<TenantInvoices />} />
+            <Route path="invoices/:paymentId" element={<TenantInvoiceView />} />
             <Route path="administrators" element={<TenantAdministrators />} />
             <Route path="add-admin" element={<TenantAddAdmin />} />
           </Route>

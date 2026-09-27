@@ -27,11 +27,11 @@ export default function TenantSidebar() {
       label: 'Subscriptions',
       icon: 'fa-solid fa-credit-card',
       subItems: [
-        { label: 'Billings', to: '/tenant/billing' },
-        { label: 'Change Plan', to: '/tenant/plans' },
         { label: 'Subscription Summary', to: '/tenant/subscription-summary' },
-        { label: 'Invoices', to: '/tenant/invoices' },
+        { label: 'Change Plan', to: '/tenant/plans' },
         { label: 'Payments', to: '/tenant/payments' },
+        { label: 'Invoices', to: '/tenant/invoices' },
+
       ],
     },
     {

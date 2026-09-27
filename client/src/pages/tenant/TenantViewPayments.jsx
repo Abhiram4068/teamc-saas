@@ -1,25 +1,49 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { paymentApi } from "../../api/paymentApi";
+import { invoiceApi } from "../../api/invoiceApi";
 import { useToast } from "../../utils/Toast";
 
 export default function TenantPastPayments() {
   const [loading, setLoading] = useState(true);
   const [payments, setPayments] = useState([]);
+  const navigate = useNavigate();
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+  const [sortColumn, setSortColumn] = useState("");
+  const [sortOrder, setSortOrder] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
   const { showToast } = useToast();
 
   useEffect(() => {
-    fetchPaymentHistory();
-  }, []);
+    const delayDebounceFn = setTimeout(() => {
+      fetchPaymentHistory();
+    }, 400);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, pageNumber, sortColumn, sortOrder, statusFilter]);
 
   async function fetchPaymentHistory() {
     try {
-      setLoading(true);
-      // Fetch subscription details or dedicated payments endpoint
-      const res = await paymentApi.getPaymentHistory();
+      const params = {
+        searchTerm,
+        pageNumber,
+        pageSize,
+        sortColumn,
+        sortOrder,
+        status: statusFilter !== "" ? Number(statusFilter) : null
+      };
+      const res = await paymentApi.getPaymentHistory(params);
 
       if (res?.data?.items) {
         setPayments(res.data.items);
+        setTotalCount(res.data.totalCount || 0);
+      } else if (res?.data?.data?.items) {
+        setPayments(res.data.data.items);
+        setTotalCount(res.data.data.totalCount || 0);
       }
     } catch (err) {
       showToast("Failed to load payment history.", "error");
@@ -27,6 +51,23 @@ export default function TenantPastPayments() {
       setLoading(false);
     }
   }
+
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : sortOrder === "desc" ? "" : "asc");
+      if (sortOrder === "desc") setSortColumn("");
+    } else {
+      setSortColumn(column);
+      setSortOrder("asc");
+    }
+    setPageNumber(1);
+  };
+
+
+
+  const handleViewInvoiceDetails = (paymentId) => {
+    navigate(`/tenant/invoices/${paymentId}`);
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -103,11 +144,49 @@ export default function TenantPastPayments() {
             View and download past invoices and transaction details for your account.
           </p>
         </div>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-72">
+            <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search plan or invoice..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPageNumber(1);
+              }}
+              className="w-full pl-9 pr-4 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            />
+          </div>
+          <div className="relative shrink-0 w-full sm:w-40">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPageNumber(1);
+              }}
+              className="w-full appearance-none bg-white border border-slate-200 text-slate-700 py-1.5 pl-3 pr-8 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer shadow-sm"
+            >
+              <option value="">All Status</option>
+              <option value="2">Paid</option>
+              <option value="1">Pending</option>
+              <option value="3">Failed</option>
+              <option value="4">Refunded</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Table Section */}
       {payments.length === 0 ? (
-        <div className="bg-white p-12 text-center rounded-lg border border-slate-100">
+        <div className="p-12 text-center ">
           <svg
             className="w-12 h-12 text-slate-300 mx-auto mb-4"
             fill="none"
@@ -138,31 +217,63 @@ export default function TenantPastPayments() {
                   scope="col"
                   className="pb-3 font-semibold text-slate-500 uppercase tracking-wider"
                 >
-                  Invoice ID
+                  Payment ID
                 </th>
                 <th
                   scope="col"
-                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider"
+                  onClick={() => handleSort('paymentdate')}
+                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-800 select-none group transition-colors"
                 >
-                  Billing Date
+                  <div className="flex items-center gap-1">
+                    Billing Date
+                    {sortColumn === 'paymentdate' ? (
+                      <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    ) : (
+                      <span className="text-slate-300 transition-opacity">↕</span>
+                    )}
+                  </div>
                 </th>
                 <th
                   scope="col"
-                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider"
+                  onClick={() => handleSort('planname')}
+                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-800 select-none group transition-colors"
                 >
-                  Plan
+                  <div className="flex items-center gap-1">
+                    Plan
+                    {sortColumn === 'planname' ? (
+                      <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    ) : (
+                      <span className="text-slate-300 transition-opacity">↕</span>
+                    )}
+                  </div>
                 </th>
                 <th
                   scope="col"
-                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider"
+                  onClick={() => handleSort('amount')}
+                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-800 select-none group transition-colors"
                 >
-                  Amount
+                  <div className="flex items-center gap-1">
+                    Amount
+                    {sortColumn === 'amount' ? (
+                      <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    ) : (
+                      <span className="text-slate-300 transition-opacity">↕</span>
+                    )}
+                  </div>
                 </th>
                 <th
                   scope="col"
-                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider"
+                  onClick={() => handleSort('status')}
+                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-800 select-none group transition-colors"
                 >
-                  Status
+                  <div className="flex items-center gap-1">
+                    Status
+                    {sortColumn === 'status' ? (
+                      <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    ) : (
+                      <span className="text-slate-300 transition-opacity">↕</span>
+                    )}
+                  </div>
                 </th>
                 <th
                   scope="col"
@@ -207,28 +318,20 @@ export default function TenantPastPayments() {
 
                   {/* Invoice PDF Link */}
                   <td className="py-4 text-right whitespace-nowrap">
-                    {item.invoiceUrl ? (
-                      <a
-                        href={item.invoiceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
-                      >
-                        <svg
-                          className="w-3.5 h-3.5 mr-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                    {item.status === 2 ? (
+                      <div className="flex justify-end gap-3">
+                        <button
+                          onClick={() => handleViewInvoiceDetails(item.id)}
+                          className="inline-flex items-center text-xs font-semibold text-slate-600 hover:text-slate-800 transition-colors bg-transparent border-none cursor-pointer"
+                          title="View Details"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                          />
-                        </svg>
-                        Download PDF
-                      </a>
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          View
+                        </button>
+                      </div>
                     ) : (
                       <span className="text-slate-400 text-xs italic">
                         Unavailable
@@ -239,6 +342,33 @@ export default function TenantPastPayments() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Pagination Footer */}
+      {totalCount > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between mt-6 px-1 gap-4">
+          <p className="text-xs text-slate-500">
+            Showing <span className="font-semibold text-slate-900">{(pageNumber - 1) * pageSize + 1}</span> to{" "}
+            <span className="font-semibold text-slate-900">{Math.min(pageNumber * pageSize, totalCount)}</span> of{" "}
+            <span className="font-semibold text-slate-900">{totalCount}</span> results
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPageNumber(p => Math.max(1, p - 1))}
+              disabled={pageNumber === 1}
+              className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPageNumber(p => p + 1)}
+              disabled={pageNumber * pageSize >= totalCount}
+              className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>
