@@ -116,6 +116,9 @@ export default function TenantSidebar() {
           <span className="text-[13px]">Logout</span>
         </button>
       </div>
+      <div className="w-full text-center pb-6 pt-2 text-[10px] text-gray-500 font-medium tracking-wide">
+        A <span className="font-bold">TEAMO</span> product
+      </div>
     </aside>
   );
 }
