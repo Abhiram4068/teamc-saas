@@ -11,9 +11,6 @@ const TicketSidebar = ({ userRole = 4 }) => {
         { label: 'Escalated Tickets', path: '/tickets/escalated', icon: 'fa-solid fa-fire', roles: [1, 2, 3] },
 
     
-    // Super Admin Links
-    { label: 'All Tenant Tickets', path: '/tickets/all', icon: 'fa-solid fa-globe', roles: [1] }
-
     
     
   ];

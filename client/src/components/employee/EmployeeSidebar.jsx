@@ -191,7 +191,7 @@ export default function EmployeeSidebar() {
           </div>
         </FeatureGate>
 
-        <NavLink to="/tickets" className={linkClass}>
+        <NavLink to="/tickets" target="_blank" className={linkClass}>
           <i className="fas fa-headset text-base w-5 text-center"></i>
           <span>Support</span>
         </NavLink>

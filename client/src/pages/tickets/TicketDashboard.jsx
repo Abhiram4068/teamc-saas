@@ -225,7 +225,29 @@ const TicketDashboard = () => {
             <i className="fa-solid fa-search absolute left-2.5 top-1.5 text-slate-400 text-[10px]"></i>
             <button type="submit" className="hidden">Search</button>
           </form>
+        </div>
 
+        {/* Pagination */}
+        <div className="flex items-center gap-4">
+          <div className="text-xs text-slate-500">
+            Showing <span className="font-medium text-slate-700">{tickets.length > 0 ? (pageNumber - 1) * pageSize + 1 : 0}</span> to <span className="font-medium text-slate-700">{Math.min(pageNumber * pageSize, totalRecords)}</span> of <span className="font-medium text-slate-700">{totalRecords}</span> tickets
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setPageNumber(p => Math.max(1, p - 1))}
+              disabled={pageNumber === 1}
+              className="px-3 py-1 border border-slate-300 bg-white rounded text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            >
+              Previous
+            </button>
+            <button 
+              onClick={() => setPageNumber(p => p + 1)}
+              disabled={pageNumber * pageSize >= totalRecords}
+              className="px-3 py-1 border border-slate-300 bg-white rounded text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 
@@ -293,28 +315,6 @@ const TicketDashboard = () => {
         </table>
       </div>
 
-      {/* Pagination Footer */}
-      <div className="px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-between">
-        <div className="text-xs text-slate-500">
-          Showing <span className="font-medium text-slate-700">{tickets.length > 0 ? (pageNumber - 1) * pageSize + 1 : 0}</span> to <span className="font-medium text-slate-700">{Math.min(pageNumber * pageSize, totalRecords)}</span> of <span className="font-medium text-slate-700">{totalRecords}</span> tickets
-        </div>
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => setPageNumber(p => Math.max(1, p - 1))}
-            disabled={pageNumber === 1}
-            className="px-3 py-1 border border-slate-300 rounded text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <button 
-            onClick={() => setPageNumber(p => p + 1)}
-            disabled={pageNumber * pageSize >= totalRecords}
-            className="px-3 py-1 border border-slate-300 rounded text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </div>
-      </div>
 
 
 

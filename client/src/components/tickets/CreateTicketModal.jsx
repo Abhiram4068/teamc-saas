@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ticketApi } from '../../api/ticketApi';
 import Toast from '../common/Toast';
+import { validateTicketForm } from '../../validators/ticketFormValidator';
 
 const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -12,6 +13,7 @@ const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
   const [priority, setPriority] = useState('1');
   const [description, setDescription] = useState('');
   const [attachments, setAttachments] = useState([]);
+  const [errors, setErrors] = useState({});
 
   if (!isOpen) return null;
 
@@ -40,10 +42,14 @@ const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const handleCreateTicket = async () => {
-    if (!subject || !category || !priority || !description) {
-      setToast({ show: true, message: 'Please fill out all required fields.', type: 'warning' });
+    const validationResult = validateTicketForm({ subject, category, priority, description });
+    
+    if (!validationResult.isValid) {
+      setErrors(validationResult.errors);
       return;
     }
+    
+    setErrors({});
 
     try {
       setIsSubmitting(true);
@@ -68,6 +74,7 @@ const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
       setPriority('1');
       setDescription('');
       setAttachments([]);
+      setErrors({});
       onClose();
     } catch (error) {
       console.error(error);
@@ -104,10 +111,14 @@ const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
               <input 
                 type="text" 
                 value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="w-full text-[13px] px-3 py-2 bg-white border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#ff0066] focus:border-[#ff0066]" 
+                onChange={(e) => {
+                  setSubject(e.target.value);
+                  if (errors.subject) setErrors({ ...errors, subject: null });
+                }}
+                className={`w-full text-[13px] px-3 py-2 bg-white border rounded focus:outline-none focus:ring-1 focus:ring-[#ff0066] focus:border-[#ff0066] ${errors.subject ? 'border-red-500' : 'border-slate-300'}`} 
                 placeholder="e.g., Cannot access finance database"
               />
+              {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-5">
@@ -115,8 +126,11 @@ const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
                 <label className="block text-[13px] font-medium text-slate-700 mb-1.5">Category <span className="text-red-500">*</span></label>
                 <select 
                   value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full text-[13px] px-3 py-2 bg-white border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#ff0066] focus:border-[#ff0066]"
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    if (errors.category) setErrors({ ...errors, category: null });
+                  }}
+                  className={`w-full text-[13px] px-3 py-2 bg-white border rounded focus:outline-none focus:ring-1 focus:ring-[#ff0066] focus:border-[#ff0066] ${errors.category ? 'border-red-500' : 'border-slate-300'}`}
                 >
                   <option value="">Select category</option>
                   <option value="Hardware">Hardware</option>
@@ -125,19 +139,24 @@ const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
                   <option value="Onboarding">Onboarding</option>
                   <option value="Other">Other</option>
                 </select>
+                {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
               </div>
               <div>
                 <label className="block text-[13px] font-medium text-slate-700 mb-1.5">Priority <span className="text-red-500">*</span></label>
                 <select 
                   value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="w-full text-[13px] px-3 py-2 bg-white border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#ff0066] focus:border-[#ff0066]"
+                  onChange={(e) => {
+                    setPriority(e.target.value);
+                    if (errors.priority) setErrors({ ...errors, priority: null });
+                  }}
+                  className={`w-full text-[13px] px-3 py-2 bg-white border rounded focus:outline-none focus:ring-1 focus:ring-[#ff0066] focus:border-[#ff0066] ${errors.priority ? 'border-red-500' : 'border-slate-300'}`}
                 >
                   <option value="1">Low</option>
                   <option value="2">Medium</option>
                   <option value="3">High</option>
                   <option value="4">Critical</option>
                 </select>
+                {errors.priority && <p className="text-red-500 text-xs mt-1">{errors.priority}</p>}
               </div>
             </div>
 
@@ -146,10 +165,14 @@ const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
               <textarea 
                 rows="5"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full text-[13px] px-3 py-2 bg-white border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#ff0066] focus:border-[#ff0066]"
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  if (errors.description) setErrors({ ...errors, description: null });
+                }}
+                className={`w-full text-[13px] px-3 py-2 bg-white border rounded focus:outline-none focus:ring-1 focus:ring-[#ff0066] focus:border-[#ff0066] ${errors.description ? 'border-red-500' : 'border-slate-300'}`}
                 placeholder="Describe your issue in detail..."
               ></textarea>
+              {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
             </div>
 
             <div>
