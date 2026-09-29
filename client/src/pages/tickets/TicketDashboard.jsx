@@ -260,10 +260,10 @@ const TicketDashboard = () => {
               tickets.map((ticket) => (
                 <tr key={ticket.id} className="hover:bg-slate-50 transition-colors">
                   <td className="p-3 text-slate-700 font-medium">#{ticket.id}</td>
-                  <td className="p-3">
-                    <div className="text-slate-900 font-medium">{ticket.subject}</div>
+                  <td className="p-3 max-w-[200px] truncate" title={ticket.subject}>
+                    <div className="text-slate-900 font-medium truncate">{ticket.subject}</div>
                   </td>
-                  <td className="p-3 text-slate-700">{ticket.category}</td>
+                  <td className="p-3 text-slate-700 max-w-[120px] truncate" title={ticket.category}>{ticket.category}</td>
                   <td className="p-3">
                     {ticket.status === 1 && <span className="bg-red-50 text-red-600 w-20 inline-block text-center py-1 rounded-full text-xs font-medium">Open</span>}
                     {ticket.status === 2 && <span className="bg-blue-50 text-blue-600 w-20 inline-block text-center py-1 rounded-full text-xs font-medium">Solved</span>}
@@ -276,8 +276,8 @@ const TicketDashboard = () => {
                     {ticket.priority === 3 && <span className="text-[#c24f48] text-xs font-medium">High</span>}
                     {ticket.priority === 4 && <span className="text-[#c24f48] text-xs font-medium">Critical</span>}
                   </td>
-                  <td className="p-3 text-slate-700">{ticket.raisedByEmail}</td>
-                  <td className="p-3 text-slate-700">{ticket.assignedToEmail || <a href="#" className="text-orange-500 hover:underline">Assign</a>}</td>
+                  <td className="p-3 text-slate-700 max-w-[150px] truncate" title={ticket.raisedByEmail}>{ticket.raisedByEmail}</td>
+                  <td className="p-3 text-slate-700 max-w-[150px] truncate" title={ticket.assignedToEmail || 'Unassigned'}>{ticket.assignedToEmail || <a href="#" className="text-orange-500 hover:underline">Assign</a>}</td>
                   <td className="p-3 text-slate-700">{new Date(ticket.createdAt).toLocaleDateString()}</td>
                   <td className="p-3 text-center text-slate-500">
                     <i className="fa-solid fa-paperclip mr-1"></i> {ticket.attachmentsCount || 0}

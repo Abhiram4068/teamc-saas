@@ -80,7 +80,7 @@ const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl flex flex-col max-h-[90vh]">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl flex flex-col max-h-[90vh]">
           <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
             <h2 className="text-lg font-bold text-slate-900">Raise New Ticket</h2>
             <button 
@@ -91,6 +91,13 @@ const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
             </button>
           </div>
           
+          <div className="bg-yellow-50 border-b border-yellow-200 px-6 py-3 flex items-start gap-3">
+            <i className="fa-solid fa-triangle-exclamation text-yellow-600 mt-0.5"></i>
+            <p className="text-[12px] text-yellow-800 font-medium">
+              Important: Please provide clear and comprehensive details. Your ticket will be reviewed and assigned to the appropriate department.
+            </p>
+          </div>
+
           <div className="p-6 overflow-y-auto flex-1 space-y-5 text-left">
             <div>
               <label className="block text-[13px] font-medium text-slate-700 mb-1.5">Subject <span className="text-red-500">*</span></label>

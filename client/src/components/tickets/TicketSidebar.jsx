@@ -55,6 +55,11 @@ const TicketSidebar = ({ userRole = 4 }) => {
           })}
         </nav>
       </div>
+
+      <div className="w-full text-center pb-6 pt-2 text-[10px] text-gray-500 font-medium tracking-wide">
+        A <span className="font-bold">TEAMO</span> product
+      </div>
+
       <CreateTicketModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
