@@ -103,7 +103,7 @@ export default function TenantViewPlans() {
     >
       <div className="flex flex-col items-center pt-8 mb-12">
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">
-          Your workspace is on the {currentPlanObj?.name || "Free plan"} !
+          Your workspace is on the {currentPlanObj?.name || "Free plan"}
         </h1>
 
         {hasActiveSubscription && (

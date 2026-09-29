@@ -5,6 +5,7 @@ server/**/*.user
 server/**/appsettings.Development.json
 server/**/appsettings.Local.json
 server/**/documents/
+server/**/Uploads/
 *.suo
 *.user
 .vs/

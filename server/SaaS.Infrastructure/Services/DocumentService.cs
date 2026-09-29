@@ -30,7 +30,7 @@ public class DocumentService : IDocumentService
         _context = context;
         
         // Get the documents folder path and if doesnt exists then create one
-        _storagePath = Path.Combine(Directory.GetCurrentDirectory(), "documents");
+        _storagePath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", "Documents");
         if (!Directory.Exists(_storagePath))
         {
             Directory.CreateDirectory(_storagePath);
