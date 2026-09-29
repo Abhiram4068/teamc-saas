@@ -289,12 +289,14 @@ export default function TenantSubscriptionSummary() {
               If you have questions about your billing, plan features, or need
               to discuss custom enterprise requirements, we're here to help.
             </p>
-            <a
-              href="mailto:support@teamo.com"
+            <Link
+              to="/tickets"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline"
             >
               Contact Support
-            </a>
+            </Link>
           </div>
         </div>
       </div>

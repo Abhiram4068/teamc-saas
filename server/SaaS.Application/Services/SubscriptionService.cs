@@ -226,18 +226,22 @@ public class SubscriptionService : ISubscriptionService
     public async Task<ApiResponse<SubscriptionResponseDto>> GetCurrentSubscriptionAsync(int tenantId)
     {
         var subscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
+        var scheduledSubscription = await _subscriptionRepository.GetScheduledByTenantIdAsync(tenantId);
+        bool hasScheduled = scheduledSubscription != null;
         
         if (subscription == null)
         {
             return ApiResponse<SubscriptionResponseDto>.SuccessResponse(new SubscriptionResponseDto 
             { 
-                HasActiveSubscription = false 
+                HasActiveSubscription = false,
+                HasScheduledSubscription = hasScheduled
             }, "No active subscription found.");
         }
 
         var dto = new SubscriptionResponseDto
         {
             HasActiveSubscription = true,
+            HasScheduledSubscription = hasScheduled,
             Id = subscription.Id,
             PlanId = subscription.PlanId,
             PlanName = subscription.Plan?.Name ?? "Unknown Plan",

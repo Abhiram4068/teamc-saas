@@ -25,6 +25,7 @@ export default function PublicViewPlan() {
   const [error, setError] = useState(null);
   const [isAnnual, setIsAnnual] = useState(true);
   const [currentPlanId, setCurrentPlanId] = useState(null);
+  const [isTenant, setIsTenant] = useState(false);
 
   useEffect(() => {
     fetchPublicPlans();
@@ -37,6 +38,7 @@ export default function PublicViewPlan() {
       const role = getRole();
       // Role 2 is usually Tenant Admin
       if (token && role === 2) {
+        setIsTenant(true);
         const res = await subscriptionApi.getCurrentSubscription();
         if (res?.success && res?.data?.hasActiveSubscription) {
           setCurrentPlanId(res.data.planId);
@@ -295,7 +297,7 @@ export default function PublicViewPlan() {
                         </button>
                       ) : (
                         <Link
-                          to={`/checkout/${plan.id}`}
+                          to={isTenant ? '/tenant/plans' : `/checkout/${plan.id}`}
                           className="block text-center w-full text-sm font-semibold py-2.5 rounded-md transition mb-6 shadow-xs cursor-pointer bg-[#141842] hover:bg-[#1c245c] text-white"
                         >
                           {currentPlanId
