@@ -39,24 +39,16 @@ export default function SuperAdminSidebar() {
         </svg>
       ),
     },
-    // {
-    //   to: '/superadmin/subscriptions',
-    //   label: 'Subscriptions',
-    //   icon: (
-    //     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    //       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-    //     </svg>
-    //   ),
-    // },
-    // {
-    //   to: '/superadmin/payments',
-    //   label: 'Payments',
-    //   icon: (
-    //     <span className="w-5 h-5 flex items-center justify-center font-bold text-sm">
-    //       ₹
-    //     </span>
-    //   ),
-    // },
+    {
+      to: '/tickets',
+      label: 'Support',
+      target: '_blank',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      ),
+    },
   ];
 
   return (
@@ -66,6 +58,7 @@ export default function SuperAdminSidebar() {
           <NavLink
             key={item.to}
             to={item.to}
+            target={item.target}
             title={item.label}
             className={({ isActive }) =>
               `flex flex-col items-center justify-center py-2.5 px-1 rounded-md transition text-center ${isActive

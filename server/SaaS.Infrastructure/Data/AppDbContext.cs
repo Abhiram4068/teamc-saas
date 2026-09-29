@@ -24,6 +24,8 @@ public class AppDbContext : DbContext
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<WorkType> WorkTypes => Set<WorkType>();
     public DbSet<WorkReport> WorkReports => Set<WorkReport>();
+    public DbSet<Ticket> Tickets => Set<Ticket>();
+    public DbSet<TicketReply> TicketReplies => Set<TicketReply>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

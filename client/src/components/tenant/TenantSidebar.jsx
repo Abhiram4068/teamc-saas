@@ -37,7 +37,7 @@ export default function TenantSidebar() {
       label: 'Support',
       icon: 'fa-solid fa-headset',
       subItems: [
-        { label: 'Manage Tickets', to: '/tenant/support-tickets' },
+        { label: 'Manage Tickets', to: '/tickets/', target: '_blank' },
         { label: 'Contact Support', to: '/tenant/contact-support' },
       ],
     }
@@ -88,6 +88,7 @@ export default function TenantSidebar() {
                   <NavLink
                     key={sub.label}
                     to={sub.to}
+                    target={sub.target}
                     className={({ isActive }) =>
                       `block py-1 transition-all duration-200 text-[12px] ${
                         isActive
