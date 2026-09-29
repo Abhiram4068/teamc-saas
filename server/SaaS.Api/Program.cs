@@ -136,6 +136,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<ITicketService, TicketService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddHostedService<SubscriptionTransitionJob>();
 

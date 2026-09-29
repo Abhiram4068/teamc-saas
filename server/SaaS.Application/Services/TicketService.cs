@@ -13,11 +13,13 @@ public class TicketService : ITicketService
 {
     private readonly ITicketRepository _ticketRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IEmailService _emailService;
 
-    public TicketService(ITicketRepository ticketRepository, IUserRepository userRepository)
+    public TicketService(ITicketRepository ticketRepository, IUserRepository userRepository, IEmailService emailService)
     {
         _ticketRepository = ticketRepository;
         _userRepository = userRepository;
+        _emailService = emailService;
     }
 
     public async Task<ApiResponse<TicketResponseDto>> CreateTicketAsync(CreateTicketRequestDto dto, string userEmail, Role userRole, long? tenantId)
@@ -156,6 +158,8 @@ public class TicketService : ITicketService
 
         await _ticketRepository.AddAsync(ticket);
         await _ticketRepository.SaveChangesAsync();
+
+        await _emailService.SendTicketEmailAsync(ticket.RaisedByEmail, "created", ticket);
 
         return ApiResponse<TicketResponseDto>.SuccessResponse(MapToDto(ticket), "Ticket created successfully.", 201);
     }
@@ -329,6 +333,15 @@ public class TicketService : ITicketService
 
         await _ticketRepository.UpdateAsync(ticket);
         await _ticketRepository.SaveChangesAsync();
+
+        if (status == TicketStatus.Escalated)
+        {
+            await _emailService.SendTicketEmailAsync(ticket.RaisedByEmail, "escalated", ticket);
+        }
+        else if (status == TicketStatus.Closed)
+        {
+            await _emailService.SendTicketEmailAsync(ticket.RaisedByEmail, "closed", ticket);
+        }
 
         return ApiResponse<TicketResponseDto>.SuccessResponse(MapToDto(ticket), $"Ticket status updated to {status}.", 200);
     }

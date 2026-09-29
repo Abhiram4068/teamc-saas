@@ -71,7 +71,7 @@ export default function TenantSubscriptionSummary() {
   if (!subscription || !subscription.hasActiveSubscription) {
     return (
       <div className="max-w-4xl mx-auto mt-10 px-4">
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-slate-200 text-center">
+        <div className="p-8 text-center">
           <h2 className="text-xl font-bold text-slate-900 mb-2">
             No Active Subscription
           </h2>
