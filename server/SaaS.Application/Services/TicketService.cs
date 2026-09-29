@@ -308,6 +308,11 @@ public class TicketService : ITicketService
             }
         }
 
+        if (isSuperAdmin && status == TicketStatus.Escalated)
+        {
+            return ApiResponse<TicketResponseDto>.FailureResponse("SuperAdmins cannot escalate a ticket.", 403);
+        }
+
         ticket.Status = status;
         ticket.UpdatedAt = DateTime.UtcNow;
         
@@ -374,5 +379,21 @@ public class TicketService : ITicketService
                 CreatedAt = r.CreatedAt
             }).OrderBy(r => r.CreatedAt).ToList()
         };
+    }
+    public async Task<ApiResponse<TicketDashboardResponseDto>> GetDashboardStatsAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return ApiResponse<TicketDashboardResponseDto>.FailureResponse("Email is required.", 400);
+        }
+
+        var user = await _userRepository.GetByEmailAsync(email);
+        if (user == null)
+        {
+            return ApiResponse<TicketDashboardResponseDto>.FailureResponse("User not found.", 404);
+        }
+
+        var stats = await _ticketRepository.GetDashboardStatsAsync(email);
+        return ApiResponse<TicketDashboardResponseDto>.SuccessResponse(stats, "Dashboard stats retrieved successfully.", 200);
     }
 }

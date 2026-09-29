@@ -57,6 +57,7 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet("assigned")]
+    [Authorize(Roles = "1, 2, 3")]
     public async Task<IActionResult> GetAssignedTickets([FromQuery] string? status, [FromQuery] string? search, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         if (!TryGetUserClaims(out var email, out var role, out var tenantId))
@@ -116,9 +117,29 @@ public class TicketsController : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
-    [HttpGet("download/{fileName}")]
-    public IActionResult DownloadAttachment(string fileName)
+    [HttpGet("dashboard")]
+    [Authorize(Roles = "1, 2, 3")]
+    public async Task<IActionResult> GetDashboardStats()
     {
+        if (!TryGetUserClaims(out var email, out var role, out var tenantId))
+            return Unauthorized(ApiResponse<object>.FailureResponse("User claims not found or invalid.", 401));
+
+        var response = await _ticketService.GetDashboardStatsAsync(email);
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpGet("{ticketId}/download/{fileName}")]
+    public async Task<IActionResult> DownloadAttachment(long ticketId, string fileName)
+    {
+        if (!TryGetUserClaims(out var email, out var role, out var tenantId))
+            return Unauthorized(ApiResponse<object>.FailureResponse("User claims not found or invalid.", 401));
+
+        var ticketResponse = await _ticketService.GetTicketByIdAsync(ticketId, email, role, tenantId);
+        if (ticketResponse.StatusCode != 200)
+        {
+            return StatusCode(ticketResponse.StatusCode, ApiResponse<object>.FailureResponse("Unauthorized to access this ticket or ticket not found.", ticketResponse.StatusCode));
+        }
+
         var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", "Tickets", fileName);
         if (!System.IO.File.Exists(filePath))
             return NotFound(ApiResponse<object>.FailureResponse("File not found.", 404));

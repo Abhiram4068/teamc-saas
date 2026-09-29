@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using SaaS.Application.Interfaces.Repository;
 using SaaS.Domain.Entities;
 using SaaS.Infrastructure.Data;
+using SaaS.Application.DTOs.Response;
+using SaaS.Domain.Enums;
 
 namespace SaaS.Infrastructure.Repositories;
 
@@ -107,6 +109,24 @@ public class TicketRepository : ITicketRepository
     {
         _context.Tickets.Update(ticket);
         return Task.CompletedTask;
+    }
+
+    public async Task<TicketDashboardResponseDto> GetDashboardStatsAsync(string email)
+    {
+        var totalAssigned = await _context.Tickets.CountAsync(t => t.AssignedToEmail == email);
+        var escalated = await _context.Tickets.CountAsync(t => t.AssignedToEmail == email && t.Status == TicketStatus.Escalated);
+        var open = await _context.Tickets.CountAsync(t => t.AssignedToEmail == email && t.Status == TicketStatus.Open);
+        var closed = await _context.Tickets.CountAsync(t => t.AssignedToEmail == email && t.Status == TicketStatus.Closed);
+        var raisedByMe = await _context.Tickets.CountAsync(t => t.RaisedByEmail == email);
+
+        return new TicketDashboardResponseDto
+        {
+            TotalTickets = totalAssigned,
+            Escalated = escalated,
+            Open = open,
+            Closed = closed,
+            RaisedByMe = raisedByMe
+        };
     }
 
     public async Task SaveChangesAsync()

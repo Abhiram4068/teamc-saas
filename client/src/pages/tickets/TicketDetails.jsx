@@ -15,6 +15,22 @@ const TicketDetails = () => {
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState(null);
 
+  const handleDownload = async (fileName) => {
+    try {
+      const blob = await ticketApi.downloadAttachment(id, fileName);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Download failed', error);
+      alert('Failed to download attachment or unauthorized.');
+    }
+  };
+
   const fetchTicket = async () => {
     try {
       setIsLoading(true);
@@ -191,7 +207,9 @@ const TicketDetails = () => {
                         {(!(ticket.raisedByEmail === getEmail() && ticket.assignedToEmail !== getEmail() && getRole() !== 1)) && (
                           <>
                             <option value="2" className="bg-white text-slate-800">Solved</option>
-                            <option value="3" className="bg-white text-slate-800">Escalated</option>
+                            {getRole() !== 1 && (
+                              <option value="3" className="bg-white text-slate-800">Escalated</option>
+                            )}
                           </>
                         )}
                         <option value="4" className="bg-white text-slate-800">Closed</option>
@@ -210,27 +228,24 @@ const TicketDetails = () => {
               <span>Attachments</span>
               <span className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full">{attachments.length}</span>
             </div>
-            <div className="p-4 flex-1 flex flex-col gap-3">
+            <div className="flex-1 flex flex-col">
               {attachments.length === 0 ? (
-                <p className="text-xs text-slate-500">No attachments</p>
+                <p className="text-xs text-slate-500 p-4">No attachments</p>
               ) : (
                 attachments.map((file, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 border border-slate-200 rounded hover:bg-slate-50 transition-colors cursor-pointer group">
+                  <div key={idx} className={`flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors cursor-pointer group ${idx !== attachments.length - 1 ? 'border-b border-slate-100' : ''}`}>
                     <div className="w-10 h-10 flex items-center justify-center text-indigo-500 shrink-0">
                       <i className="fa-solid fa-file"></i>
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <p className="text-xs font-semibold text-slate-700 truncate group-hover:text-blue-600 transition-colors">{file}</p>
                     </div>
-                    <a 
-                      href={`${axiosClient.defaults.baseURL}/Tickets/download/${file}`} 
-                      download 
-                      target="_blank" 
-                      rel="noreferrer"
+                    <button 
+                      onClick={() => handleDownload(file)}
                       className="text-slate-400 hover:text-slate-600"
                     >
                       <i className="fa-solid fa-download text-sm"></i>
-                    </a>
+                    </button>
                   </div>
                 ))
               )}
@@ -244,34 +259,36 @@ const TicketDetails = () => {
 
         </div>
 
-        {ticket.replies && ticket.replies.length > 0 ? ticket.replies.map((reply) => (
-          <div key={reply.id} className="bg-white rounded-md border border-slate-200 shadow-sm mb-6">
-            <div className="p-6 flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-blue-100 shrink-0 flex items-center justify-center text-blue-700 font-bold overflow-hidden uppercase">
-                 {reply.replyByEmail.charAt(0)}
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="font-semibold text-slate-900 text-[13px]">{reply.replyByEmail}</div>
-                    <div className="text-slate-400 text-[11px] mt-1">{new Date(reply.createdAt).toLocaleString()}</div>
-                  </div>
+        {ticket.replies && ticket.replies.length > 0 ? (
+          <div className="bg-white rounded-md border border-slate-200 shadow-sm mb-6">
+            {ticket.replies.map((reply, index) => (
+              <div key={reply.id} className={`p-6 flex gap-4 ${index !== ticket.replies.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                <div className="w-10 h-10 rounded-full bg-blue-100 shrink-0 flex items-center justify-center text-blue-700 font-bold overflow-hidden uppercase">
+                   {reply.replyByEmail.charAt(0)}
                 </div>
-                <p className="text-[13px] text-slate-700 whitespace-pre-wrap">{reply.message}</p>
-                
-                {reply.imageUrl && (
-                  <div className="mt-3 flex gap-2">
-                    {reply.imageUrl.split(',').map((img, idx) => (
-                      <div key={idx} className="text-xs text-blue-600">
-                        <i className="fa-solid fa-paperclip"></i> {img}
-                      </div>
-                    ))}
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="font-semibold text-slate-900 text-[13px]">{reply.replyByEmail}</div>
+                      <div className="text-slate-400 text-[11px] mt-1">{new Date(reply.createdAt).toLocaleString()}</div>
+                    </div>
                   </div>
-                )}
+                  <p className="text-[13px] text-slate-700 whitespace-pre-wrap">{reply.message}</p>
+                  
+                  {reply.imageUrl && (
+                    <div className="mt-3 flex gap-2">
+                      {reply.imageUrl.split(',').map((img, idx) => (
+                        <div key={idx} className="text-xs text-blue-600">
+                          <i className="fa-solid fa-paperclip"></i> {img}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        )) : (
+        ) : (
           <div className="text-slate-500 text-sm mb-6 text-center py-6 bg-white border border-slate-200 rounded-md">No replies yet.</div>
         )}
 

@@ -82,7 +82,7 @@ const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl flex flex-col max-h-[90vh]">
           <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-900">Create New Ticket</h2>
+            <h2 className="text-lg font-bold text-slate-900">Raise New Ticket</h2>
             <button 
               onClick={onClose}
               className="text-slate-400 hover:text-slate-600 transition-colors"
@@ -189,7 +189,7 @@ const CreateTicketModal = ({ isOpen, onClose, onSuccess }) => {
               disabled={isSubmitting}
               className="px-4 py-2 bg-[#ff0066] hover:bg-[#e0005a] text-white rounded text-[13px] font-medium transition-colors shadow-sm disabled:opacity-50"
             >
-              {isSubmitting ? 'Creating...' : 'Create Ticket'}
+              {isSubmitting ? 'Wait a moment...' : 'Raise Ticket'}
             </button>
           </div>
         </div>

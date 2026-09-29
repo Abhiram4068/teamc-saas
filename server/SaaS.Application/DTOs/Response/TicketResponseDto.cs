@@ -32,3 +32,12 @@ public class TicketReplyResponseDto
     public string? ImageUrl { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+
+public class TicketDashboardResponseDto
+{
+    public int TotalTickets { get; set; }
+    public int Escalated { get; set; }
+    public int Open { get; set; }
+    public int Closed { get; set; }
+    public int RaisedByMe { get; set; }
+}

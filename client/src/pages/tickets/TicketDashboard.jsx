@@ -1,13 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Navigate } from 'react-router-dom';
 import { ticketApi } from '../../api/ticketApi';
 import Toast from '../../components/common/Toast';
+import { getRole } from '../../utils/tokenStorage';
 
 const TicketDashboard = () => {
   const location = useLocation();
+  const userRole = getRole();
+  
+  if (userRole === 4 || userRole === 5 || userRole === 6) {
+    return <Navigate to="/tickets/my-tickets" replace />;
+  }
+
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [tickets, setTickets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalTickets: 0,
+    escalated: 0,
+    open: 0,
+    solved: 0,
+    raisedByMe: 0
+  });
 
   // Pagination & Filtering State
   const [pageNumber, setPageNumber] = useState(1);
@@ -74,10 +88,26 @@ const TicketDashboard = () => {
     fetchTickets();
   }, [pageNumber, pageSize, search, statusFilter]);
 
+  const fetchStats = async () => {
+    try {
+      const response = await ticketApi.getDashboardStats();
+      if (response && response.success) {
+        setStats(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
   // Listen for custom ticketCreated event
   useEffect(() => {
     const handleTicketCreated = () => {
       fetchTickets();
+      fetchStats();
     };
     window.addEventListener('ticketCreated', handleTicketCreated);
     return () => window.removeEventListener('ticketCreated', handleTicketCreated);
@@ -92,6 +122,54 @@ const TicketDashboard = () => {
 
   return (
     <>
+      {/* Dashboard Stats */}
+      <div className="mb-16">
+        <h2 className="text-lg font-bold text-slate-900 mb-6">Dashboard</h2>
+        <div className="flex flex-wrap items-center justify-between gap-6">
+          
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-slate-900">{stats.totalTickets}</span>
+              <span className="text-[13px] font-medium text-slate-700">Total Tickets</span>
+            </div>
+            <div className="text-[11px] text-slate-400 mt-1">Assigned to you</div>
+          </div>
+
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-slate-900">{stats.open}</span>
+              <span className="text-[13px] font-medium text-slate-700">Open</span>
+            </div>
+            <div className="text-[11px] text-slate-400 mt-1">Pending resolution</div>
+          </div>
+
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-slate-900">{stats.escalated}</span>
+              <span className="text-[13px] font-medium text-slate-700">Escalated</span>
+            </div>
+            <div className="text-[11px] text-slate-400 mt-1">Requires attention</div>
+          </div>
+
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-slate-900 text-green-600">{stats.closed}</span>
+              <span className="text-[13px] font-medium text-slate-700">Closed</span>
+            </div>
+            <div className="text-[11px] text-slate-400 mt-1">Successfully Closed</div>
+          </div>
+
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-slate-900">{stats.raisedByMe}</span>
+              <span className="text-[13px] font-medium text-slate-700">Raised By Me</span>
+            </div>
+            <div className="text-[11px] text-slate-400 mt-1">Tickets you created</div>
+          </div>
+          
+        </div>
+      </div>
+
       {/* Page Title & Primary Action */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex flex-col">

@@ -38,5 +38,17 @@ export const ticketApi = {
   updateTicketStatus: async (id, status) => {
     const response = await axiosClient.put(`/Tickets/${id}/status`, { status });
     return response.data;
+  },
+
+  getDashboardStats: async () => {
+    const response = await axiosClient.get('/Tickets/dashboard');
+    return response.data;
+  },
+
+  downloadAttachment: async (ticketId, fileName) => {
+    const response = await axiosClient.get(`/Tickets/${ticketId}/download/${fileName}`, {
+      responseType: 'blob'
+    });
+    return response.data;
   }
 };

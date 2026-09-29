@@ -7,20 +7,15 @@ const TicketSidebar = ({ userRole = 4 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const navLinks = [
-    // Super Admin Links
-    { label: 'All Tenant Tickets', path: '/tickets/all', icon: 'fa-solid fa-globe', roles: [1] },
-    { label: 'Open Tickets', path: '/tickets/open', icon: 'fa-regular fa-folder-open', roles: [1] },
-    { label: 'Resolved Tickets', path: '/tickets/resolved', icon: 'fa-regular fa-circle-check', roles: [1] },
-
-    // Tenant Links
-    { label: 'Escalated Tickets', path: '/tickets/escalated', icon: 'fa-solid fa-fire', roles: [1, 2, 3] },
-
-    // Tenant Admin Links
-    { label: 'Employee Tickets', path: '/tickets/employee', icon: 'fa-solid fa-users', roles: [3] },
-
-    // Shared / Employee Links
     { label: 'My Tickets', path: '/tickets/my-tickets', icon: 'fa-solid fa-ticket', roles: [2, 3, 4, 5, 6] },
-    { label: 'Assigned to Me', path: '/tickets/assigned', icon: 'fa-solid fa-thumbtack', roles: [3, 4, 5, 6] },
+        { label: 'Escalated Tickets', path: '/tickets/escalated', icon: 'fa-solid fa-fire', roles: [1, 2, 3] },
+
+    
+    // Super Admin Links
+    { label: 'All Tenant Tickets', path: '/tickets/all', icon: 'fa-solid fa-globe', roles: [1] }
+
+    
+    
   ];
 
   const visibleLinks = navLinks.filter(link => link.roles.includes(userRole));
@@ -44,9 +39,11 @@ const TicketSidebar = ({ userRole = 4 }) => {
 
         {/* Nav Links */}
         <nav className="mt-3 space-y-0.5">
-          <Link to="/tickets" className={`flex items-center px-6 py-2.5 transition-colors ${location.pathname === '/tickets' ? 'bg-slate-200 text-slate-900 font-semibold border-l-4 border-[#ff0066]' : 'hover:bg-slate-200/70 hover:text-slate-900'}`}>
-            <i className={`fa-solid fa-gauge w-6 ${location.pathname === '/tickets' ? 'text-[#ff0066]' : 'text-slate-400'}`}></i> Dashboard
-          </Link>
+          {![4, 5, 6].includes(userRole) && (
+            <Link to="/tickets" className={`flex items-center px-6 py-2.5 transition-colors ${location.pathname === '/tickets' ? 'bg-slate-200 text-slate-900 font-semibold border-l-4 border-[#ff0066]' : 'hover:bg-slate-200/70 hover:text-slate-900'}`}>
+              <i className={`fa-solid fa-gauge w-6 ${location.pathname === '/tickets' ? 'text-[#ff0066]' : 'text-slate-400'}`}></i> Dashboard
+            </Link>
+          )}
           
           {visibleLinks.map((link, index) => {
              const isActive = location.pathname.includes(link.path);

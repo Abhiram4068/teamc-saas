@@ -15,4 +15,5 @@ public interface ITicketService
     Task<ApiResponse<TicketDetailsResponseDto>> GetTicketByIdAsync(long id, string userEmail, Role userRole, long? tenantId);
     Task<ApiResponse<TicketResponseDto>> ReplyToTicketAsync(long ticketId, TicketReplyRequestDto dto, string userEmail);
     Task<ApiResponse<TicketResponseDto>> UpdateTicketStatusAsync(long ticketId, TicketStatus status, string userEmail, Role userRole);
+    Task<ApiResponse<TicketDashboardResponseDto>> GetDashboardStatsAsync(string email);
 }
