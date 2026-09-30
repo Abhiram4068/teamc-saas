@@ -263,7 +263,7 @@ export default function TenantAddAdmin() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-2">
-                    Temporary Password <span className="text-red-500">*</span>
+                    Password <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -326,9 +326,20 @@ export default function TenantAddAdmin() {
 
               <div className="flex items-start">
                 <div>
-                  <span className="font-semibold text-slate-900 text-sm block">Tenant Admin</span>
+                  <span className="font-semibold text-slate-900 text-sm block">Tenant Admin / Company Admin</span>
                   <p className="text-slate-500 text-xs mt-1 leading-relaxed">
                     This user will have full read/write privileges across all organizational settings and operational modules.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="pt-2">
+
+              <div className="flex items-start">
+                <div>
+                  <span className="font-semibold text-slate-900 text-sm block">Employee Management</span>
+                  <p className="text-slate-500 text-xs mt-1 leading-relaxed">
+                    This user will be the primary person responsible for managing your company's employees, overseeing roles, and configuring organizational settings.
                   </p>
                 </div>
               </div>

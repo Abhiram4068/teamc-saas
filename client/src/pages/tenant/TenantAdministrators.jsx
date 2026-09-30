@@ -183,10 +183,10 @@ export default function TenantAdministrators() {
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-200">
-                  <th scope="col" className="pb-3 font-semibold text-slate-500 uppercase tracking-wider">User</th>
-                  <th scope="col" className="pb-3 font-semibold text-slate-500 uppercase tracking-wider">Contact</th>
-                  <th scope="col" className="pb-3 font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                  <th scope="col" className="pb-3 font-semibold text-slate-500 uppercase tracking-wider">Joined</th>
+                  <th scope="col" className="pb-3 font-semibold text-slate-500 uppercase tracking-wider text-left">User</th>
+                  <th scope="col" className="pb-3 font-semibold text-slate-500 uppercase tracking-wider text-left">Contact</th>
+                  <th scope="col" className="pb-3 font-semibold text-slate-500 uppercase tracking-wider text-left">Status</th>
+                  <th scope="col" className="pb-3 font-semibold text-slate-500 uppercase tracking-wider text-left">Joined</th>
                   <th scope="col" className="pb-3 font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
@@ -195,7 +195,7 @@ export default function TenantAdministrators() {
                   <tr key={admin.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="h-9 w-9 flex-shrink-0 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 font-bold text-xs">
+                        <div className="h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center text-blue-600 font-bold text-xs">
                           {admin.firstName.charAt(0)}{admin.lastName.charAt(0)}
                         </div>
                         <div className="ml-3">
@@ -215,7 +215,7 @@ export default function TenantAdministrators() {
                     <td className="py-4 whitespace-nowrap">
                       {admin.status === 1 ? (
                         <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-emerald-700">
-                          <span className="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-500"></span>
+
                           Active
                         </span>
                       ) : (
@@ -229,27 +229,24 @@ export default function TenantAdministrators() {
                       {new Date(admin.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-4 whitespace-nowrap text-right">
-                      <div className="flex justify-end gap-3 text-slate-400">
+                      <div className="flex justify-end gap-3 text-xs font-medium">
                         <button
                           onClick={() => openEditModal(admin)}
-                          className="hover:text-blue-600 transition-colors"
-                          title="Edit Admin"
+                          className="text-indigo-600 hover:text-indigo-800 hover:underline transition-colors"
                         >
-                          <i className="fa-solid fa-pen"></i>
+                          Edit
                         </button>
                         <button
                           onClick={() => setStatusConfirmAdmin(admin)}
-                          className="hover:text-slate-900 transition-colors"
-                          title={admin.status === 1 ? 'Deactivate' : 'Activate'}
+                          className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                         >
-                          <i className={`fa-solid ${admin.status === 1 ? 'fa-ban' : 'fa-check-circle'}`}></i>
+                          {admin.status === 1 ? 'Deactivate' : 'Activate'}
                         </button>
                         <button
                           onClick={() => setDeleteConfirmAdmin(admin)}
-                          className="hover:text-red-600 transition-colors"
-                          title="Delete Admin"
+                          className="text-red-600 hover:text-red-800 hover:underline transition-colors"
                         >
-                          <i className="fa-solid fa-trash"></i>
+                          Delete
                         </button>
                       </div>
                     </td>
@@ -261,18 +258,18 @@ export default function TenantAdministrators() {
         )}
       {/* Edit Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h3 className="text-lg font-bold text-gray-900">Edit Administrator</h3>
-              <button onClick={closeEditModal} className="text-gray-400 hover:text-gray-600 transition-colors">
-                <i className="fa-solid fa-xmark text-lg"></i>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-md shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-5 py-4 flex justify-between items-center">
+              <h3 className="text-base font-semibold text-slate-900">Edit Administrator</h3>
+              <button onClick={closeEditModal} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
             
-            <form onSubmit={handleEditSubmit} className="p-6">
+            <form onSubmit={handleEditSubmit} className="p-5 pt-0">
               {editError && (
-                <div className="mb-5 p-3 bg-red-50 border-l-4 border-red-500 text-sm text-red-700">
+                <div className="mb-4 p-3 bg-red-50 border-l-2 border-red-500 text-sm text-red-700">
                   {editError}
                 </div>
               )}
@@ -280,54 +277,54 @@ export default function TenantAdministrators() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">First Name</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">First Name</label>
                     <input
                       type="text"
                       name="firstName"
                       required
                       value={editFormData.firstName}
                       onChange={handleEditChange}
-                      className="w-full bg-white border border-gray-300 px-3.5 py-2.5 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm text-[#141824]"
+                      className="w-full bg-white border border-slate-200 rounded px-3 py-2 focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500 text-sm text-slate-900"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Last Name</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Last Name</label>
                     <input
                       type="text"
                       name="lastName"
                       required
                       value={editFormData.lastName}
                       onChange={handleEditChange}
-                      className="w-full bg-white border border-gray-300 px-3.5 py-2.5 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm text-[#141824]"
+                      className="w-full bg-white border border-slate-200 rounded px-3 py-2 focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500 text-sm text-slate-900"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
                   <input
                     type="text"
                     name="phone"
                     required
                     value={editFormData.phone}
                     onChange={handleEditChange}
-                    className="w-full bg-white border border-gray-300 px-3.5 py-2.5 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-sm text-[#141824]"
+                    className="w-full bg-white border border-slate-200 rounded px-3 py-2 focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500 text-sm text-slate-900"
                   />
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-end gap-3">
+              <div className="mt-6 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeEditModal}
                   disabled={isSubmittingEdit}
-                  className="px-5 py-2.5 border border-gray-300 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-slate-200 rounded text-slate-600 font-medium text-sm hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingEdit}
-                  className="px-5 py-2.5 bg-[#2b6cb0] hover:bg-blue-700 text-white font-semibold text-sm transition-colors flex items-center"
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-900 rounded text-white font-medium text-sm transition-colors flex items-center"
                 >
                   {isSubmittingEdit ? <><i className="fa-solid fa-spinner fa-spin mr-2"></i> Saving...</> : 'Save Changes'}
                 </button>
@@ -339,30 +336,34 @@ export default function TenantAdministrators() {
 
       {/* Status Confirm Modal */}
       {statusConfirmAdmin && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6">
-              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-4 text-amber-600 mx-auto">
-                <i className="fa-solid fa-circle-exclamation text-xl"></i>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-md shadow-lg w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-5">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rflex items-center justify-center flex-shrink-0 text-slate-700">
+                  <i className="fa-solid rounded-full p-2 fa-circle-exclamation text-base"></i>
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-slate-900 mb-1">Change Status?</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">
+                    Are you sure you want to {statusConfirmAdmin.status === 1 ? 'deactivate' : 'activate'} <strong>{statusConfirmAdmin.firstName} {statusConfirmAdmin.lastName}</strong>?
+                  </p>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 text-center mb-2">Change Status?</h3>
-              <p className="text-sm text-gray-500 text-center mb-6">
-                Are you sure you want to {statusConfirmAdmin.status === 1 ? 'deactivate' : 'activate'} <strong>{statusConfirmAdmin.firstName} {statusConfirmAdmin.lastName}</strong>?
-              </p>
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleToggleStatus}
-                  disabled={isSubmittingStatus}
-                  className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm transition-colors flex justify-center items-center"
-                >
-                  {isSubmittingStatus ? <><i className="fa-solid fa-spinner fa-spin mr-2"></i> Processing...</> : 'Confirm Change'}
-                </button>
+              <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={() => setStatusConfirmAdmin(null)}
                   disabled={isSubmittingStatus}
-                  className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-slate-200 rounded text-slate-600 font-medium text-sm hover:bg-slate-50 transition-colors"
                 >
                   Cancel
+                </button>
+                <button
+                  onClick={handleToggleStatus}
+                  disabled={isSubmittingStatus}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-900 rounded text-white font-medium text-sm transition-colors flex items-center"
+                >
+                  {isSubmittingStatus ? <><i className="fa-solid fa-spinner fa-spin mr-2"></i> Processing...</> : 'Confirm Change'}
                 </button>
               </div>
             </div>
@@ -372,30 +373,34 @@ export default function TenantAdministrators() {
 
       {/* Delete Confirm Modal */}
       {deleteConfirmAdmin && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 text-red-600 mx-auto">
-                <i className="fa-solid fa-trash-can text-xl"></i>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-md shadow-lg w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-5">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 flex items-center justify-center flex-shrink-0 text-red-700">
+                  <i className="fa-solid fa-trash-can text-base"></i>
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-slate-900 mb-1">Delete Administrator?</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">
+                    This action will revoke access for <strong>{deleteConfirmAdmin.firstName} {deleteConfirmAdmin.lastName}</strong>. You cannot easily undo this.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 text-center mb-2">Delete Administrator?</h3>
-              <p className="text-sm text-gray-500 text-center mb-6">
-                This action will revoke access for <strong>{deleteConfirmAdmin.firstName} {deleteConfirmAdmin.lastName}</strong>. You cannot easily undo this.
-              </p>
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleDelete}
-                  disabled={isSubmittingDelete}
-                  className="w-full px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm transition-colors flex justify-center items-center"
-                >
-                  {isSubmittingDelete ? <><i className="fa-solid fa-spinner fa-spin mr-2"></i> Deleting...</> : 'Delete Admin'}
-                </button>
+              <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={() => setDeleteConfirmAdmin(null)}
                   disabled={isSubmittingDelete}
-                  className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-slate-200 rounded text-slate-600 font-medium text-sm hover:bg-slate-50 transition-colors"
                 >
                   Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isSubmittingDelete}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white font-medium text-sm transition-colors flex items-center"
+                >
+                  {isSubmittingDelete ? <><i className="fa-solid fa-spinner fa-spin mr-2"></i> Deleting...</> : 'Delete Admin'}
                 </button>
               </div>
             </div>
