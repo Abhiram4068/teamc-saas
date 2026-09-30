@@ -124,7 +124,9 @@ public class SubscriptionService : ISubscriptionService
         else
         {
             // Instead of mutating the active subscription, we create a new one
-            var startDate = subscription.EndDate ?? DateTime.UtcNow;
+            bool isCurrentPlanFree = subscription.Plan?.MonthlyPrice == 0 || subscription.Plan?.Name.ToLower().Contains("free") == true;
+            var startDate = isCurrentPlanFree ? DateTime.UtcNow : (subscription.EndDate ?? DateTime.UtcNow);
+            
             var newSubscription = new Subscription
             {
                 Id = Guid.NewGuid(),
@@ -206,6 +208,19 @@ public class SubscriptionService : ISubscriptionService
         payment.PaymentDate = DateTime.UtcNow;
         payment.UpdatedAt = DateTime.UtcNow;
         await _paymentRepository.UpdateAsync(payment);
+
+        var activeSubscription = await _subscriptionRepository.GetActiveByTenantIdAsync(payment.TenantId);
+        if (activeSubscription != null && activeSubscription.Id != subscription.Id)
+        {
+            bool isCurrentPlanFree = activeSubscription.Plan?.MonthlyPrice == 0 || activeSubscription.Plan?.Name.ToLower().Contains("free") == true;
+            if (isCurrentPlanFree)
+            {
+                activeSubscription.Status = SubscriptionStatus.Expired;
+                activeSubscription.EndDate = DateTime.UtcNow;
+                activeSubscription.UpdatedAt = DateTime.UtcNow;
+                await _subscriptionRepository.UpdateAsync(activeSubscription);
+            }
+        }
 
         // Update Subscription
         // If it starts in the future, it should be Scheduled. If it starts now, it's Active.
