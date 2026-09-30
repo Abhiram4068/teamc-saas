@@ -23,19 +23,19 @@ export default function PublicLanding() {
         // Typewriter typing forward
         timeout = setTimeout(() => {
           setCharCount((prev) => prev + 1);
-        }, 75);
+        }, 40);
       } else {
         // Pause after fully typing the phrase
         timeout = setTimeout(() => {
           setIsDeleting(true);
-        }, 1600);
+        }, 1200);
       }
     } else {
       if (charCount > 0) {
         // Typewriter backspacing
         timeout = setTimeout(() => {
           setCharCount((prev) => prev - 1);
-        }, 35);
+        }, 20);
       } else {
         // Switch to the next phrase and start typing again
         setIsDeleting(false);
@@ -67,7 +67,7 @@ export default function PublicLanding() {
 
         {/* Centered Typewriter Text (Rotates through the 3 phrases) */}
         <div className="relative z-10 flex items-center justify-center w-full px-4 -mt-24 sm:-mt-32">
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white whitespace-nowrap select-none font-sans text-center drop-shadow-[0_10px_35px_rgba(0,0,0,0.8)]">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white whitespace-nowrap select-none font-sans text-center ">
             {currentPhrase.slice(0, charCount)}
           </h1>
         </div>
