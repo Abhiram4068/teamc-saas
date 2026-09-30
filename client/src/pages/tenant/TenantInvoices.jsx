@@ -1,188 +1,346 @@
-import React, { useEffect, useState } from 'react';
-import { billingApi } from '../../api/billingApi';
-import { Download, ExternalLink, Filter, Plus, FileText, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { paymentApi } from "../../api/paymentApi";
+import { invoiceApi } from "../../api/invoiceApi";
+import { useToast } from "../../utils/Toast";
 
 export default function TenantInvoices() {
-  const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [payments, setPayments] = useState([]);
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+  const [sortColumn, setSortColumn] = useState("");
+  const [sortOrder, setSortOrder] = useState("");
 
   useEffect(() => {
-    const fetchInvoices = async () => {
-      try {
-        const data = await billingApi.getInvoices();
-        setInvoices(data);
-      } catch (err) {
-        console.error('Error fetching invoices:', err);
-        setError('Failed to load invoices. Please try again later.');
-      } finally {
-        setLoading(false);
+    const delayDebounceFn = setTimeout(() => {
+      fetchPaymentHistory();
+    }, 400);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, pageNumber, sortColumn, sortOrder]);
+
+  async function fetchPaymentHistory() {
+    try {
+      const params = {
+        searchTerm,
+        pageNumber,
+        pageSize,
+        sortColumn,
+        sortOrder
+      };
+      const res = await invoiceApi.getInvoices(params);
+
+      // Because getInvoices is wrapped in ApiResponse, the payload is in res.data.data
+      if (res?.data?.data?.items) {
+        setPayments(res.data.data.items);
+        setTotalCount(res.data.data.totalCount || 0);
+      } else if (res?.data?.items) {
+        setPayments(res.data.items);
+        setTotalCount(res.data.totalCount || 0);
       }
-    };
+    } catch (err) {
+      showToast("Failed to load invoices.", "error");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    fetchInvoices();
-  }, []);
-
-  const formatDate = (dateString) => {
-    const options = { day: '2-digit', month: 'short', year: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : sortOrder === "desc" ? "" : "asc");
+      if (sortOrder === "desc") setSortColumn("");
+    } else {
+      setSortColumn(column);
+      setSortOrder("asc");
+    }
+    setPageNumber(1);
   };
 
-  const getStatusBadge = (status) => {
-    switch (status.toLowerCase()) {
-      case 'paid':
+
+
+  const handleViewInvoiceDetails = (paymentId) => {
+    navigate(`/tenant/invoices/${paymentId}`);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusBadge = (statusCode) => {
+    switch (statusCode) {
+      case 2: // Succeeded
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-emerald-700 ">
+          <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-emerald-700">
+            <span className="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-500"></span>
             Paid
           </span>
         );
-      case 'open':
+      case 1: // Pending
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-            <Clock className="w-3.5 h-3.5" />
-            Processing
+          <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-amber-700">
+            <span className="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-500"></span>
+            Pending
           </span>
         );
-      case 'uncollectible':
-      case 'void':
+      case 3: // Failed
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
-            <XCircle className="w-3.5 h-3.5" />
+          <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-red-700">
+            <span className="w-1.5 h-1.5 mr-1.5 rounded-full bg-red-500"></span>
             Failed
+          </span>
+        );
+      case 4: // Refunded
+      case 5: // PartiallyRefunded
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-blue-700">
+            <span className="w-1.5 h-1.5 mr-1.5 rounded-full bg-blue-500"></span>
+            Refunded
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
-            <Clock className="w-3.5 h-3.5" />
-            Pending
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">
+            {statusCode || "N/A"}
           </span>
         );
     }
   };
 
-  const formatCurrency = (amount, currency) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: currency || 'INR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[70vh]">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* Header Section */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-slate-800">Invoices</h1>
-          {/* <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
-              <Filter className="w-4 h-4" />
-              Filter
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
-              <Download className="w-4 h-4" />
-              Export
-            </button>
-          </div> */}
+    <div
+      className="max-w-7xl mx-auto space-y-8 pb-20 px-8 mt-4"
+      style={{ fontFamily: "'Inter', sans-serif" }}
+    >
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+            Invoices
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            View and download past invoices and transaction details for your account.
+          </p>
         </div>
-
-        {/* Table Container */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          {loading ? (
-            <div className="p-8 text-center text-slate-500">Loading invoices...</div>
-          ) : error ? (
-            <div className="p-8 text-center text-red-500">{error}</div>
-          ) : invoices.length === 0 ? (
-            <div className="p-12 flex flex-col items-center justify-center text-slate-500">
-              <FileText className="w-12 h-12 text-slate-300 mb-4" />
-              <p className="text-lg font-medium text-slate-700">No invoices found</p>
-              <p className="text-sm mt-1">You don't have any billing history yet.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-
-                    <th className="px-6 py-2">Invoice</th>
-                    <th className="px-6 py-2">Date</th>
-                    <th className="px-6 py-2">Plan Details</th>
-                    <th className="px-6 py-2 text-center">Status</th>
-                    <th className="px-6 py-2 text-right">Amount</th>
-                    <th className="px-6 py-2 text-center w-24">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
-                  {invoices.map((invoice) => (
-                    <tr key={invoice.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="px-6 py-3">
-                        <div className="font-medium text-indigo-600">
-                          {invoice.number ? `#${invoice.number}` : 'Draft'}
-                        </div>
-                        <div className="text-xs text-slate-400 mt-1">{invoice.id}</div>
-                      </td>
-                      <td className="px-6 py-3 text-slate-600">
-                        {formatDate(invoice.created)}
-                      </td>
-                      <td className="px-6 py-3">
-                        <div className="font-medium text-slate-700">{invoice.planName}</div>
-                      </td>
-                      <td className="px-6 py-3 text-center">
-                        {getStatusBadge(invoice.status)}
-                      </td>
-                      <td className="px-6 py-3 text-right font-medium text-slate-700">
-                        {formatCurrency(invoice.amountPaid, invoice.currency)}
-                      </td>
-                      <td className="px-6 py-3 text-center">
-                        <div className="flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {invoice.hostedInvoiceUrl && (
-                            <a 
-                              href={invoice.hostedInvoiceUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-slate-400 hover:text-indigo-600 transition-colors"
-                              title="View Invoice"
-                            >
-                              <ExternalLink className="w-4 h-4" />
-                            </a>
-                          )}
-                          {invoice.invoicePdfUrl && (
-                            <a 
-                              href={invoice.invoicePdfUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-slate-400 hover:text-indigo-600 transition-colors"
-                              title="Download PDF"
-                            >
-                              <Download className="w-4 h-4" />
-                            </a>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          
-          {/* Pagination Footer */}
-          {!loading && invoices.length > 0 && (
-            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-              <p className="text-xs text-slate-500">
-                Showing <span className="font-medium">1</span> to <span className="font-medium">{invoices.length}</span> of <span className="font-medium">{invoices.length}</span> results
-              </p>
-              <div className="flex gap-1">
-                <button className="px-3 py-1 border border-slate-200 bg-white text-slate-400 rounded hover:bg-slate-50 disabled:opacity-50" disabled>&lt;</button>
-                <button className="px-3 py-1 border border-indigo-600 bg-indigo-50 text-indigo-600 rounded font-medium">1</button>
-                <button className="px-3 py-1 border border-slate-200 bg-white text-slate-400 rounded hover:bg-slate-50 disabled:opacity-50" disabled>&gt;</button>
-              </div>
-            </div>
-          )}
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-72">
+            <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search plan or invoice..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPageNumber(1);
+              }}
+              className="w-full pl-9 pr-4 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            />
+          </div>
         </div>
       </div>
+
+      {/* Table Section */}
+      {payments.length === 0 ? (
+        <div className="p-12 text-center ">
+          <svg
+            className="w-12 h-12 text-slate-300 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <h3 className="text-base font-bold text-slate-900 mb-1">
+            No invoices found
+          </h3>
+          <p className="text-xs text-slate-500">
+            You do not have any invoices yet.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            {/* Table Header */}
+            <thead>
+              <tr className="border-b border-slate-200">
+                <th
+                  scope="col"
+                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider"
+                >
+                  Payment ID
+                </th>
+                <th
+                  scope="col"
+                  onClick={() => handleSort('paymentdate')}
+                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-800 select-none group transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    Billing Date
+                    {sortColumn === 'paymentdate' ? (
+                      <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    ) : (
+                      <span className="text-slate-300 transition-opacity">↕</span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  onClick={() => handleSort('planname')}
+                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-800 select-none group transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    Plan
+                    {sortColumn === 'planname' ? (
+                      <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    ) : (
+                      <span className="text-slate-300 transition-opacity">↕</span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  onClick={() => handleSort('amount')}
+                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-800 select-none group transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    Amount
+                    {sortColumn === 'amount' ? (
+                      <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    ) : (
+                      <span className="text-slate-300 transition-opacity">↕</span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="pb-3 font-semibold text-slate-500 uppercase tracking-wider text-right"
+                >
+                  Invoice
+                </th>
+              </tr>
+            </thead>
+
+            {/* Table Body */}
+            <tbody className="divide-y divide-slate-100">
+              {payments.map((item) => (
+                <tr
+                  key={item.id}
+                  className="hover:bg-slate-50/50 transition-colors"
+                >
+                  {/* Invoice ID */}
+                  <td className="py-4 font-medium text-slate-900 whitespace-nowrap">
+                    {item.stripeInvoiceId || item.id || "INV-—"}
+                  </td>
+
+                  {/* Billing Date */}
+                  <td className="py-4 text-slate-600 whitespace-nowrap">
+                    {formatDate(item.paymentDate || item.createdAt)}
+                  </td>
+
+                  {/* Plan / Description */}
+                  <td className="py-4 text-slate-700 font-medium whitespace-nowrap">
+                    {item.planName || "Subscription Plan"}
+                  </td>
+
+                  {/* Amount */}
+                  <td className="py-4 font-semibold text-slate-900 whitespace-nowrap">
+                    ₹{Number(item.amount || 0).toLocaleString()}
+                  </td>
+
+                  {/* Status */}
+                  <td className="py-4 whitespace-nowrap">
+                    {getStatusBadge(item.status)}
+                  </td>
+
+                  {/* Invoice PDF Link */}
+                  <td className="py-4 text-right whitespace-nowrap">
+                    {item.status === 2 ? (
+                      <div className="flex justify-end gap-3">
+                        <button
+                          onClick={() => handleViewInvoiceDetails(item.id)}
+                          className="inline-flex items-center text-xs font-semibold text-slate-600 hover:text-slate-800 transition-colors bg-transparent border-none cursor-pointer"
+                          title="View Details"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          View
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-slate-400 text-xs italic">
+                        Unavailable
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Pagination Footer */}
+      {totalCount > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between mt-6 px-1 gap-4">
+          <p className="text-xs text-slate-500">
+            Showing <span className="font-semibold text-slate-900">{(pageNumber - 1) * pageSize + 1}</span> to{" "}
+            <span className="font-semibold text-slate-900">{Math.min(pageNumber * pageSize, totalCount)}</span> of{" "}
+            <span className="font-semibold text-slate-900">{totalCount}</span> results
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPageNumber(p => Math.max(1, p - 1))}
+              disabled={pageNumber === 1}
+              className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPageNumber(p => p + 1)}
+              disabled={pageNumber * pageSize >= totalCount}
+              className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -15,5 +15,7 @@ public interface ISubscriptionService
 
     Task<ApiResponse<string>> CompleteCheckoutAsync(string sessionId, string customerId, string subscriptionId);
 
+    Task<ApiResponse<string>> CancelSubscriptionAsync(int tenantId);
+
     Task<ApiResponse<IEnumerable<PlanFeatureResponseDto>>> GetMyPlanFeaturesAsync(int tenantId);
 }

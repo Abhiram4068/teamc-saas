@@ -66,4 +66,19 @@ public class StripePaymentGateway : IStripePaymentGateway
             CheckoutUrl = session.Url
         };
     }
+
+    public async Task<bool> CancelSubscriptionAsync(string stripeSubscriptionId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+
+        var service = new global::Stripe.SubscriptionService();
+        var subscription = await service.CancelAsync(stripeSubscriptionId);
+
+        return subscription.Status == "canceled";
+    }
 }

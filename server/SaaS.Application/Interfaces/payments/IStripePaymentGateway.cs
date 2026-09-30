@@ -1,4 +1,4 @@
-﻿using SaaS.Application.DTOs.Payements;
+using SaaS.Application.DTOs.Payements;
 
 namespace SaaS.Application.Interfaces.Payment;
 
@@ -11,4 +11,6 @@ public interface IStripePaymentGateway
         int tenantId,
         int userId,
         string stripePriceId);
+
+    Task<bool> CancelSubscriptionAsync(string stripeSubscriptionId);
 }

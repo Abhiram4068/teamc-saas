@@ -19,7 +19,6 @@ export default function TenantSidebar() {
       icon: 'fa-solid fa-user-group',
       subItems: [
         { label: 'Admins', to: '/tenant/administrators' },
-        { label: 'Users', to: '/tenant/users' },
         { label: 'Add Admins', to: '/tenant/add-admin' },
       ],
     },
@@ -27,18 +26,18 @@ export default function TenantSidebar() {
       label: 'Subscriptions',
       icon: 'fa-solid fa-credit-card',
       subItems: [
-        { label: 'Billings', to: '/tenant/billing' },
-        { label: 'Change Plan', to: '/tenant/plans' },
         { label: 'Subscription Summary', to: '/tenant/subscription-summary' },
-        { label: 'Invoices', to: '/tenant/invoices' },
+        { label: 'Change Plan', to: '/tenant/plans' },
         { label: 'Payments', to: '/tenant/payments' },
+        { label: 'Invoices', to: '/tenant/invoices' },
+
       ],
     },
     {
       label: 'Support',
       icon: 'fa-solid fa-headset',
       subItems: [
-        { label: 'Manage Tickets', to: '/tenant/support-tickets' },
+        { label: 'Manage Tickets', to: '/tickets/', target: '_blank' },
         { label: 'Contact Support', to: '/tenant/contact-support' },
       ],
     }
@@ -89,6 +88,7 @@ export default function TenantSidebar() {
                   <NavLink
                     key={sub.label}
                     to={sub.to}
+                    target={sub.target}
                     className={({ isActive }) =>
                       `block py-1 transition-all duration-200 text-[12px] ${
                         isActive
@@ -115,6 +115,9 @@ export default function TenantSidebar() {
           <i className="fa-solid fa-arrow-right-from-bracket w-5 text-center text-[13px] mr-3"></i>
           <span className="text-[13px]">Logout</span>
         </button>
+      </div>
+      <div className="w-full text-center pb-6 pt-2 text-[10px] text-gray-500 font-medium tracking-wide">
+        A <span className="font-bold">TEAMO</span> product
       </div>
     </aside>
   );

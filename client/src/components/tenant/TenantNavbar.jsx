@@ -31,9 +31,19 @@ export default function TenantNavbar() {
 
       <div className="flex items-center justify-end space-x-4 w-1/3">
 
-        {/* User Profile Avatar */}
-        <div className="flex items-center ml-2">
-          <div className="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xs shadow-sm select-none cursor-pointer hover:bg-brand-700 transition-colors">
+        {/* User Profile Info & Avatar */}
+        <div className="flex items-center gap-3 ml-2">
+          {user && (
+            <div className="flex flex-col items-end text-right">
+              <span className="text-sm font-semibold text-slate-800 leading-tight">
+                {user.firstName} {user.lastName}
+              </span>
+              <span className="text-[10px] font-medium text-slate-500 leading-tight">
+                {user.email}
+              </span>
+            </div>
+          )}
+          <div className="w-9 h-9 rounded-full bg-[#1A1E29] text-white flex items-center justify-center font-bold text-sm shadow-sm select-none cursor-pointer ">
             {getInitials()}
           </div>
         </div>

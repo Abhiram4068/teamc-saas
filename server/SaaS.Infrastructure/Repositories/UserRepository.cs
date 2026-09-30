@@ -42,6 +42,16 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<User>> GetUsersByRoleAsync(Role role, long? tenantId = null)
+    {
+        var query = _context.Users.Where(u => u.Role == role && u.Status != UserStatus.Deleted);
+        if (tenantId.HasValue)
+        {
+            query = query.Where(u => u.TenantId == tenantId.Value);
+        }
+        return await query.ToListAsync();
+    }
+
     public async Task AddAsync(User user)
     {
         await _context.Users.AddAsync(user);
