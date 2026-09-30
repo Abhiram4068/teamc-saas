@@ -63,12 +63,31 @@ export default function PublicNavbar() {
           <div className="hidden sm:flex items-center space-x-4">
             {user ? (
               <>
-                <Link
-                  to="/tenant/dashboard"
-                  className=" text-[#091E42] hover:text-[#091E41]/90 text-sm font-semibold px-4 py-2 rounded-md transition duration-150 shadow-xs cursor-pointer"
-                >
-                  Access Tenant Portal
-                </Link>
+                {(() => {
+                  const role = user?.role?.toString() || user?.roleId?.toString();
+                  if (role === '1') return null; // Superadmin sees no portal link
+                  
+                  let linkPath = '/tenant/dashboard';
+                  let linkLabel = 'Access Tenant Portal';
+                  
+                  if (role === '3') {
+                    linkPath = '/tenant-admin/dashboard';
+                    linkLabel = 'Access Admin Portal';
+                  } else if (role === '4') {
+                    linkPath = '/emp/dashboard';
+                    linkLabel = 'Access Employee Portal';
+                  }
+                  
+                  return (
+                    <Link
+                      to={linkPath}
+                      className=" text-[#091E42] hover:text-[#091E41]/90 text-sm font-semibold px-4 py-2 rounded-md transition duration-150 shadow-xs cursor-pointer"
+                    >
+                      {linkLabel}
+                    </Link>
+                  );
+                })()}
+
                 <div
                   className="relative"
                   onMouseEnter={() => setIsProfileMenuOpen(true)}
@@ -81,13 +100,33 @@ export default function PublicNavbar() {
                   {isProfileMenuOpen && (
                     <div className="absolute right-0 top-full pt-2 w-48 z-50">
                       <div className="bg-white border border-slate-200 rounded-lg shadow-xl py-1">
-                        <Link
-                          to="/tenant/dashboard"
-                          className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium"
-                        >
-                          Access My Tenant Portal
-                        </Link>
-                        <div className="border-t border-slate-100 my-1"></div>
+                        {(() => {
+                          const role = user?.role?.toString() || user?.roleId?.toString();
+                          if (role === '1') return null; // Superadmin sees no dropdown link
+                          
+                          let linkPath = '/tenant/dashboard';
+                          let linkLabel = 'Access My Tenant Portal';
+                          
+                          if (role === '3') {
+                            linkPath = '/tenant-admin/dashboard';
+                            linkLabel = 'Access Admin Portal';
+                          } else if (role === '4') {
+                            linkPath = '/emp/dashboard';
+                            linkLabel = 'Access Employee Portal';
+                          }
+                          
+                          return (
+                            <>
+                              <Link
+                                to={linkPath}
+                                className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium"
+                              >
+                                {linkLabel}
+                              </Link>
+                              <div className="border-t border-slate-100 my-1"></div>
+                            </>
+                          );
+                        })()}
                         <button
                           onClick={handleLogout}
                           className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium"
@@ -166,13 +205,31 @@ export default function PublicNavbar() {
               <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
                 {user ? (
                   <>
-                    <Link
-                      to="/tenant/dashboard"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="text-center py-2 text-brand-600 font-semibold"
-                    >
-                      Access My Tenant Portal
-                    </Link>
+                    {(() => {
+                      const role = user?.role?.toString() || user?.roleId?.toString();
+                      if (role === '1') return null;
+                      
+                      let linkPath = '/tenant/dashboard';
+                      let linkLabel = 'Access My Tenant Portal';
+                      
+                      if (role === '3') {
+                        linkPath = '/tenant-admin/dashboard';
+                        linkLabel = 'Access Admin Portal';
+                      } else if (role === '4') {
+                        linkPath = '/emp/dashboard';
+                        linkLabel = 'Access Employee Portal';
+                      }
+                      
+                      return (
+                        <Link
+                          to={linkPath}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="text-center py-2 text-brand-600 font-semibold"
+                        >
+                          {linkLabel}
+                        </Link>
+                      );
+                    })()}
                     <button
                       onClick={() => {
                         handleLogout();
