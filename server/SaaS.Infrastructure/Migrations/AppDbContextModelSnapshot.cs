@@ -672,6 +672,98 @@ namespace SaaS.Infrastructure.Migrations
                     b.ToTable("Tenant", (string)null);
                 });
 
+            modelBuilder.Entity("SaaS.Domain.Entities.Ticket", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AssignedToEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Priority")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(2);
+
+                    b.Property<string>("RaisedByEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<long?>("TenantId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("SaaS.Domain.Entities.TicketReply", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReplyByEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<long>("TicketId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("TicketReplies");
+                });
+
             modelBuilder.Entity("SaaS.Domain.Entities.User", b =>
                 {
                     b.Property<long>("Id")
@@ -1035,6 +1127,17 @@ namespace SaaS.Infrastructure.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("SaaS.Domain.Entities.TicketReply", b =>
+                {
+                    b.HasOne("SaaS.Domain.Entities.Ticket", "Ticket")
+                        .WithMany("Replies")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ticket");
+                });
+
             modelBuilder.Entity("SaaS.Domain.Entities.User", b =>
                 {
                     b.HasOne("SaaS.Domain.Entities.Tenant", "Tenant")
@@ -1138,6 +1241,11 @@ namespace SaaS.Infrastructure.Migrations
                     b.Navigation("Subscriptions");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("SaaS.Domain.Entities.Ticket", b =>
+                {
+                    b.Navigation("Replies");
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.User", b =>

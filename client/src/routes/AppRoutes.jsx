@@ -17,7 +17,10 @@ const TenantLayout = lazy(() => import('../layouts/TenantLayout'));
 const TenantDashboard = lazy(() => import('../pages/tenant/TenantDashboard'));
 const TenantMyPlan = lazy(() => import('../pages/tenant/TenantMyPlan'));
 const TenantViewPlans = lazy(() => import('../pages/tenant/TenantViewPlans'));
+const TenantSubscriptionSummary = lazy(() => import('../pages/tenant/TenantSubscriptionSummary'));
+const TenantViewPayments = lazy(() => import('../pages/tenant/TenantViewPayments'));
 const TenantInvoices = lazy(() => import('../pages/tenant/TenantInvoices'));
+const TenantInvoiceView = lazy(() => import('../pages/tenant/TenantInvoiceView'));
 const TenantAddAdmin = lazy(() => import('../pages/tenant/TenantAddAdmin'));
 const TenantAdministrators = lazy(() => import('../pages/tenant/TenantAdministrators'));
 const SuperAdminRoute = lazy(() => import('./SuperAdminRoute'));
@@ -57,6 +60,13 @@ const TeamWorkReportsList = lazy(() => import('../pages/employee/TeamWorkReports
 
 const TenantRegistration = lazy(() => import('../pages/public/Register'));
 const Login = lazy(() => import('../pages/public/Login'));
+
+// Ticket Routes
+const TicketLayout = lazy(() => import('../components/tickets/TicketLayout'));
+const TicketDashboard = lazy(() => import('../pages/tickets/TicketDashboard'));
+const EscalatedTickets = lazy(() => import('../pages/tickets/EscalatedTickets'));
+const MyTickets = lazy(() => import('../pages/tickets/MyTickets'));
+const TicketDetails = lazy(() => import('../pages/tickets/TicketDetails'));
 
 // Route guards
 const PublicOnlyRoute = lazy(() => import('./PublicOnlyRoute'));
@@ -139,7 +149,10 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<TenantDashboard />} />
             <Route path="my-plan" element={<TenantMyPlan />} />
             <Route path="plans" element={<TenantViewPlans />} />
+            <Route path="subscription-summary" element={<TenantSubscriptionSummary />} />
+            <Route path="payments" element={<TenantViewPayments />} />
             <Route path="invoices" element={<TenantInvoices />} />
+            <Route path="invoices/:paymentId" element={<TenantInvoiceView />} />
             <Route path="administrators" element={<TenantAdministrators />} />
             <Route path="add-admin" element={<TenantAddAdmin />} />
           </Route>
@@ -183,6 +196,19 @@ export default function AppRoutes() {
             <Route path="work-reports/team" element={<TeamWorkReportsList />} />
             <Route path="work-reports/team/:targetUserId" element={<WorkReport />} />
           </Route>
+        </Route>
+
+        {/* Ticket System Routes */}
+        <Route path="/tickets" element={<TicketLayout />}>
+          <Route index element={<TicketDashboard />} />
+          <Route path="all" element={<TicketDashboard />} />
+          <Route path="open" element={<TicketDashboard />} />
+          <Route path="resolved" element={<TicketDashboard />} />
+          <Route path="escalated" element={<EscalatedTickets />} />
+          <Route path="employee" element={<TicketDashboard />} />
+          <Route path="my-tickets" element={<MyTickets />} />
+          <Route path="assigned" element={<TicketDashboard />} />
+          <Route path=":id" element={<TicketDetails />} />
         </Route>
 
         {/* Fallback Redirection */}

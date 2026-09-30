@@ -14,5 +14,10 @@ export const subscriptionApi = {
   createCheckoutSession: async (data) => {
     const response = await axiosInstance.post('/Subscriptions/checkout', data);
     return response.data;
+  },
+
+  cancelSubscription: async () => {
+    const response = await axiosInstance.post('/Subscriptions/cancel');
+    return response.data;
   }
 };

@@ -54,6 +54,11 @@ export default function TenantAdminSidebar() {
             <span>Work Report Types</span>
           </NavLink>
         </FeatureGate>
+
+        <NavLink to="/tickets" target="_blank" className={linkClass}>
+          <i className="fas fa-headset text-base w-5 text-center"></i>
+          <span>Support</span>
+        </NavLink>
       </div>
       
       <div 

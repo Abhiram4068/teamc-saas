@@ -31,3 +31,10 @@ export const getRole = () => {
   const userRole = typeof roleClaim === 'string' ? parseInt(roleClaim, 10) : roleClaim;
   return userRole;
 };
+
+export const getEmail = () => {
+  const token = getToken();
+  if (!token) return null;
+  const decoded = parseJwt(token);
+  return decoded?.email || decoded?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'];
+};
