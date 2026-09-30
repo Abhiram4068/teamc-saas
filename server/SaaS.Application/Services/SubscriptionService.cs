@@ -209,7 +209,7 @@ public class SubscriptionService : ISubscriptionService
         payment.UpdatedAt = DateTime.UtcNow;
         await _paymentRepository.UpdateAsync(payment);
 
-        var activeSubscription = await _subscriptionRepository.GetActiveByTenantIdAsync(payment.TenantId);
+        var activeSubscription = await _subscriptionRepository.GetActiveByTenantIdAsync((int)payment.TenantId);
         if (activeSubscription != null && activeSubscription.Id != subscription.Id)
         {
             bool isCurrentPlanFree = activeSubscription.Plan?.MonthlyPrice == 0 || activeSubscription.Plan?.Name.ToLower().Contains("free") == true;
