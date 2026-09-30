@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { planApi } from '../../api/planApi';
 import { subscriptionApi } from '../../api/subscriptionApi';
+import { validateCheckoutForm } from '../../validators/checkoutValidator';
 
 export default function Checkout() {
     const { planId } = useParams();
@@ -17,6 +18,7 @@ export default function Checkout() {
         state: '',
         pincode: ''
     });
+    const [fieldErrors, setFieldErrors] = useState({});
 
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -52,9 +54,16 @@ export default function Checkout() {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        setFieldErrors(prev => ({ ...prev, [name]: '' }));
     };
 
     const handleCheckout = async () => {
+        const validation = validateCheckoutForm(formData);
+        if (!validation.isValid) {
+            setFieldErrors(validation.errors);
+            return;
+        }
+
         try {
             setIsProcessing(true);
             const payload = {
@@ -94,45 +103,69 @@ export default function Checkout() {
                     {/* Step 1: Organization Details Form */}
                     <div className="p-6 sm:p-7">
                         <h2 className="text-base font-bold text-slate-900 mb-0.5">
-                            1. Organization info
+                            Billing info
                         </h2>
                         <p className="text-xs text-slate-500 mb-6">This information will be included on all billing invoices on your account.</p>
 
                         <form className="space-y-4">
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Organization name</label>
-                                <input type="text" name="organizationName" value={formData.organizationName} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-300 focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-medium outline-none transition" placeholder="Enter organization name" />
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Organization name <span className="text-red-500">*</span></label>
+                                <input type="text" name="organizationName" value={formData.organizationName} onChange={handleInputChange} className={`w-full px-3 py-2 rounded border ${fieldErrors.organizationName ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:ring-brand-500'} focus:ring-1 focus:border-brand-500 text-sm font-medium outline-none transition`} placeholder="Enter organization name" />
+                                {fieldErrors.organizationName && <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.organizationName}</p>}
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Address</label>
-                                <input type="text" name="address" value={formData.address} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-300 focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm outline-none transition" placeholder="Street address or P.O. Box" />
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Address <span className="text-red-500">*</span></label>
+                                <input type="text" name="address" value={formData.address} onChange={handleInputChange} className={`w-full px-3 py-2 rounded border ${fieldErrors.address ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:ring-brand-500'} focus:ring-1 focus:border-brand-500 text-sm outline-none transition`} placeholder="Street address or P.O. Box" />
+                                {fieldErrors.address && <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.address}</p>}
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">City</label>
-                                    <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-300 focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm outline-none transition" />
+                                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">City <span className="text-red-500">*</span></label>
+                                    <input type="text" name="city" value={formData.city} onChange={handleInputChange} className={`w-full px-3 py-2 rounded border ${fieldErrors.city ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:ring-brand-500'} focus:ring-1 focus:border-brand-500 text-sm outline-none transition`} />
+                                    {fieldErrors.city && <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.city}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">PIN Code</label>
-                                    <input type="text" name="pincode" value={formData.pincode} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-300 focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm outline-none transition" />
+                                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">PIN Code <span className="text-red-500">*</span></label>
+                                    <input type="text" name="pincode" value={formData.pincode} onChange={handleInputChange} className={`w-full px-3 py-2 rounded border ${fieldErrors.pincode ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:ring-brand-500'} focus:ring-1 focus:border-brand-500 text-sm outline-none transition`} />
+                                    {fieldErrors.pincode && <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.pincode}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">State</label>
-                                    <select name="state" value={formData.state} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-300 bg-white focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-medium outline-none transition">
+                                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">State <span className="text-red-500">*</span></label>
+                                    <select name="state" value={formData.state} onChange={handleInputChange} className={`w-full px-3 py-2 rounded border ${fieldErrors.state ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:ring-brand-500'} bg-white focus:ring-1 focus:border-brand-500 text-sm font-medium outline-none transition`}>
                                         <option value="" disabled>Select</option>
-                                        <option value="KL">Kerala</option>
-                                        <option value="KA">Karnataka</option>
-                                        <option value="MH">Maharashtra</option>
-                                        <option value="DL">Delhi</option>
+                                        <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                        <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                        <option value="Assam">Assam</option>
+                                        <option value="Bihar">Bihar</option>
+                                        <option value="Chhattisgarh">Chhattisgarh</option>
+                                        <option value="Goa">Goa</option>
+                                        <option value="Gujarat">Gujarat</option>
+                                        <option value="Haryana">Haryana</option>
+                                        <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                        <option value="Jharkhand">Jharkhand</option>
+                                        <option value="Karnataka">Karnataka</option>
+                                        <option value="Kerala">Kerala</option>
+                                        <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                        <option value="Maharashtra">Maharashtra</option>
+                                        <option value="Manipur">Manipur</option>
+                                        <option value="Meghalaya">Meghalaya</option>
+                                        <option value="Mizoram">Mizoram</option>
+                                        <option value="Nagaland">Nagaland</option>
+                                        <option value="Odisha">Odisha</option>
+                                        <option value="Punjab">Punjab</option>
+                                        <option value="Rajasthan">Rajasthan</option>
+                                        <option value="Sikkim">Sikkim</option>
+                                        <option value="Tamil Nadu">Tamil Nadu</option>
+                                        <option value="Telangana">Telangana</option>
+                                        <option value="Tripura">Tripura</option>
+                                        <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                        <option value="Uttarakhand">Uttarakhand</option>
+                                        <option value="West Bengal">West Bengal</option>
                                     </select>
+                                    {fieldErrors.state && <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.state}</p>}
                                 </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">GSTIN ID <span className="text-slate-400 font-normal lowercase">(optional)</span></label>
-                                <input type="text" placeholder="12ABCDE3456F7Z8" className="w-full px-3 py-2 rounded border border-slate-300 focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-mono uppercase outline-none transition" />
                             </div>
                         </form>
                     </div>
@@ -195,7 +228,7 @@ export default function Checkout() {
                                                 <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Yearly</span>
                                             </div>
                                             {plan.monthlyPrice * 12 > plan.yearlyPrice && (
-                                                <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Save</span>
+                                                <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Save up to 20%</span>
                                             )}
                                         </div>
                                         <div className="text-lg font-extrabold text-slate-900">₹{plan.yearlyPrice}</div>
@@ -217,9 +250,15 @@ export default function Checkout() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path>
                                         </svg>
                                         <div>
-                                            <div className="text-xs font-bold text-slate-800">{feature.featureName}</div>
+                                            <div className="text-xs font-bold text-slate-800">
+                                                {feature.featureName}
+                                                <span className='font-bold'> {feature.limitValue != null && <span className="font-bold mr-1">{feature.limitValue}</span>}</span>
+                                            </div>
                                             {feature.featureDescription && (
-                                                <p className="text-[11px] text-slate-500 leading-normal mt-0.5">{feature.featureDescription}</p>
+                                                <p className="text-[11px] text-slate-500 leading-normal mt-0.5">
+                                                    {feature.featureDescription}
+                                                    <span className='font-bold'> {feature.limitValue != null && <span className="font-bold mr-1">{feature.limitValue}</span>}</span>
+                                                </p>
                                             )}
                                         </div>
                                     </li>

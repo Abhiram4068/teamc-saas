@@ -9,8 +9,10 @@ export default function TenantLogin() {
   const { reloadFeatures } = useFeatures();
 
   // Check if redirected from a successful registration
-  const queryParams = new URLSearchParams(location.search);
-  const isNewlyRegistered = queryParams.get('registered') === 'true';
+  const [isNewlyRegistered, setIsNewlyRegistered] = useState(() => {
+    const queryParams = new URLSearchParams(location.search);
+    return queryParams.get('registered') === 'true';
+  });
 
   const [formData, setFormData] = useState({
     email: '',
@@ -29,6 +31,7 @@ export default function TenantLogin() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
+    setIsNewlyRegistered(false);
 
     if (!formData.email.trim() || !formData.password.trim()) {
       setLoginError('Please enter both your work email and password.');
@@ -74,15 +77,17 @@ export default function TenantLogin() {
         
         {/* Top Navigation / Brand */}
         <div className="flex flex-col items-start gap-5">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center text-slate-400 hover:text-slate-900 transition-colors text-xs font-semibold group"
-          >
-            <svg className="w-3.5 h-3.5 mr-1.5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Go back
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center text-slate-400 hover:text-slate-900 transition-colors text-xs font-semibold group"
+            >
+              <svg className="w-3.5 h-3.5 mr-1.5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Go back
+            </button>
+          </div>
           <h1 className="text-xl font-bold tracking-tight text-slate-900">
             Teamo<span className="text-blue-600">.</span>
           </h1>
@@ -99,14 +104,14 @@ export default function TenantLogin() {
               Welcome back! Please enter your corporate credentials to continue.
             </p>
             {loginError && (
-              <div className="mt-4 p-3 text-xs text-red-700">
+              <div className="mt-4 p-3 text-xs font-semibold text-center text-red-700">
                 {loginError}
               </div>
             )}
           </div>
 
           {isNewlyRegistered && (
-            <div className="mb-6 p-3 text-xs text-emerald-700">
+            <div className="mb-6 p-3 text-xs font-semibold text-center text-emerald-700">
               Registration successful! Please sign in using your newly configured admin credentials.
             </div>
           )}
@@ -133,9 +138,9 @@ export default function TenantLogin() {
                 <label htmlFor="password" className="block text-xs font-semibold text-slate-700">
                   Password
                 </label>
-                <Link to="/forgot-password" className="text-xs text-blue-600 hover:underline font-medium">
+                {/* <Link to="/forgot-password" className="text-xs text-blue-600 hover:underline font-medium">
                   Forgot password?
-                </Link>
+                </Link> */}
               </div>
               <div className="relative group">
                 <input
@@ -185,12 +190,18 @@ export default function TenantLogin() {
             </div>
           </div>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 flex flex-col items-center gap-3">
             <Link 
               to="/sign-up" 
-              className="py-3 px-4 hover: text-slate-700 text-xs font-semibold"
+              className="text-blue-600 hover:text-blue-700 hover:underline text-xs font-semibold"
             >
               Register your organization
+            </Link>
+            <Link 
+              to="/" 
+              className="text-slate-400 hover:text-slate-900 transition-colors text-xs font-semibold flex items-center justify-center"
+            >
+              Go Home
             </Link>
           </div>
         </div>

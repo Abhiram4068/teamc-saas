@@ -22,15 +22,18 @@ public class RegisterTenantRequestValidator : AbstractValidator<RegisterTenantRe
 
         RuleFor(x => x.Pincode)
             .NotEmpty().WithMessage("Pincode is required.")
-            .MinimumLength(5).WithMessage("Pincode must be at least 5 characters.")
-            .MaximumLength(10).WithMessage("Pincode cannot exceed 10 characters.");
+            .Matches("^[0-9]+$").WithMessage("Pincode must contain only numbers.")
+            .Length(6).WithMessage("Pincode must be exactly 6 digits.")
+            .Matches("^[1-9]").WithMessage("Pincode cannot start with 0.");
 
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("First Name is required.")
+            .MinimumLength(2).WithMessage("First Name must be at least 2 characters.")
             .MaximumLength(50).WithMessage("First Name cannot exceed 50 characters.");
 
         RuleFor(x => x.LastName)
             .NotEmpty().WithMessage("Last Name is required.")
+            .MinimumLength(2).WithMessage("Last Name must be at least 2 characters.")
             .MaximumLength(50).WithMessage("Last Name cannot exceed 50 characters.");
 
         RuleFor(x => x.Email)

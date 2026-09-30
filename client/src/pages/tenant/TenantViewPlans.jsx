@@ -13,6 +13,7 @@ export default function TenantViewPlans() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isScheduledModalOpen, setIsScheduledModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState(null);
 
@@ -52,6 +53,11 @@ export default function TenantViewPlans() {
   }
 
   const handlePlanSelect = (plan) => {
+    if (currentSubscription?.hasScheduledSubscription) {
+      setIsScheduledModalOpen(true);
+      return;
+    }
+
     // Only show the warning modal if they are on a paid plan (rank > 1)
     if (hasActiveSubscription && currentPlanObj && currentPlanObj.rank > 1) {
       setSelectedPlanForCheckout(plan);
@@ -299,6 +305,32 @@ export default function TenantViewPlans() {
                 className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {isCancelling ? "Cancelling..." : "Yes, Cancel Now"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scheduled Subscription Modal */}
+      {isScheduledModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-md shadow-xl max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-start gap-4 mb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Scheduled Plan Exists
+                </h3>
+                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                  You already have a pending subscription update. Please wait for it to take effect on your next billing cycle, or cancel your current plan to proceed immediately.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setIsScheduledModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>

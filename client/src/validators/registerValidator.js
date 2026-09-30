@@ -1,50 +1,53 @@
 export const validateRegistrationField = (name, value) => {
   switch (name) {
     case 'cin':
-      if (!value) return 'CIN is required.';
+      if (!value || !value.trim()) return 'CIN is required.';
       if (value.length !== 21) return 'CIN must be exactly 21 characters.';
       return '';
       
     case 'companyName':
-      if (!value) return 'Company Name is required.';
+      if (!value || !value.trim()) return 'Company Name is required.';
       if (value.length > 100) return 'Company Name cannot exceed 100 characters.';
       return '';
 
     case 'firstName':
-      if (!value) return 'First Name is required.';
+      if (!value || !value.trim()) return 'First Name is required.';
+      if (value.trim().length < 2) return 'First Name must be at least 2 characters.';
       if (value.length > 50) return 'First Name cannot exceed 50 characters.';
       return '';
 
     case 'lastName':
-      if (!value) return 'Last Name is required.';
+      if (!value || !value.trim()) return 'Last Name is required.';
+      if (value.trim().length < 2) return 'Last Name must be at least 2 characters.';
       if (value.length > 50) return 'Last Name cannot exceed 50 characters.';
       return '';
 
     case 'address':
-      if (!value) return 'Address is required.';
+      if (!value || !value.trim()) return 'Address is required.';
       if (value.length > 250) return 'Address cannot exceed 250 characters.';
       return '';
       
     case 'pincode':
-      if (!value) return 'Pincode is required.';
-      if (value.length < 5) return 'Pincode must be at least 5 characters.';
-      if (value.length > 10) return 'Pincode cannot exceed 10 characters.';
+      if (!value || !value.trim()) return 'Pincode is required.';
+      if (!/^\d+$/.test(value)) return 'Pincode must contain only numbers.';
+      if (value.length !== 6) return 'Pincode must be exactly 6 digits.';
+      if (value.startsWith('0')) return 'Pincode cannot start with 0.';
       return '';
       
     case 'adminEmail':
-      if (!value) return 'Email is required.';
+      if (!value || !value.trim()) return 'Email is required.';
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Invalid email format.';
       if (value.length > 100) return 'Email cannot exceed 100 characters.';
       return '';
       
     case 'adminPassword':
-      if (!value) return 'Password is required.';
+      if (!value || !value.trim()) return 'Password is required.';
       if (value.length < 8) return 'Password must be at least 8 characters long.';
       if (value.length > 50) return 'Password cannot exceed 50 characters.';
       return '';
 
     case 'phoneNumber':
-      if (!value) return 'Phone Number is required.';
+      if (!value || !value.trim()) return 'Phone Number is required.';
       if (value.length < 10) return 'Phone Number must be at least 10 characters.';
       if (value.length > 15) return 'Phone Number cannot exceed 15 characters.';
       return '';

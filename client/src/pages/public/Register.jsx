@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/authApi';
 import { validateRegistrationStep1, validateRegistrationStep2, validateRegistrationStep3 } from '../../validators/registerValidator';
@@ -6,24 +6,45 @@ import { validateRegistrationStep1, validateRegistrationStep2, validateRegistrat
 export default function TenantRegistration() {
   const navigate = useNavigate();
 
-  // Step state: 1 (CIN), 2 (Details), 3 (Admin Credentials)
-  const [step, setStep] = useState(1);
-  const [highestStep, setHighestStep] = useState(1);
-
-  const [formData, setFormData] = useState({
-    cin: '',
-    companyName: '',
-    incorporationDate: '',
-    companyStatus: 'Active',
-    address: '',
-    pincode: '',
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-    adminEmail: '',
-    adminPassword: '',
-    confirmPassword: '',
+  const [step, setStep] = useState(() => {
+    const saved = sessionStorage.getItem('register_step');
+    return saved ? parseInt(saved, 10) : 1;
   });
+  
+  const [highestStep, setHighestStep] = useState(() => {
+    const saved = sessionStorage.getItem('register_highestStep');
+    return saved ? parseInt(saved, 10) : 1;
+  });
+
+  const [formData, setFormData] = useState(() => {
+    const saved = sessionStorage.getItem('register_formData');
+    return saved ? JSON.parse(saved) : {
+      cin: '',
+      companyName: '',
+      incorporationDate: '',
+      companyStatus: 'Active',
+      address: '',
+      pincode: '',
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      adminEmail: '',
+      adminPassword: '',
+      confirmPassword: '',
+    };
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('register_step', step.toString());
+  }, [step]);
+
+  useEffect(() => {
+    sessionStorage.setItem('register_highestStep', highestStep.toString());
+  }, [highestStep]);
+
+  useEffect(() => {
+    sessionStorage.setItem('register_formData', JSON.stringify(formData));
+  }, [formData]);
 
   const [isVerifyingCin, setIsVerifyingCin] = useState(false);
   const [cinError, setCinError] = useState('');
@@ -110,6 +131,9 @@ export default function TenantRegistration() {
       });
 
       if (result.success) {
+        sessionStorage.removeItem('register_step');
+        sessionStorage.removeItem('register_highestStep');
+        sessionStorage.removeItem('register_formData');
         navigate('/login?registered=true');
       } else {
         if (result.validationErrors) {
@@ -284,7 +308,7 @@ export default function TenantRegistration() {
 
                 <div>
                   <label htmlFor="cin" className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    CIN Number
+                    CIN Number <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -294,7 +318,6 @@ export default function TenantRegistration() {
                     onChange={handleChange}
                     placeholder="e.g. U72200MH2023PTC123456"
                     className={`w-full px-3 py-2 text-sm uppercase tracking-wider border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.cin ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-slate-900'}`}
-                    required
                   />
                   {fieldErrors.cin && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.cin}</p>}
                 </div>
@@ -348,7 +371,7 @@ export default function TenantRegistration() {
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="address" className="block text-xs font-semibold text-slate-700 mb-1">
-                      Registered Address
+                      Registered Address <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -358,14 +381,13 @@ export default function TenantRegistration() {
                       onChange={handleChange}
                       placeholder="Building, Street, Area"
                       className={`w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.address ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-slate-900'}`}
-                      required
                     />
                     {fieldErrors.address && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.address}</p>}
                   </div>
 
                   <div>
                     <label htmlFor="pincode" className="block text-xs font-semibold text-slate-700 mb-1">
-                      Pincode / Postal Code
+                      Pincode / Postal Code <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -375,7 +397,6 @@ export default function TenantRegistration() {
                       onChange={handleChange}
                       placeholder="600001"
                       className={`w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.pincode ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-slate-900'}`}
-                      required
                     />
                     {fieldErrors.pincode && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.pincode}</p>}
                   </div>
@@ -404,9 +425,9 @@ export default function TenantRegistration() {
             {step === 3 && (
               <form onSubmit={handleSubmitRegistration} className="space-y-5">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900">Admin Credentials</h2>
+                  <h2 className="text-base font-semibold text-slate-900">Tenant Admin Credentials</h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Set up the primary work email and password to access your company workspace.
+                    Set up the primary tenant and billing admin account to manage your company workspace.
                   </p>
                 </div>
 
@@ -419,7 +440,7 @@ export default function TenantRegistration() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="firstName" className="block text-xs font-semibold text-slate-700 mb-1">
-                      First Name
+                      First Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -429,13 +450,12 @@ export default function TenantRegistration() {
                       onChange={handleChange}
                       placeholder="Jane"
                       className={`w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-slate-900'}`}
-                      required
                     />
                     {fieldErrors.firstName && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.firstName}</p>}
                   </div>
                   <div>
                     <label htmlFor="lastName" className="block text-xs font-semibold text-slate-700 mb-1">
-                      Last Name
+                      Last Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -445,7 +465,6 @@ export default function TenantRegistration() {
                       onChange={handleChange}
                       placeholder="Doe"
                       className={`w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-slate-900'}`}
-                      required
                     />
                     {fieldErrors.lastName && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.lastName}</p>}
                   </div>
@@ -453,7 +472,7 @@ export default function TenantRegistration() {
 
                 <div>
                   <label htmlFor="phoneNumber" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Phone Number
+                    Phone Number <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -463,14 +482,13 @@ export default function TenantRegistration() {
                     onChange={handleChange}
                     placeholder="+91 9876543210"
                     className={`w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.phoneNumber ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-slate-900'}`}
-                    required
                   />
                   {fieldErrors.phoneNumber && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.phoneNumber}</p>}
                 </div>
 
                 <div>
                   <label htmlFor="adminEmail" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Work Email Address
+                    Work Email Address <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -480,7 +498,6 @@ export default function TenantRegistration() {
                     onChange={handleChange}
                     placeholder="admin@company.com"
                     className={`w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.adminEmail ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-slate-900'}`}
-                    required
                   />
                   {fieldErrors.adminEmail && <p className="text-red-500 text-[10px] mt-1">{fieldErrors.adminEmail}</p>}
                 </div>
@@ -488,7 +505,7 @@ export default function TenantRegistration() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="adminPassword" className="block text-xs font-semibold text-slate-700 mb-1">
-                      Password
+                      Password <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -498,7 +515,6 @@ export default function TenantRegistration() {
                         value={formData.adminPassword}
                         onChange={handleChange}
                         className={`w-full pl-3 pr-10 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.adminPassword ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-slate-900'}`}
-                        required
                       />
                       <button
                         type="button"
@@ -513,7 +529,7 @@ export default function TenantRegistration() {
 
                   <div>
                     <label htmlFor="confirmPassword" className="block text-xs font-semibold text-slate-700 mb-1">
-                      Confirm Password
+                      Confirm Password <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -523,7 +539,6 @@ export default function TenantRegistration() {
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         className={`w-full pl-3 pr-10 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-slate-900'}`}
-                        required
                       />
                       <button
                         type="button"
@@ -562,7 +577,7 @@ export default function TenantRegistration() {
           {/* RIGHT SIDEBAR */}
           <div className="lg:col-span-5 space-y-4">
             
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs">
+            <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-xs">
               <h3 className="text-sm font-semibold text-slate-900 mb-2">Registration Notes</h3>
               <ul className="space-y-2.5 text-xs text-slate-600">
                 <li className="flex items-start gap-2">
@@ -580,7 +595,7 @@ export default function TenantRegistration() {
               </ul>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl p-5 text-xs text-slate-600 shadow-xs">
+            <div className="bg-white border border-slate-200 rounded-lg p-5 text-xs text-slate-600 shadow-xs">
               <p className="font-semibold text-slate-800 mb-1">Multi-Tenant Isolation</p>
               <p className="leading-relaxed">
                 Your workspace environment is isolated upon registration. Data access policies are automatically bounded to your organization ID.
