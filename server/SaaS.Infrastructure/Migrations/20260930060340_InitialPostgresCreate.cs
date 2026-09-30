@@ -97,6 +97,29 @@ namespace SaaS.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Tickets",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TenantId = table.Column<long>(type: "bigint", nullable: true),
+                    RaisedByEmail = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    AssignedToEmail = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Subject = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    Category = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Priority = table.Column<int>(type: "integer", nullable: false, defaultValue: 2),
+                    Status = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tickets", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Designations",
                 columns: table => new
                 {
@@ -258,6 +281,29 @@ namespace SaaS.Infrastructure.Migrations
                         principalTable: "Tenant",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TicketReplies",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TicketId = table.Column<long>(type: "bigint", nullable: false),
+                    ReplyByEmail = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Message = table.Column<string>(type: "text", nullable: false),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TicketReplies", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TicketReplies_Tickets_TicketId",
+                        column: x => x.TicketId,
+                        principalTable: "Tickets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -690,6 +736,11 @@ namespace SaaS.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_TicketReplies_TicketId",
+                table: "TicketReplies",
+                column: "TicketId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_User_Email",
                 table: "User",
                 column: "Email",
@@ -743,6 +794,9 @@ namespace SaaS.Infrastructure.Migrations
                 name: "PlanFeatureConfigs");
 
             migrationBuilder.DropTable(
+                name: "TicketReplies");
+
+            migrationBuilder.DropTable(
                 name: "WorkReports");
 
             migrationBuilder.DropTable(
@@ -756,6 +810,9 @@ namespace SaaS.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "PlanFeatures");
+
+            migrationBuilder.DropTable(
+                name: "Tickets");
 
             migrationBuilder.DropTable(
                 name: "User");
