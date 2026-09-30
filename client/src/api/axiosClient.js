@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getToken, getRefreshToken, setToken, setRefreshToken, removeToken, removeRefreshToken } from '../utils/tokenStorage';
 
 const axiosClient = axios.create({
-  baseURL: 'https://teamc-saas.onrender.com',
+  baseURL: 'https://teamc-saas.onrender.com/api/',
   headers: {
     'Content-Type': 'application/json',
   },
