@@ -12,6 +12,7 @@ const PublicRoute = lazy(() => import('./PublicRoute'));
 const Checkout = lazy(() => import('../pages/tenant/Checkout'));
 const PaymentSuccess = lazy(() => import('../pages/tenant/PaymentSuccess'));
 const PaymentCancel = lazy(() => import('../pages/tenant/PaymentCancel'));
+const RefundSuccess = lazy(() => import('../pages/tenant/RefundSuccess'));
 const TenantCheckoutLayout = lazy(() => import('../layouts/TenantCheckoutLayout'));
 const TenantLayout = lazy(() => import('../layouts/TenantLayout'));
 const TenantDashboard = lazy(() => import('../pages/tenant/TenantDashboard'));
@@ -162,6 +163,7 @@ export default function AppRoutes() {
             <Route path="/checkout/:planId" element={<Checkout />} />
             <Route path="/payment/success" element={<PaymentSuccess />} />
             <Route path="/payment/cancel" element={<PaymentCancel />} />
+            <Route path="/payment/refund" element={<RefundSuccess />} />
           </Route>
         </Route>
 

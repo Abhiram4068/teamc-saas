@@ -44,6 +44,13 @@ public class SubscriptionRepository : ISubscriptionRepository
             .FirstOrDefaultAsync(s => s.TenantId == tenantId && s.Status == SubscriptionStatus.Scheduled);
     }
 
+    public async Task<Subscription?> GetByStripeSubscriptionIdAsync(string stripeSubscriptionId)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.Plan)
+            .FirstOrDefaultAsync(s => s.StripeSubscriptionId == stripeSubscriptionId);
+    }
+
     public async Task<IEnumerable<Subscription>> GetPendingSubscriptionsByTenantIdAsync(int tenantId)
     {
         return await _context.Subscriptions

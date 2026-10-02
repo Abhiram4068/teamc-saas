@@ -13,4 +13,8 @@ public interface IStripePaymentGateway
         string stripePriceId);
 
     Task<bool> CancelSubscriptionAsync(string stripeSubscriptionId);
+    
+    Task<string?> RefundPaymentAsync(string paymentIntentId);
+    
+    Task<string?> GetLatestPaymentIntentIdForCustomerAsync(string customerId);
 }

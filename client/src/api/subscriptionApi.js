@@ -19,5 +19,10 @@ export const subscriptionApi = {
   cancelSubscription: async () => {
     const response = await axiosInstance.post('/Subscriptions/cancel');
     return response.data;
+  },
+
+  cancelScheduledSubscription: async (subscriptionId) => {
+    const response = await axiosInstance.post('/Subscriptions/cancel-scheduled', { subscriptionId });
+    return response.data;
   }
 };

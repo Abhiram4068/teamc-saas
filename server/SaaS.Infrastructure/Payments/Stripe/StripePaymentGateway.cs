@@ -78,7 +78,62 @@ public class StripePaymentGateway : IStripePaymentGateway
 
         var service = new global::Stripe.SubscriptionService();
         var subscription = await service.CancelAsync(stripeSubscriptionId);
-
         return subscription.Status == "canceled";
+    }
+
+    public async Task<string?> RefundPaymentAsync(string transactionId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+
+        var options = new global::Stripe.RefundCreateOptions();
+        
+        if (transactionId.StartsWith("ch_"))
+        {
+            options.Charge = transactionId;
+        }
+        else
+        {
+            options.PaymentIntent = transactionId;
+        }
+
+        var service = new global::Stripe.RefundService();
+        var refund = await service.CreateAsync(options);
+
+        return refund.Id;
+    }
+
+    public async Task<string?> GetLatestPaymentIntentIdForCustomerAsync(string customerId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+
+        try
+        {
+            // Fetch the most recent charge for this customer
+            var chargeService = new global::Stripe.ChargeService();
+            var charges = await chargeService.ListAsync(new global::Stripe.ChargeListOptions 
+            { 
+                Customer = customerId,
+                Limit = 1
+            });
+            
+            var latestCharge = charges.Data.FirstOrDefault();
+            
+            // Return the Payment Intent ID (pi_...)
+            return latestCharge?.PaymentIntentId;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

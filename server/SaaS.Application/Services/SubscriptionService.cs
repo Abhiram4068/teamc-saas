@@ -123,7 +123,7 @@ public class SubscriptionService : ISubscriptionService
         }
         else
         {
-            // Instead of mutating the active subscription, we create a new one
+            // Instead of mutating the active subscription, we create a new scheduled one
             bool isCurrentPlanFree = subscription.Plan?.MonthlyPrice == 0 || subscription.Plan?.Name.ToLower().Contains("free") == true;
             var startDate = isCurrentPlanFree ? DateTime.UtcNow : (subscription.EndDate ?? DateTime.UtcNow);
             
@@ -187,7 +187,7 @@ public class SubscriptionService : ISubscriptionService
         return ApiResponse<CheckoutResponseDto>.SuccessResponse(response);
     }
 
-    public async Task<ApiResponse<string>> CompleteCheckoutAsync(string sessionId, string customerId, string subscriptionId)
+    public async Task<ApiResponse<string>> CompleteCheckoutAsync(string sessionId, string customerId, string subscriptionId, string? invoiceId)
     {
         var payment = await _paymentRepository.GetByStripeSessionIdAsync(sessionId);
         
@@ -201,6 +201,17 @@ public class SubscriptionService : ISubscriptionService
         if (subscription == null)
         {
             return ApiResponse<string>.FailureResponse("Subscription not found.");
+        }
+        
+        if (!string.IsNullOrEmpty(customerId))
+        {
+            // Makes an HTTP Api call directly to the stripes servers to get the latest charge id.
+            var paymentIntentId = await _stripePaymentGateway.GetLatestPaymentIntentIdForCustomerAsync(customerId);
+            if (!string.IsNullOrEmpty(paymentIntentId))
+            {
+                payment.StripePaymentIntentId = paymentIntentId;
+                payment.StripeInvoiceId = invoiceId;
+            }
         }
 
         // Update Payment
@@ -373,5 +384,143 @@ public class SubscriptionService : ISubscriptionService
         await _subscriptionRepository.SaveChangesAsync();
 
         return ApiResponse<string>.SuccessResponse("Subscription canceled and successfully reverted to the Free Plan.", "Success");
+    }
+
+    public async Task<ApiResponse<object>> CancelScheduledSubscriptionAsync(Guid subscriptionId, int tenantId)
+    {
+        var subscription = await _subscriptionRepository.GetByIdAsync(subscriptionId);
+        if (subscription == null)
+        {
+            return ApiResponse<object>.FailureResponse("Subscription not found.");
+        }
+
+        if (subscription.TenantId != tenantId)
+        {
+            return ApiResponse<object>.FailureResponse("Unauthorized access to subscription.");
+        }
+
+        if (subscription.Status != SubscriptionStatus.Scheduled)
+        {
+            return ApiResponse<object>.FailureResponse("Only scheduled subscriptions can be cancelled for a refund.");
+        }
+
+        var payment = await _paymentRepository.GetBySubscriptionIdAsync(subscriptionId);
+        if (payment == null || payment.Status != PaymentStatus.Succeeded)
+        {
+            return ApiResponse<object>.FailureResponse("Payment record not found for this scheduled subscription.");
+        }
+
+        if (string.IsNullOrEmpty(subscription.StripeSubscriptionId))
+        {
+            return ApiResponse<object>.FailureResponse("Stripe subscription ID is missing.");
+        }
+
+        // Use the Payment Intent ID we already stored in the DB during checkout
+        string? transactionId = payment.StripePaymentIntentId;
+
+        if (string.IsNullOrEmpty(transactionId))
+        {
+            return ApiResponse<object>.FailureResponse("Stripe Payment Intent / Charge ID is missing and could not be found. Cannot process refund.");
+        }
+
+        try
+        {
+            var canceled = await _stripePaymentGateway.CancelSubscriptionAsync(subscription.StripeSubscriptionId);
+            if (!canceled)
+            {
+                return ApiResponse<object>.FailureResponse("Failed to cancel scheduled subscription with Stripe.");
+            }
+            
+            // Added retry login just in case if the refund id was not issued due to some network issues
+            int maxRetries = 3;
+            string? refundId = null;
+            
+            for (int i = 0; i < maxRetries; i++)
+            {
+                refundId = await _stripePaymentGateway.RefundPaymentAsync(transactionId);
+                
+                if (!string.IsNullOrEmpty(refundId))
+                {
+                    break; // Break out of the retry loop if success
+                }
+                
+                // If it failed, wait before retrying (exponential backoff: 1s, 2s, 3s)
+                if (i < maxRetries - 1)
+                {
+                    await Task.Delay(1000 * (i + 1));
+                }
+            }
+            
+            if (string.IsNullOrEmpty(refundId))
+            {
+                subscription.Status = SubscriptionStatus.Cancelled;
+                subscription.EndDate = DateTime.UtcNow;
+                subscription.UpdatedAt = DateTime.UtcNow;
+                await _subscriptionRepository.UpdateAsync(subscription);
+                
+                payment.Status = PaymentStatus.RefundFailed;
+                payment.UpdatedAt = DateTime.UtcNow;
+                await _paymentRepository.UpdateAsync(payment);
+                
+                await _subscriptionRepository.SaveChangesAsync();
+                
+                return ApiResponse<object>.FailureResponse("Subscription cancelled, but refund request failed.");
+            }
+            
+            subscription.Status = SubscriptionStatus.Cancelled;
+            subscription.EndDate = DateTime.UtcNow; 
+            subscription.UpdatedAt = DateTime.UtcNow;
+            await _subscriptionRepository.UpdateAsync(subscription);
+            
+            payment.Status = PaymentStatus.RefundPending;
+            payment.UpdatedAt = DateTime.UtcNow;
+            await _paymentRepository.UpdateAsync(payment);
+            
+            await _subscriptionRepository.SaveChangesAsync();
+            
+            return ApiResponse<object>.SuccessResponse(new 
+            {
+                Message = "Subscription cancellation initiated.",
+                SubscriptionStatus = "Cancelled",
+                PaymentStatus = "RefundPending",
+                RefundId = refundId
+            }, "Accepted");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<object>.FailureResponse($"Error during cancellation and refund: {ex.Message}");
+        }
+    }
+
+    public async Task HandleRefundUpdatedAsync(string paymentIntentId, string status)
+    {
+        var payment = await _paymentRepository.GetByStripePaymentIntentIdAsync(paymentIntentId);
+        if (payment != null)
+        {
+            if (status == "succeeded")
+            {
+                payment.Status = PaymentStatus.Refunded;
+            }
+            else if (status == "failed" || status == "canceled")
+            {
+                payment.Status = PaymentStatus.RefundFailed;
+            }
+            payment.UpdatedAt = DateTime.UtcNow;
+            await _paymentRepository.UpdateAsync(payment);
+            await _paymentRepository.SaveChangesAsync();
+        }
+    }
+
+    public async Task HandleSubscriptionCanceledAsync(string stripeSubscriptionId)
+    {
+        var subscription = await _subscriptionRepository.GetByStripeSubscriptionIdAsync(stripeSubscriptionId);
+        if (subscription != null)
+        {
+            subscription.Status = SubscriptionStatus.Cancelled;
+            subscription.EndDate = DateTime.UtcNow;
+            subscription.UpdatedAt = DateTime.UtcNow;
+            await _subscriptionRepository.UpdateAsync(subscription);
+            await _subscriptionRepository.SaveChangesAsync();
+        }
     }
 }

@@ -45,9 +45,20 @@ export default function TenantSubscriptionSummary() {
   const handleCancelSubscription = async () => {
     try {
       setIsCancelling(true);
-      const res = await subscriptionApi.cancelSubscription();
+      let res;
+      
+      if (subscription.status === 6 || subscription.status === "Scheduled") {
+        res = await subscriptionApi.cancelScheduledSubscription(subscription.id);
+      } else {
+        res = await subscriptionApi.cancelSubscription();
+      }
+
       if (res?.success) {
-        showToast("Subscription cancelled successfully.", "success");
+        if (res.data?.refundId) {
+          showToast(`Refund initiated (ID: ${res.data.refundId})`, "success");
+        } else {
+          showToast("Subscription cancelled successfully.", "success");
+        }
         setIsCancelModalOpen(false);
         fetchData();
       } else {
@@ -312,12 +323,18 @@ export default function TenantSubscriptionSummary() {
             </div>
             <div className="p-6 space-y-4">
               <p className="text-sm text-slate-600">
-                Are you sure you want to cancel your active subscription?
+                Are you sure you want to cancel your {subscription?.status === 6 || subscription?.status === "Scheduled" ? "scheduled" : "active"} subscription?
               </p>
               <div className="p-4">
                 <ul className="text-xs text-red-800 list-disc list-inside space-y-1.5">
                   <li>Your plan will instantly revert to the Free Plan.</li>
-                  <li>You will <strong>not</strong> be refunded for the remainder of your billing cycle.</li>
+                  
+                  {subscription?.status === 6 || subscription?.status === "Scheduled" ? (
+                    <li>You <strong>will</strong> receive a full refund because your subscription hasn't fully started yet (Refund Pending).</li>
+                  ) : (
+                    <li>You will <strong>not</strong> be refunded for the remainder of your billing cycle.</li>
+                  )}
+                  
                   <li>Premium features and data access will be restricted immediately.</li>
                 </ul>
               </div>
