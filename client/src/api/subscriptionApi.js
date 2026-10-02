@@ -5,6 +5,11 @@ export const subscriptionApi = {
     const response = await axiosInstance.get('/Subscriptions');
     return response.data;
   },
+
+  getScheduledSubscription: async () => {
+    const response = await axiosInstance.get('/Subscriptions/scheduled');
+    return response.data;
+  },
   
   getMyPlanFeatures: async () => {
     const response = await axiosInstance.get('/Plans/myfeatures');

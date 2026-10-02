@@ -289,6 +289,47 @@ public class SubscriptionService : ISubscriptionService
         return ApiResponse<SubscriptionResponseDto>.SuccessResponse(dto);
     }
 
+    public async Task<ApiResponse<SubscriptionResponseDto>> GetScheduledSubscriptionAsync(int tenantId)
+    {
+        var scheduledSubscription = await _subscriptionRepository.GetScheduledByTenantIdAsync(tenantId);
+        
+        if (scheduledSubscription == null)
+        {
+            return ApiResponse<SubscriptionResponseDto>.SuccessResponse(new SubscriptionResponseDto 
+            { 
+                HasScheduledSubscription = false
+            }, "No scheduled subscription found.");
+        }
+
+        var payment = await _paymentRepository.GetBySubscriptionIdAsync(scheduledSubscription.Id);
+
+        var dto = new SubscriptionResponseDto
+        {
+            HasScheduledSubscription = true,
+            Id = scheduledSubscription.Id,
+            PlanId = scheduledSubscription.PlanId,
+            PlanName = scheduledSubscription.Plan?.Name ?? "Unknown Plan",
+            Status = scheduledSubscription.Status,
+            SubscribedOn = scheduledSubscription.CreatedAt,
+            CurrentPeriodStart = scheduledSubscription.StartDate,
+            CurrentPeriodEnd = scheduledSubscription.EndDate,
+            BillingCycle = scheduledSubscription.BillingCycle,
+            PlanPrice = scheduledSubscription.BillingCycle == BillingCycle.Monthly 
+                ? (scheduledSubscription.Plan?.MonthlyPrice ?? 0) 
+                : (scheduledSubscription.Plan?.YearlyPrice ?? 0),
+            OrganizationName = scheduledSubscription.OrganizationName,
+            Address = scheduledSubscription.Address,
+            City = scheduledSubscription.City,
+            State = scheduledSubscription.State,
+            Pincode = scheduledSubscription.Pincode,
+            PaymentStatus = payment?.Status.ToString(),
+            PaymentDate = payment?.PaymentDate,
+            AmountPaid = payment?.Amount
+        };
+
+        return ApiResponse<SubscriptionResponseDto>.SuccessResponse(dto);
+    }
+
     public async Task<ApiResponse<IEnumerable<PlanFeatureResponseDto>>> GetMyPlanFeaturesAsync(int tenantId)
     {
         var subscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);

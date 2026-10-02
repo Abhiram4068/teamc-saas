@@ -30,6 +30,7 @@ export default function TenantSidebar() {
         { label: 'Change Plan', to: '/tenant/plans' },
         { label: 'Payments', to: '/tenant/payments' },
         { label: 'Invoices', to: '/tenant/invoices' },
+        { label: 'Scheduled Subscription', to: '/tenant/scheduled-subscription' },
 
       ],
     },

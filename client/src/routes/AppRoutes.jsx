@@ -19,6 +19,7 @@ const TenantDashboard = lazy(() => import('../pages/tenant/TenantDashboard'));
 const TenantMyPlan = lazy(() => import('../pages/tenant/TenantMyPlan'));
 const TenantViewPlans = lazy(() => import('../pages/tenant/TenantViewPlans'));
 const TenantSubscriptionSummary = lazy(() => import('../pages/tenant/TenantSubscriptionSummary'));
+const TenantScheduledSubscription = lazy(() => import('../pages/tenant/TenantScheduledSubscription'));
 const TenantViewPayments = lazy(() => import('../pages/tenant/TenantViewPayments'));
 const TenantInvoices = lazy(() => import('../pages/tenant/TenantInvoices'));
 const TenantInvoiceView = lazy(() => import('../pages/tenant/TenantInvoiceView'));
@@ -151,6 +152,7 @@ export default function AppRoutes() {
             <Route path="my-plan" element={<TenantMyPlan />} />
             <Route path="plans" element={<TenantViewPlans />} />
             <Route path="subscription-summary" element={<TenantSubscriptionSummary />} />
+            <Route path="scheduled-subscription" element={<TenantScheduledSubscription />} />
             <Route path="payments" element={<TenantViewPayments />} />
             <Route path="invoices" element={<TenantInvoices />} />
             <Route path="invoices/:paymentId" element={<TenantInvoiceView />} />

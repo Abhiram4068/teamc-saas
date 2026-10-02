@@ -62,6 +62,24 @@ public class SubscriptionsController : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpGet("scheduled")]
+    [Authorize(Roles = "2")] 
+    public async Task<IActionResult> GetScheduledSubscription()
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("Get Scheduled Subscription failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        _logger.LogInformation("Getting scheduled subscription for Tenant: {TenantId}", tenantId);
+        var response = await _subscriptionService.GetScheduledSubscriptionAsync(tenantId);
+        
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost("cancel-scheduled")]
     [Authorize(Roles = "2")]
     public async Task<IActionResult> CancelScheduledSubscription([FromBody] CancelSubscriptionRequestDto request)

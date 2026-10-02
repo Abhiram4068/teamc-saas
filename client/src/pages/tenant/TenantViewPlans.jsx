@@ -325,13 +325,19 @@ export default function TenantViewPlans() {
                 </p>
               </div>
             </div>
-            <div className="flex justify-end mt-6">
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setIsScheduledModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
               >
                 Close
               </button>
+              <Link
+                to="/tenant/scheduled-subscription"
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+              >
+                View Scheduled Plan
+              </Link>
             </div>
           </div>
         </div>
