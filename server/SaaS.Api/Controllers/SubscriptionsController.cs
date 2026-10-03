@@ -136,4 +136,25 @@ public class SubscriptionsController : ControllerBase
         
         return StatusCode(response.StatusCode, response);
     }
+    
+    /// <summary>
+    /// Schedules an upgrade to a new plan to take effect at the end of the current billing cycle.
+    /// </summary>
+    [HttpPost("upgrade-scheduled")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> ScheduleSubscriptionUpgrade([FromBody] UpgradeSubscriptionRequestDto request)
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("Schedule Subscription Upgrade failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        _logger.LogInformation("Scheduling upgrade to Plan {PlanId} for Tenant: {TenantId}", request.PlanId, tenantId);
+        var response = await _subscriptionService.ScheduleSubscriptionUpgradeAsync(tenantId, request.PlanId, request.BillingCycle);
+        
+        return StatusCode(response.StatusCode, response);
+    }
 }

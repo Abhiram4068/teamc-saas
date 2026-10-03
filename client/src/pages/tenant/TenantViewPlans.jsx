@@ -15,6 +15,7 @@ export default function TenantViewPlans() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isScheduledModalOpen, setIsScheduledModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
   const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState(null);
 
   const { showToast } = useToast();
@@ -231,41 +232,88 @@ export default function TenantViewPlans() {
         })}
       </div>
 
-      {/* Confirmation Modal */}
+      {/* Upgrade Options Modal */}
       {isModalOpen && selectedPlanForCheckout && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-md shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
-            <div className="flex items-start gap-4 mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  Important Notice
-                </h3>
-                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
-                  Before you proceed with a new subscription, make sure to cancel your current one. Else, the new subscription will only become active after your next billing date.
+          <div className="bg-white rounded-md shadow-xl max-w-lg w-full p-6 animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-slate-900 mb-6">
+              Upgrade to {selectedPlanForCheckout.name}
+            </h3>
+            
+            <div className="space-y-4">
+              <button
+                onClick={async () => {
+                  try {
+                    setIsUpgrading(true);
+                    const res = await subscriptionApi.upgradeSubscriptionImmediately({ 
+                      planId: selectedPlanForCheckout.id, 
+                      billingCycle: currentSubscription?.billingCycle || 1 
+                    });
+                    if (res?.success) {
+                      showToast("Plan upgraded successfully!", "success");
+                      setIsModalOpen(false);
+                      navigate("/tenant/subscription-summary");
+                    } else {
+                      showToast(res?.message || "Upgrade failed.", "error");
+                    }
+                  } catch (err) {
+                    showToast(err.response?.data?.message || "Error upgrading plan.", "error");
+                  } finally {
+                    setIsUpgrading(false);
+                  }
+                }}
+                disabled={isUpgrading}
+                className="w-full text-left p-4 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors group relative"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-slate-900 group-hover:text-emerald-700">Start Today</span>
+                  <span className="text-xs font-bold px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">Recommended</span>
+                </div>
+                <p className="text-sm text-slate-600">
+                  Pay the prorated difference today. {selectedPlanForCheckout.name} features become active immediately.
                 </p>
-              </div>
+              </button>
+
+              <button
+                onClick={async () => {
+                  try {
+                    setIsUpgrading(true);
+                    const res = await subscriptionApi.scheduleSubscriptionUpgrade({ 
+                      planId: selectedPlanForCheckout.id, 
+                      billingCycle: currentSubscription?.billingCycle || 1 
+                    });
+                    if (res?.success) {
+                      showToast("Plan scheduled successfully!", "success");
+                      setIsModalOpen(false);
+                      navigate("/tenant/scheduled-subscription");
+                    } else {
+                      showToast(res?.message || "Scheduling failed.", "error");
+                    }
+                  } catch (err) {
+                    showToast(err.response?.data?.message || "Error scheduling plan.", "error");
+                  } finally {
+                    setIsUpgrading(false);
+                  }
+                }}
+                disabled={isUpgrading}
+                className="w-full text-left p-4 border border-slate-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg transition-colors group"
+              >
+                <div className="font-bold text-slate-900 group-hover:text-blue-700 mb-1">
+                  Start on Next Billing Date
+                </div>
+                <p className="text-sm text-slate-600">
+                  No charge today. Continue your current {currentPlanObj?.name} until your billing period ends, then {selectedPlanForCheckout.name} will begin.
+                </p>
+              </button>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex justify-end mt-6">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                disabled={isUpgrading}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
               >
-                Go Back
-              </button>
-              <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  navigate(
-                    `/checkout/${selectedPlanForCheckout.id}?billing=yearly`,
-                  );
-                }}
-                className="px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm"
-              >
-                Proceed with{" "}
-                {selectedPlanForCheckout.rank > currentPlanObj?.rank
-                  ? "Upgrade"
-                  : "Downgrade"}
+                Cancel
               </button>
             </div>
           </div>

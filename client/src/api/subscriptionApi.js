@@ -34,5 +34,10 @@ export const subscriptionApi = {
   upgradeSubscriptionImmediately: async (data) => {
     const response = await axiosInstance.post('/Subscriptions/upgrade-immediately', data);
     return response.data;
+  },
+
+  scheduleSubscriptionUpgrade: async (data) => {
+    const response = await axiosInstance.post('/Subscriptions/upgrade-scheduled', data);
+    return response.data;
   }
 };

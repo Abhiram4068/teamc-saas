@@ -633,4 +633,67 @@ public class SubscriptionService : ISubscriptionService
 
         return ApiResponse<string>.SuccessResponse("Subscription upgraded successfully.", "Success");
     }
+
+    /// <summary>
+    /// Schedules a subscription upgrade to take effect at the end of the current billing cycle.
+    /// Creates a scheduled subscription record in the database.
+    /// </summary>
+    public async Task<ApiResponse<string>> ScheduleSubscriptionUpgradeAsync(int tenantId, int planId, BillingCycle billingCycle)
+    {
+        var activeSubscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
+        if (activeSubscription == null || string.IsNullOrEmpty(activeSubscription.StripeSubscriptionId))
+        {
+            return ApiResponse<string>.FailureResponse("You dont have an active Stripe subscription to upgrade.");
+        }
+
+        var newPlan = await _planRepository.GetByIdAsync(planId);
+        if (newPlan == null || newPlan.Status != PlanStatus.Active)
+        {
+            return ApiResponse<string>.FailureResponse("Selected plan was not found.");
+        }
+
+        string? newStripePriceId = billingCycle == BillingCycle.Monthly 
+            ? newPlan.StripeMonthlyPriceId 
+            : newPlan.StripeYearlyPriceId;
+
+        if (string.IsNullOrEmpty(newStripePriceId))
+        {
+            return ApiResponse<string>.FailureResponse("The selected plan is missing pricing information.");
+        }
+
+        // Call Stripe to schedule the upgrade
+        var success = await _stripePaymentGateway.ScheduleSubscriptionUpgradeAsync(activeSubscription.StripeSubscriptionId, newStripePriceId);
+        if (!success)
+        {
+            return ApiResponse<string>.FailureResponse("Failed to schedule subscription update in Stripe.");
+        }
+
+        // Create a scheduled subscription record
+        var scheduledSubscription = new Subscription
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            PlanId = newPlan.Id,
+            BillingCycle = billingCycle,
+            StartDate = activeSubscription.EndDate ?? DateTime.UtcNow, // Starts when current active ends
+            EndDate = billingCycle == BillingCycle.Monthly 
+                ? (activeSubscription.EndDate ?? DateTime.UtcNow).AddMonths(1) 
+                : (activeSubscription.EndDate ?? DateTime.UtcNow).AddYears(1),
+            Status = SubscriptionStatus.Scheduled,
+            StripeSubscriptionId = activeSubscription.StripeSubscriptionId, // Link to the same Stripe sub
+            StripeCustomerId = activeSubscription.StripeCustomerId,
+            OrganizationName = activeSubscription.OrganizationName,
+            Address = activeSubscription.Address,
+            City = activeSubscription.City,
+            State = activeSubscription.State,
+            Pincode = activeSubscription.Pincode,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        
+        await _subscriptionRepository.AddAsync(scheduledSubscription);
+        await _subscriptionRepository.SaveChangesAsync();
+
+        return ApiResponse<string>.SuccessResponse("Subscription upgrade scheduled successfully.", "Success");
+    }
 }

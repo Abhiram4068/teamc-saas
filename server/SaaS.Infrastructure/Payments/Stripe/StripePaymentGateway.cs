@@ -180,4 +180,65 @@ public class StripePaymentGateway : IStripePaymentGateway
         // Return true if the updated subscription status is active.
         return updatedSubscription.Status == "active";
     }
+
+    public async Task<bool> ScheduleSubscriptionUpgradeAsync(string stripeSubscriptionId, string newStripePriceId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+
+        var subService = new global::Stripe.SubscriptionService();
+        var subscription = await subService.GetAsync(stripeSubscriptionId);
+
+        if (subscription == null || subscription.Items.Data.Count == 0) return false;
+
+        var scheduleService = new global::Stripe.SubscriptionScheduleService();
+        
+        // 1. Create a schedule attached to the existing subscription
+        var createOptions = new global::Stripe.SubscriptionScheduleCreateOptions
+        {
+            FromSubscription = stripeSubscriptionId
+        };
+        var schedule = await scheduleService.CreateAsync(createOptions);
+
+        // 2. Modify the schedule to have two phases
+        var updateOptions = new global::Stripe.SubscriptionScheduleUpdateOptions
+        {
+            Phases = new List<global::Stripe.SubscriptionSchedulePhaseOptions>
+            {
+                // Phase 1: Keep the current plan until the current billing period ends
+                new global::Stripe.SubscriptionSchedulePhaseOptions
+                {
+                    StartDate = schedule.CurrentPhase.StartDate,
+                    EndDate = schedule.CurrentPhase.EndDate,
+                    Items = new List<global::Stripe.SubscriptionSchedulePhaseItemOptions>
+                    {
+                        new global::Stripe.SubscriptionSchedulePhaseItemOptions
+                        {
+                            Price = subscription.Items.Data[0].Price.Id,
+                            Quantity = 1
+                        }
+                    }
+                },
+                // Phase 2: Start the new plan immediately after the current billing period ends
+                new global::Stripe.SubscriptionSchedulePhaseOptions
+                {
+                    Items = new List<global::Stripe.SubscriptionSchedulePhaseItemOptions>
+                    {
+                        new global::Stripe.SubscriptionSchedulePhaseItemOptions
+                        {
+                            Price = newStripePriceId,
+                            Quantity = 1
+                        }
+                    }
+                }
+            }
+        };
+
+        var updatedSchedule = await scheduleService.UpdateAsync(schedule.Id, updateOptions);
+        return updatedSchedule.Status == "active";
+    }
 }

@@ -19,4 +19,6 @@ public interface IStripePaymentGateway
     Task<string?> GetLatestPaymentIntentIdForCustomerAsync(string customerId);
     
     Task<bool> UpgradeSubscriptionImmediatelyAsync(string stripeSubscriptionId, string newStripePriceId);
+    
+    Task<bool> ScheduleSubscriptionUpgradeAsync(string stripeSubscriptionId, string newStripePriceId);
 }
