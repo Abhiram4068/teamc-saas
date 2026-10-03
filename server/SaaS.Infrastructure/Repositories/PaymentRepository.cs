@@ -20,10 +20,22 @@ public class PaymentRepository : IPaymentRepository
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
+    public async Task<Payment?> GetByStripePaymentIntentIdAsync(string intentId)
+    {
+        return await _context.Payments
+            .FirstOrDefaultAsync(p => p.StripePaymentIntentId == intentId);
+    }
+
     public async Task<Payment?> GetByStripeSessionIdAsync(string sessionId)
     {
         return await _context.Payments
             .FirstOrDefaultAsync(p => p.StripeCheckoutSessionId == sessionId);
+    }
+
+    public async Task<Payment?> GetBySubscriptionIdAsync(Guid subscriptionId)
+    {
+        return await _context.Payments
+            .FirstOrDefaultAsync(p => p.SubscriptionId == subscriptionId);
     }
 
     public async Task<IEnumerable<Payment>> GetByTenantIdAsync(long tenantId)

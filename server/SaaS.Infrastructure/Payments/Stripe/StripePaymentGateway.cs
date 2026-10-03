@@ -78,7 +78,167 @@ public class StripePaymentGateway : IStripePaymentGateway
 
         var service = new global::Stripe.SubscriptionService();
         var subscription = await service.CancelAsync(stripeSubscriptionId);
-
         return subscription.Status == "canceled";
+    }
+
+    public async Task<string?> RefundPaymentAsync(string transactionId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+
+        var options = new global::Stripe.RefundCreateOptions();
+        
+        if (transactionId.StartsWith("ch_"))
+        {
+            options.Charge = transactionId;
+        }
+        else
+        {
+            options.PaymentIntent = transactionId;
+        }
+
+        var service = new global::Stripe.RefundService();
+        var refund = await service.CreateAsync(options);
+
+        return refund.Id;
+    }
+
+    public async Task<string?> GetLatestPaymentIntentIdForCustomerAsync(string customerId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+
+        try
+        {
+            // Fetch the most recent charge for this customer
+            var chargeService = new global::Stripe.ChargeService();
+            var charges = await chargeService.ListAsync(new global::Stripe.ChargeListOptions 
+            { 
+                Customer = customerId,
+                Limit = 1
+            });
+            
+            var latestCharge = charges.Data.FirstOrDefault();
+            
+            // Return the Payment Intent ID (pi_...)
+            return latestCharge?.PaymentIntentId;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<bool> UpgradeSubscriptionImmediatelyAsync(string stripeSubscriptionId, string newStripePriceId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+
+        var service = new global::Stripe.SubscriptionService();
+
+        // Fetch the user's current subscription from Stripe.
+        var subscription = await service.GetAsync(stripeSubscriptionId);
+        
+        // Terminate if the subscription does not exist or has no active items.
+        if (subscription == null || subscription.Items.Data.Count == 0)
+        {
+            return false;
+        }
+
+        // Prepare the configuration to modify the subscription plan.
+        var options = new global::Stripe.SubscriptionUpdateOptions
+        {
+            Items = new List<global::Stripe.SubscriptionItemOptions>
+            {
+                new global::Stripe.SubscriptionItemOptions
+                {
+                    // Target the existing subscription item to be updated.
+                    Id = subscription.Items.Data[0].Id,
+                    // Provide the Price ID for the new plan.
+                    Price = newStripePriceId,
+                }
+            },
+            // Instruct Stripe to immediately calculate prorations, generate an invoice, and process the charge.
+            ProrationBehavior = "always_invoice"
+        };
+
+        // Submit the update request to Stripe.
+        var updatedSubscription = await service.UpdateAsync(stripeSubscriptionId, options);
+        
+        // Return true if the updated subscription status is active.
+        return updatedSubscription.Status == "active";
+    }
+
+    public async Task<bool> ScheduleSubscriptionUpgradeAsync(string stripeSubscriptionId, string newStripePriceId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+
+        var subService = new global::Stripe.SubscriptionService();
+        var subscription = await subService.GetAsync(stripeSubscriptionId);
+
+        if (subscription == null || subscription.Items.Data.Count == 0) return false;
+
+        var scheduleService = new global::Stripe.SubscriptionScheduleService();
+        
+        // 1. Create a schedule attached to the existing subscription
+        var createOptions = new global::Stripe.SubscriptionScheduleCreateOptions
+        {
+            FromSubscription = stripeSubscriptionId
+        };
+        var schedule = await scheduleService.CreateAsync(createOptions);
+
+        // 2. Modify the schedule to have two phases
+        var updateOptions = new global::Stripe.SubscriptionScheduleUpdateOptions
+        {
+            Phases = new List<global::Stripe.SubscriptionSchedulePhaseOptions>
+            {
+                // Phase 1: Keep the current plan until the current billing period ends
+                new global::Stripe.SubscriptionSchedulePhaseOptions
+                {
+                    StartDate = schedule.CurrentPhase.StartDate,
+                    EndDate = schedule.CurrentPhase.EndDate,
+                    Items = new List<global::Stripe.SubscriptionSchedulePhaseItemOptions>
+                    {
+                        new global::Stripe.SubscriptionSchedulePhaseItemOptions
+                        {
+                            Price = subscription.Items.Data[0].Price.Id,
+                            Quantity = 1
+                        }
+                    }
+                },
+                // Phase 2: Start the new plan immediately after the current billing period ends
+                new global::Stripe.SubscriptionSchedulePhaseOptions
+                {
+                    Items = new List<global::Stripe.SubscriptionSchedulePhaseItemOptions>
+                    {
+                        new global::Stripe.SubscriptionSchedulePhaseItemOptions
+                        {
+                            Price = newStripePriceId,
+                            Quantity = 1
+                        }
+                    }
+                }
+            }
+        };
+
+        var updatedSchedule = await scheduleService.UpdateAsync(schedule.Id, updateOptions);
+        return updatedSchedule.Status == "active";
     }
 }

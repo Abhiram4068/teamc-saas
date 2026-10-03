@@ -8,6 +8,7 @@ public interface ISubscriptionRepository
     Task<Subscription?> GetByTenantIdAsync(int tenantId);
     Task<Subscription?> GetActiveByTenantIdAsync(int tenantId);
     Task<Subscription?> GetScheduledByTenantIdAsync(int tenantId);
+    Task<Subscription?> GetByStripeSubscriptionIdAsync(string stripeSubscriptionId);
     Task<IEnumerable<Subscription>> GetPendingSubscriptionsByTenantIdAsync(int tenantId);
     Task<Subscription?> GetActiveSubscriptionWithFeaturesAsync(int tenantId);
     Task AddAsync(Subscription subscription);

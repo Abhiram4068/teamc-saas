@@ -22,4 +22,9 @@ public class SubscriptionResponseDto
     public string? City { get; set; }
     public string? State { get; set; }
     public string? Pincode { get; set; }
+    
+    // Payment details
+    public string? PaymentStatus { get; set; }
+    public DateTime? PaymentDate { get; set; }
+    public decimal? AmountPaid { get; set; }
 }

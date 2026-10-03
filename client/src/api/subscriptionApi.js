@@ -5,6 +5,11 @@ export const subscriptionApi = {
     const response = await axiosInstance.get('/Subscriptions');
     return response.data;
   },
+
+  getScheduledSubscription: async () => {
+    const response = await axiosInstance.get('/Subscriptions/scheduled');
+    return response.data;
+  },
   
   getMyPlanFeatures: async () => {
     const response = await axiosInstance.get('/Plans/myfeatures');
@@ -18,6 +23,21 @@ export const subscriptionApi = {
 
   cancelSubscription: async () => {
     const response = await axiosInstance.post('/Subscriptions/cancel');
+    return response.data;
+  },
+
+  cancelScheduledSubscription: async (subscriptionId) => {
+    const response = await axiosInstance.post('/Subscriptions/cancel-scheduled', { subscriptionId });
+    return response.data;
+  },
+
+  upgradeSubscriptionImmediately: async (data) => {
+    const response = await axiosInstance.post('/Subscriptions/upgrade-immediately', data);
+    return response.data;
+  },
+
+  scheduleSubscriptionUpgrade: async (data) => {
+    const response = await axiosInstance.post('/Subscriptions/upgrade-scheduled', data);
     return response.data;
   }
 };

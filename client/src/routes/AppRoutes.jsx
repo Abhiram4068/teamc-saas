@@ -12,12 +12,14 @@ const PublicRoute = lazy(() => import('./PublicRoute'));
 const Checkout = lazy(() => import('../pages/tenant/Checkout'));
 const PaymentSuccess = lazy(() => import('../pages/tenant/PaymentSuccess'));
 const PaymentCancel = lazy(() => import('../pages/tenant/PaymentCancel'));
+const RefundSuccess = lazy(() => import('../pages/tenant/RefundSuccess'));
 const TenantCheckoutLayout = lazy(() => import('../layouts/TenantCheckoutLayout'));
 const TenantLayout = lazy(() => import('../layouts/TenantLayout'));
 const TenantDashboard = lazy(() => import('../pages/tenant/TenantDashboard'));
 const TenantMyPlan = lazy(() => import('../pages/tenant/TenantMyPlan'));
 const TenantViewPlans = lazy(() => import('../pages/tenant/TenantViewPlans'));
 const TenantSubscriptionSummary = lazy(() => import('../pages/tenant/TenantSubscriptionSummary'));
+const TenantScheduledSubscription = lazy(() => import('../pages/tenant/TenantScheduledSubscription'));
 const TenantViewPayments = lazy(() => import('../pages/tenant/TenantViewPayments'));
 const TenantInvoices = lazy(() => import('../pages/tenant/TenantInvoices'));
 const TenantInvoiceView = lazy(() => import('../pages/tenant/TenantInvoiceView'));
@@ -150,6 +152,7 @@ export default function AppRoutes() {
             <Route path="my-plan" element={<TenantMyPlan />} />
             <Route path="plans" element={<TenantViewPlans />} />
             <Route path="subscription-summary" element={<TenantSubscriptionSummary />} />
+            <Route path="scheduled-subscription" element={<TenantScheduledSubscription />} />
             <Route path="payments" element={<TenantViewPayments />} />
             <Route path="invoices" element={<TenantInvoices />} />
             <Route path="invoices/:paymentId" element={<TenantInvoiceView />} />
@@ -162,6 +165,7 @@ export default function AppRoutes() {
             <Route path="/checkout/:planId" element={<Checkout />} />
             <Route path="/payment/success" element={<PaymentSuccess />} />
             <Route path="/payment/cancel" element={<PaymentCancel />} />
+            <Route path="/payment/refund" element={<RefundSuccess />} />
           </Route>
         </Route>
 

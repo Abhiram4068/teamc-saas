@@ -4,11 +4,11 @@ import { subscriptionApi } from "../../api/subscriptionApi";
 import { planApi } from "../../api/planApi";
 import { useToast } from "../../utils/Toast";
 
-export default function TenantSubscriptionSummary() {
+export default function TenantScheduledSubscription() {
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState(null);
   const [currentPlan, setCurrentPlan] = useState(null);
-  
+
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
@@ -23,7 +23,7 @@ export default function TenantSubscriptionSummary() {
     try {
       setLoading(true);
       const [subRes, plansRes] = await Promise.all([
-        subscriptionApi.getCurrentSubscription(),
+        subscriptionApi.getScheduledSubscription(),
         planApi.getAvailablePlans(),
       ]);
 
@@ -36,7 +36,7 @@ export default function TenantSubscriptionSummary() {
         }
       }
     } catch (err) {
-      showToast("Failed to load subscription details.", "error");
+      showToast("Failed to load scheduled subscription details.", "error");
     } finally {
       setLoading(false);
     }
@@ -45,27 +45,33 @@ export default function TenantSubscriptionSummary() {
   const handleCancelSubscription = async () => {
     try {
       setIsCancelling(true);
-      let res;
-      
-      if (subscription.status === 6 || subscription.status === "Scheduled") {
-        res = await subscriptionApi.cancelScheduledSubscription(subscription.id);
-      } else {
-        res = await subscriptionApi.cancelSubscription();
-      }
+      const res = await subscriptionApi.cancelScheduledSubscription(
+        subscription.id,
+      );
 
       if (res?.success) {
         if (res.data?.refundId) {
           showToast(`Refund initiated (ID: ${res.data.refundId})`, "success");
         } else {
-          showToast("Subscription cancelled successfully.", "success");
+          showToast(
+            "Scheduled subscription cancelled successfully.",
+            "success",
+          );
         }
         setIsCancelModalOpen(false);
-        fetchData();
+        navigate("/payment/refund");
       } else {
-        showToast(res?.message || "Failed to cancel subscription.", "error");
+        showToast(
+          res?.message || "Failed to cancel scheduled subscription.",
+          "error",
+        );
       }
     } catch (err) {
-      showToast(err.response?.data?.message || "Error cancelling subscription.", "error");
+      showToast(
+        err.response?.data?.message ||
+          "Error cancelling scheduled subscription.",
+        "error",
+      );
     } finally {
       setIsCancelling(false);
     }
@@ -79,19 +85,20 @@ export default function TenantSubscriptionSummary() {
     );
   }
 
-  if (!subscription || !subscription.hasActiveSubscription) {
+  if (!subscription || !subscription.hasScheduledSubscription) {
     return (
       <div className="max-w-4xl mx-auto mt-10 px-4">
         <div className="p-8 text-center">
           <h2 className="text-xl font-bold text-slate-900 mb-2">
-            No Active Subscription
+            No Scheduled Subscription
           </h2>
-          <p className="text-xs text-slate-500 mb-6">
-            You are currently on the free plan or your subscription has expired.
+          <p className="text-sm text-slate-500 mb-6">
+            You don't have any upcoming subscription changes scheduled at this
+            time.
           </p>
           <Link
             to="/tenant/plans"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
           >
             View Available Plans
           </Link>
@@ -99,17 +106,6 @@ export default function TenantSubscriptionSummary() {
       </div>
     );
   }
-
-  // Fallback mocks for UI purposes in case backend doesn't provide them yet
-  const invoices = subscription.payments || [
-    {
-      id: "INV-2026-09",
-      date: subscription.startDate || "2026-09-26",
-      amount: currentPlan?.yearlyPrice || 49999,
-      status: "Paid",
-      pdfUrl: "#",
-    },
-  ];
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -129,11 +125,23 @@ export default function TenantSubscriptionSummary() {
       {/* Header Section */}
       <div>
         <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-          Subscription Summary
+          Scheduled Subscription
         </h1>
         <p className="text-sm text-slate-500 mt-1">
-          Overview of your current subscription plan and billing information.
+          Review your upcoming plan changes and payments.
         </p>
+      </div>
+
+      <div className="mb-8 py-2.5 px-4 rounded bg-yellow-50 border border-yellow-200 flex items-start">
+        <i className="fa-solid fa-circle-info text-yellow-600 mt-0.5 mr-3"></i>
+        <div className="flex-1">
+          <p className="text-xs text-yellow-800 leading-snug text-justify">
+            <strong>This subscription is scheduled.</strong> Your new plan will
+            automatically become active on{" "}
+            <strong>{formatDate(subscription.currentPeriodStart)}</strong>. You
+            have already secured this plan with your payment.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3">
@@ -144,16 +152,18 @@ export default function TenantSubscriptionSummary() {
               <div>
                 <div className="flex items-center gap-3 mb-1">
                   <h2 className="text-lg font-bold text-slate-900">
-                    {currentPlan.name}
+                    {currentPlan?.name || subscription.planName}
                   </h2>
-                  <span className="inline-flex items-center px-2 py-0.5  text-xs font-medium text-emerald-700 ">
-                    Active
+                  <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                    Scheduled for {formatDate(subscription.currentPeriodStart)}
                   </span>
                 </div>
                 <p className="text-sm text-slate-500">
-                  You are currently subscribed to the{" "}
+                  You are scheduled to upgrade to the{" "}
                   <strong className="text-slate-700">
-                    {currentPlan?.name || "Premium Plan"}
+                    {currentPlan?.name ||
+                      subscription.planName ||
+                      "Premium Plan"}
                   </strong>
                   .
                 </p>
@@ -163,7 +173,10 @@ export default function TenantSubscriptionSummary() {
                   ₹{Number(subscription.planPrice || 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-slate-500 font-medium">
-                  {subscription.billingCycle === 1 || subscription.billingCycle === 'Monthly' ? "per month" : "per year"}
+                  {subscription.billingCycle === 1 ||
+                  subscription.billingCycle === "Monthly"
+                    ? "per month"
+                    : "per year"}
                 </div>
               </div>
             </div>
@@ -172,57 +185,40 @@ export default function TenantSubscriptionSummary() {
               <div className="flex flex-col sm:flex-row gap-6">
                 <div>
                   <p className="text-xs font-semibold text-slate-500 tracking-wider mb-1">
-                    Current Billing Cycle
+                    Starts On
                   </p>
                   <p className="text-xs font-medium text-slate-900">
-                    {formatDate(subscription.currentPeriodStart)} -{" "}
-                    {formatDate(subscription.currentPeriodEnd)}
+                    {formatDate(subscription.currentPeriodStart)}
                   </p>
-                  <p className="text-xs font-medium text-slate-900">({subscription.billingCycle === 1 || subscription.billingCycle === 'Monthly' ? "Monthly" : "Yearly"})</p>
-                  
-                  
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-500 tracking-wider mb-1">
-                    Next Billing Date
+                    Next Billing Cycle
                   </p>
                   <p className="text-xs font-medium text-slate-900">
-                    {formatDate(subscription.currentPeriodEnd)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-500  tracking-wider mb-1">
-                    Member Since
-                  </p>
-                  <p className="text-xs font-medium text-slate-900">
-                    {formatDate(subscription.subscribedOn)}
+                    {subscription.billingCycle === 1 ||
+                    subscription.billingCycle === "Monthly"
+                      ? "Monthly"
+                      : "Yearly"}
                   </p>
                 </div>
               </div>
               <div className="flex gap-4">
-                <Link
-                  to="/tenant/plans"
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                <button
+                  className="text-xs font-semibold text-red-600 hover:text-red-800 hover:underline transition-colors"
+                  onClick={() => setIsCancelModalOpen(true)}
                 >
-                  Change Plan
-                </Link>
-                {currentPlan?.rank > 1 && (
-                  <button
-                    className="text-xs font-semibold text-red-600 hover:text-red-800 hover:underline transition-colors"
-                    onClick={() => setIsCancelModalOpen(true)}
-                  >
-                    Cancel Subscription
-                  </button>
-                )}
+                  Cancel Scheduled Subscription
+                </button>
               </div>
             </div>
           </div>
 
           {/* Included Features */}
           {currentPlan?.features && currentPlan.features.length > 0 && (
-            <div className="rounded-lg p-6">
+            <div className="rounded-lg p-6 bg-slate-50 border border-slate-100">
               <h2 className="text-base font-bold text-slate-900 mb-6">
-                Included Features
+                Upcoming Features
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-8">
                 {currentPlan.features.map((feat, idx) => (
@@ -263,42 +259,51 @@ export default function TenantSubscriptionSummary() {
         </div>
 
         {/* Right Column: Billing Info */}
-        <div className="space-y-6 md:border-l border-slate-300 md:pl-8">
-          <div className="rounded-lg p-6">
+        <div className="space-y-6 md:border-l border-slate-200 md:pl-8">
+          <div className=" p-6">
             <h3 className="text-base font-bold text-slate-900 mb-4">
-              Billing Information
+              Payment Status
             </h3>
             <div className="space-y-4">
               <div>
-                <p className="text-xs font-semibold text-slate-500  tracking-wider mb-1">
-                  Organization
+                <p className="text-xs font-semibold text-slate-500 tracking-wider mb-1">
+                  Status
                 </p>
-                <p className="text-sm text-slate-700">
-                  {subscription.organizationName || "N/A"}
+                <p className="text-sm font-medium text-emerald-600 capitalize">
+                  {subscription.paymentStatus || "Succeeded"}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-semibold text-slate-500  tracking-wider mb-1">
-                  Address
+                <p className="text-xs font-semibold text-slate-500 tracking-wider mb-1">
+                  Amount Paid
+                </p>
+                <p className="text-sm font-medium text-slate-700">
+                  ₹
+                  {Number(
+                    subscription.amountPaid || subscription.planPrice || 0,
+                  ).toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-500 tracking-wider mb-1">
+                  Payment Date
                 </p>
                 <p className="text-sm text-slate-700">
-                  {subscription.address || "No address provided"}
-                  <br />
-                  {subscription.city && subscription.state
-                    ? `${subscription.city}, ${subscription.state} ${subscription.pincode || ""}`
-                    : ""}
+                  {formatDate(
+                    subscription.paymentDate || subscription.subscribedOn,
+                  )}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg p-6">
+          <div className="rounded-xl p-6 bg-slate-50 border border-slate-100">
             <h3 className="text-base font-bold text-slate-900 mb-2">
               Need help?
             </h3>
             <p className="text-xs text-slate-600 mb-4 leading-relaxed">
-              If you have questions about your billing, plan features, or need
-              to discuss custom enterprise requirements, we're here to help.
+              If you have questions about your upcoming plan change or need a
+              refund, our support team is ready to assist.
             </p>
             <Link
               to="/tickets"
@@ -315,44 +320,42 @@ export default function TenantSubscriptionSummary() {
       {/* Cancel Confirmation Modal */}
       {isCancelModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden p-1">
             <div className="p-6 border-b border-slate-100">
               <h3 className="text-lg font-bold text-slate-900">
-                Cancel Subscription?
+                Cancel Scheduled Subscription?
               </h3>
             </div>
             <div className="p-6 space-y-4">
-              <p className="text-sm text-slate-600">
-                Are you sure you want to cancel your {subscription?.status === 6 || subscription?.status === "Scheduled" ? "scheduled" : "active"} subscription?
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Are you sure you want to cancel your scheduled upgrade to{" "}
+                <strong>{currentPlan?.name}</strong>?
               </p>
-              <div className="p-4">
-                <ul className="text-xs text-red-800 list-disc list-inside space-y-1.5">
-                  <li>Your plan will instantly revert to the Free Plan.</li>
-                  
-                  {subscription?.status === 6 || subscription?.status === "Scheduled" ? (
-                    <li>You <strong>will</strong> receive a full refund because your subscription hasn't fully started yet (Refund Pending).</li>
-                  ) : (
-                    <li>You will <strong>not</strong> be refunded for the remainder of your billing cycle.</li>
-                  )}
-                  
-                  <li>Premium features and data access will be restricted immediately.</li>
-                </ul>
+              <div className="p-4 ">
+                <p className="text-sm text-red-800">
+                  Because this subscription hasn't started yet, you will be
+                  issued a <strong>full refund</strong> of ₹
+                  {Number(
+                    subscription.amountPaid || subscription.planPrice || 0,
+                  ).toLocaleString()}{" "}
+                .
+                </p>
               </div>
             </div>
-            <div className="p-4 flex justify-end gap-3">
+            <div className="p-4 flex justify-end gap-3 bg-slate-50 border-t border-slate-100">
               <button
                 onClick={() => setIsCancelModalOpen(false)}
                 disabled={isCancelling}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
               >
                 Keep Subscription
               </button>
               <button
                 onClick={handleCancelSubscription}
                 disabled={isCancelling}
-                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 shadow-sm"
               >
-                {isCancelling ? "Cancelling..." : "Yes, Cancel Now"}
+                {isCancelling ? "Cancelling..." : "Yes, Cancel & Refund"}
               </button>
             </div>
           </div>

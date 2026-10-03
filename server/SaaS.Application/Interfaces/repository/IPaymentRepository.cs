@@ -4,7 +4,9 @@ namespace SaaS.Application.Interfaces.Repository;
 public interface IPaymentRepository
 {
     Task<SaaS.Domain.Entities.Payment?> GetByIdAsync(Guid id);
+    Task<SaaS.Domain.Entities.Payment?> GetByStripePaymentIntentIdAsync(string intentId);
     Task<SaaS.Domain.Entities.Payment?> GetByStripeSessionIdAsync(string sessionId);
+    Task<SaaS.Domain.Entities.Payment?> GetBySubscriptionIdAsync(Guid subscriptionId);
     Task<IEnumerable<SaaS.Domain.Entities.Payment>> GetByTenantIdAsync(long tenantId);
     Task AddAsync(SaaS.Domain.Entities.Payment payment);
     Task DeleteAsync(SaaS.Domain.Entities.Payment payment);
