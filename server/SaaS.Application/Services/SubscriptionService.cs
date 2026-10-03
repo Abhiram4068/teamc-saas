@@ -599,36 +599,12 @@ public class SubscriptionService : ISubscriptionService
             return ApiResponse<string>.FailureResponse("Failed to update subscription in Stripe.");
         }
 
-        // Expire the old subscription record to maintain history
-        activeSubscription.Status = SubscriptionStatus.Expired;
-        activeSubscription.EndDate = DateTime.UtcNow;
+        // Update local DB
+        activeSubscription.PlanId = newPlan.Id;
+        activeSubscription.BillingCycle = billingCycle;
         activeSubscription.UpdatedAt = DateTime.UtcNow;
-        await _subscriptionRepository.UpdateAsync(activeSubscription);
-
-        // Create a brand new subscription record for the new plan
-        var newSubscription = new Subscription
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            PlanId = newPlan.Id,
-            BillingCycle = billingCycle,
-            StartDate = DateTime.UtcNow,
-            EndDate = billingCycle == BillingCycle.Monthly 
-                ? DateTime.UtcNow.AddMonths(1) 
-                : DateTime.UtcNow.AddYears(1),
-            Status = SubscriptionStatus.Active,
-            StripeSubscriptionId = activeSubscription.StripeSubscriptionId, // Link to the same Stripe sub
-            StripeCustomerId = activeSubscription.StripeCustomerId,
-            OrganizationName = activeSubscription.OrganizationName,
-            Address = activeSubscription.Address,
-            City = activeSubscription.City,
-            State = activeSubscription.State,
-            Pincode = activeSubscription.Pincode,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
         
-        await _subscriptionRepository.AddAsync(newSubscription);
+        await _subscriptionRepository.UpdateAsync(activeSubscription);
         await _subscriptionRepository.SaveChangesAsync();
 
         return ApiResponse<string>.SuccessResponse("Subscription upgraded successfully.", "Success");
@@ -668,30 +644,19 @@ public class SubscriptionService : ISubscriptionService
             return ApiResponse<string>.FailureResponse("Failed to schedule subscription update in Stripe.");
         }
 
-        // Create a scheduled subscription record
-        var scheduledSubscription = new Subscription
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            PlanId = newPlan.Id,
-            BillingCycle = billingCycle,
-            StartDate = activeSubscription.EndDate ?? DateTime.UtcNow, // Starts when current active ends
-            EndDate = billingCycle == BillingCycle.Monthly 
-                ? (activeSubscription.EndDate ?? DateTime.UtcNow).AddMonths(1) 
-                : (activeSubscription.EndDate ?? DateTime.UtcNow).AddYears(1),
-            Status = SubscriptionStatus.Scheduled,
-            StripeSubscriptionId = activeSubscription.StripeSubscriptionId, // Link to the same Stripe sub
-            StripeCustomerId = activeSubscription.StripeCustomerId,
-            OrganizationName = activeSubscription.OrganizationName,
-            Address = activeSubscription.Address,
-            City = activeSubscription.City,
-            State = activeSubscription.State,
-            Pincode = activeSubscription.Pincode,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+        // Update the active subscription to be Scheduled
+        activeSubscription.PlanId = newPlan.Id;
+        activeSubscription.BillingCycle = billingCycle;
+        activeSubscription.Status = SubscriptionStatus.Scheduled;
         
-        await _subscriptionRepository.AddAsync(scheduledSubscription);
+        // StartDate will be the end of the current billing cycle
+        activeSubscription.StartDate = activeSubscription.EndDate ?? DateTime.UtcNow;
+        activeSubscription.EndDate = billingCycle == BillingCycle.Monthly 
+            ? (activeSubscription.EndDate ?? DateTime.UtcNow).AddMonths(1) 
+            : (activeSubscription.EndDate ?? DateTime.UtcNow).AddYears(1);
+        activeSubscription.UpdatedAt = DateTime.UtcNow;
+        
+        await _subscriptionRepository.UpdateAsync(activeSubscription);
         await _subscriptionRepository.SaveChangesAsync();
 
         return ApiResponse<string>.SuccessResponse("Subscription upgrade scheduled successfully.", "Success");
