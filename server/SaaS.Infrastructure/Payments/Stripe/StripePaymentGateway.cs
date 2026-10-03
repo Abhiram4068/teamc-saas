@@ -136,4 +136,48 @@ public class StripePaymentGateway : IStripePaymentGateway
             return null;
         }
     }
+
+    public async Task<bool> UpgradeSubscriptionImmediatelyAsync(string stripeSubscriptionId, string newStripePriceId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+
+        var service = new global::Stripe.SubscriptionService();
+
+        // Fetch the user's current subscription from Stripe.
+        var subscription = await service.GetAsync(stripeSubscriptionId);
+        
+        // Terminate if the subscription does not exist or has no active items.
+        if (subscription == null || subscription.Items.Data.Count == 0)
+        {
+            return false;
+        }
+
+        // Prepare the configuration to modify the subscription plan.
+        var options = new global::Stripe.SubscriptionUpdateOptions
+        {
+            Items = new List<global::Stripe.SubscriptionItemOptions>
+            {
+                new global::Stripe.SubscriptionItemOptions
+                {
+                    // Target the existing subscription item to be updated.
+                    Id = subscription.Items.Data[0].Id,
+                    // Provide the Price ID for the new plan.
+                    Price = newStripePriceId,
+                }
+            },
+            // Instruct Stripe to immediately calculate prorations, generate an invoice, and process the charge.
+            ProrationBehavior = "always_invoice"
+        };
+
+        // Submit the update request to Stripe.
+        var updatedSubscription = await service.UpdateAsync(stripeSubscriptionId, options);
+        
+        // Return true if the updated subscription status is active.
+        return updatedSubscription.Status == "active";
+    }
 }

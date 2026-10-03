@@ -17,4 +17,6 @@ public interface IStripePaymentGateway
     Task<string?> RefundPaymentAsync(string paymentIntentId);
     
     Task<string?> GetLatestPaymentIntentIdForCustomerAsync(string customerId);
+    
+    Task<bool> UpgradeSubscriptionImmediatelyAsync(string stripeSubscriptionId, string newStripePriceId);
 }

@@ -29,5 +29,10 @@ export const subscriptionApi = {
   cancelScheduledSubscription: async (subscriptionId) => {
     const response = await axiosInstance.post('/Subscriptions/cancel-scheduled', { subscriptionId });
     return response.data;
+  },
+
+  upgradeSubscriptionImmediately: async (data) => {
+    const response = await axiosInstance.post('/Subscriptions/upgrade-immediately', data);
+    return response.data;
   }
 };

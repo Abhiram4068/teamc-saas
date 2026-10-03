@@ -23,4 +23,6 @@ public interface ISubscriptionService
     Task HandleSubscriptionCanceledAsync(string subscriptionId);
 
     Task<ApiResponse<IEnumerable<PlanFeatureResponseDto>>> GetMyPlanFeaturesAsync(int tenantId);
+    
+    Task<ApiResponse<string>> UpgradeSubscriptionImmediatelyAsync(int tenantId, int planId, SaaS.Domain.Enums.BillingCycle billingCycle);
 }

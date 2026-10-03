@@ -115,4 +115,25 @@ public class SubscriptionsController : ControllerBase
         
         return StatusCode(response.StatusCode, response);
     }
+    
+    /// <summary>
+    /// Instantly upgrades the tenant's active subscription to a new plan and charges the prorated difference immediately.
+    /// </summary>
+    [HttpPost("upgrade-immediately")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> UpgradeSubscriptionImmediately([FromBody] UpgradeSubscriptionRequestDto request)
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("Upgrade Subscription failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        _logger.LogInformation("Upgrading immediately to Plan {PlanId} for Tenant: {TenantId}", request.PlanId, tenantId);
+        var response = await _subscriptionService.UpgradeSubscriptionImmediatelyAsync(tenantId, request.PlanId, request.BillingCycle);
+        
+        return StatusCode(response.StatusCode, response);
+    }
 }

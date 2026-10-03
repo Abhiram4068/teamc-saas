@@ -564,4 +564,73 @@ public class SubscriptionService : ISubscriptionService
             await _subscriptionRepository.SaveChangesAsync();
         }
     }
+    
+    /// <summary>
+    /// Upgrades the tenant's subscription immediately and calls stripe for prorated invoice 
+    /// and updates the subscription in DB with new subscription record.
+    /// </summary>
+    public async Task<ApiResponse<string>> UpgradeSubscriptionImmediatelyAsync(int tenantId, int planId, BillingCycle billingCycle)
+    {
+        var activeSubscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
+        if (activeSubscription == null || string.IsNullOrEmpty(activeSubscription.StripeSubscriptionId))
+        {
+            return ApiResponse<string>.FailureResponse("You dont have an active Stripe subscription to upgrade.");
+        }
+
+        var newPlan = await _planRepository.GetByIdAsync(planId);
+        if (newPlan == null || newPlan.Status != PlanStatus.Active)
+        {
+            return ApiResponse<string>.FailureResponse("Selected plan was not found.");
+        }
+
+        string? newStripePriceId = billingCycle == BillingCycle.Monthly 
+            ? newPlan.StripeMonthlyPriceId 
+            : newPlan.StripeYearlyPriceId;
+
+        if (string.IsNullOrEmpty(newStripePriceId))
+        {
+            return ApiResponse<string>.FailureResponse("The selected plan is missing pricing information.");
+        }
+
+        // Calls the function to update the subscription in stripe and also charges the prorated difference immediately.
+        var success = await _stripePaymentGateway.UpgradeSubscriptionImmediatelyAsync(activeSubscription.StripeSubscriptionId, newStripePriceId);
+        if (!success)
+        {
+            return ApiResponse<string>.FailureResponse("Failed to update subscription in Stripe.");
+        }
+
+        // Expire the old subscription record to maintain history
+        activeSubscription.Status = SubscriptionStatus.Expired;
+        activeSubscription.EndDate = DateTime.UtcNow;
+        activeSubscription.UpdatedAt = DateTime.UtcNow;
+        await _subscriptionRepository.UpdateAsync(activeSubscription);
+
+        // Create a brand new subscription record for the new plan
+        var newSubscription = new Subscription
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            PlanId = newPlan.Id,
+            BillingCycle = billingCycle,
+            StartDate = DateTime.UtcNow,
+            EndDate = billingCycle == BillingCycle.Monthly 
+                ? DateTime.UtcNow.AddMonths(1) 
+                : DateTime.UtcNow.AddYears(1),
+            Status = SubscriptionStatus.Active,
+            StripeSubscriptionId = activeSubscription.StripeSubscriptionId, // Link to the same Stripe sub
+            StripeCustomerId = activeSubscription.StripeCustomerId,
+            OrganizationName = activeSubscription.OrganizationName,
+            Address = activeSubscription.Address,
+            City = activeSubscription.City,
+            State = activeSubscription.State,
+            Pincode = activeSubscription.Pincode,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        
+        await _subscriptionRepository.AddAsync(newSubscription);
+        await _subscriptionRepository.SaveChangesAsync();
+
+        return ApiResponse<string>.SuccessResponse("Subscription upgraded successfully.", "Success");
+    }
 }
