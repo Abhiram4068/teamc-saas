@@ -157,4 +157,22 @@ public class SubscriptionsController : ControllerBase
         
         return StatusCode(response.StatusCode, response);
     }
+
+    /// <summary>
+    /// Previews the prorated amount the user will be charged if they upgrade immediately.
+    /// </summary>
+    [HttpPost("preview-proration")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> PreviewProration([FromBody] UpgradeSubscriptionRequestDto request)
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        var response = await _subscriptionService.PreviewUpgradeProrationAsync(tenantId, request.PlanId, request.BillingCycle);
+        return StatusCode(response.StatusCode, response);
+    }
 }

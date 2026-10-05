@@ -241,4 +241,44 @@ public class StripePaymentGateway : IStripePaymentGateway
         var updatedSchedule = await scheduleService.UpdateAsync(schedule.Id, updateOptions);
         return updatedSchedule.Status == "active";
     }
+
+    public async Task<decimal> PreviewUpgradeProrationAsync(string stripeCustomerId, string stripeSubscriptionId, string newStripePriceId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+
+        var subService = new global::Stripe.SubscriptionService();
+        var subscription = await subService.GetAsync(stripeSubscriptionId);
+
+        if (subscription == null || subscription.Items.Data.Count == 0) return 0;
+
+        var options = new global::Stripe.InvoiceCreatePreviewOptions
+        {
+            // Providing stripe with the customer id and current subscription
+            Customer = stripeCustomerId,
+            Subscription = stripeSubscriptionId,
+            SubscriptionDetails = new global::Stripe.InvoiceSubscriptionDetailsOptions
+            {
+                Items = new List<global::Stripe.InvoiceSubscriptionDetailsItemOptions>
+                {
+                    new global::Stripe.InvoiceSubscriptionDetailsItemOptions
+                    {
+                        Id = subscription.Items.Data[0].Id,
+                        Price = newStripePriceId,
+                    }
+                }
+            }
+        };
+
+        // Calculate the prorated invoice
+        var invoiceService = new global::Stripe.InvoiceService();
+        var upcomingInvoice = await invoiceService.CreatePreviewAsync(options);
+
+        // AmountDue is in the smallest currency unit (e.g. cents/paise)
+        return (decimal)upcomingInvoice.AmountDue / 100m;
+    }
 }
