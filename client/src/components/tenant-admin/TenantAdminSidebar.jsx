@@ -21,6 +21,7 @@ export default function TenantAdminSidebar() {
     }`;
 
   return (
+<<<<<<< Updated upstream
     <div className="w-[240px] shrink-0 bg-black flex flex-col pt-6 relative min-h-[calc(100vh-60px)]">
  
       <div className="flex flex-col w-full divide-y divide-white/10 border-t border-b border-white/10">
@@ -60,6 +61,10 @@ export default function TenantAdminSidebar() {
           <span>Support</span>
         </NavLink>
       </div>
+=======
+    <div className="w-[70px] shrink-0 bg-black flex flex-col items-center pt-2.5 relative min-h-[calc(100vh-60px)]">
+
+>>>>>>> Stashed changes
       
       <div 
         className="w-full h-12 flex items-center px-6 text-xs gap-4 cursor-pointer transition-all duration-200 mt-auto text-red-500 hover:text-red-400 border-l-[3px] border-transparent"

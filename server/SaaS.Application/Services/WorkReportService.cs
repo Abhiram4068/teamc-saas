@@ -192,7 +192,7 @@ public class WorkReportService : IWorkReportService
                     WorkTypeId = dto.WorkTypeId,
                     Name = dto.Name,
                     Description = dto.Description,
-                    WorkDate = dto.WorkDate,
+                    WorkDate = DateTime.SpecifyKind(dto.WorkDate, DateTimeKind.Utc),
                     HoursSpent = dto.HoursSpent,
                     Status = dto.Status,
                     CreatedAt = DateTime.UtcNow,
@@ -247,7 +247,7 @@ public class WorkReportService : IWorkReportService
             report.WorkTypeId = dto.WorkTypeId;
             report.Name = dto.Name;
             report.Description = dto.Description;
-            report.WorkDate = dto.WorkDate;
+            report.WorkDate = DateTime.SpecifyKind(dto.WorkDate, DateTimeKind.Utc);
             report.HoursSpent = dto.HoursSpent;
             report.Status = dto.Status;
             report.UpdatedAt = DateTime.UtcNow;
