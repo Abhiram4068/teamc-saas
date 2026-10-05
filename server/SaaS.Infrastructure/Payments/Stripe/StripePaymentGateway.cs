@@ -196,13 +196,22 @@ public class StripePaymentGateway : IStripePaymentGateway
         if (subscription == null || subscription.Items.Data.Count == 0) return false;
 
         var scheduleService = new global::Stripe.SubscriptionScheduleService();
+        global::Stripe.SubscriptionSchedule schedule;
         
-        // 1. Create a schedule attached to the existing subscription
-        var createOptions = new global::Stripe.SubscriptionScheduleCreateOptions
+        if (!string.IsNullOrEmpty(subscription.ScheduleId))
         {
-            FromSubscription = stripeSubscriptionId
-        };
-        var schedule = await scheduleService.CreateAsync(createOptions);
+            // 1a. It already has a schedule, get it
+            schedule = await scheduleService.GetAsync(subscription.ScheduleId);
+        }
+        else
+        {
+            // 1b. Create a new schedule attached to the existing subscription
+            var createOptions = new global::Stripe.SubscriptionScheduleCreateOptions
+            {
+                FromSubscription = stripeSubscriptionId
+            };
+            schedule = await scheduleService.CreateAsync(createOptions);
+        }
 
         // 2. Modify the schedule to have two phases
         var updateOptions = new global::Stripe.SubscriptionScheduleUpdateOptions
