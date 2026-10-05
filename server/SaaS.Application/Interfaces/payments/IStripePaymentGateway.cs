@@ -21,4 +21,6 @@ public interface IStripePaymentGateway
     Task<bool> UpgradeSubscriptionImmediatelyAsync(string stripeSubscriptionId, string newStripePriceId);
     
     Task<bool> ScheduleSubscriptionUpgradeAsync(string stripeSubscriptionId, string newStripePriceId);
+    
+    Task<decimal> PreviewUpgradeProrationAsync(string stripeCustomerId, string stripeSubscriptionId, string newStripePriceId);
 }

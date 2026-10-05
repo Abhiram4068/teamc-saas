@@ -661,4 +661,45 @@ public class SubscriptionService : ISubscriptionService
 
         return ApiResponse<string>.SuccessResponse("Subscription upgrade scheduled successfully.", "Success");
     }
+
+    /// <summary>
+    /// Previews the prorated amount the user will be charged if they upgrade immediately.
+    /// </summary>
+    public async Task<ApiResponse<decimal>> PreviewUpgradeProrationAsync(int tenantId, int planId, BillingCycle billingCycle)
+    {
+        var activeSubscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
+        if (activeSubscription == null || string.IsNullOrEmpty(activeSubscription.StripeSubscriptionId) || string.IsNullOrEmpty(activeSubscription.StripeCustomerId))
+        {
+            return ApiResponse<decimal>.FailureResponse("You dont have an active Stripe subscription to preview.");
+        }
+
+        var newPlan = await _planRepository.GetByIdAsync(planId);
+        if (newPlan == null || newPlan.Status != PlanStatus.Active)
+        {
+            return ApiResponse<decimal>.FailureResponse("Selected plan was not found.");
+        }
+
+        string? newStripePriceId = billingCycle == BillingCycle.Monthly 
+            ? newPlan.StripeMonthlyPriceId 
+            : newPlan.StripeYearlyPriceId;
+
+        if (string.IsNullOrEmpty(newStripePriceId))
+        {
+            return ApiResponse<decimal>.FailureResponse("The selected plan is missing pricing information.");
+        }
+
+        try 
+        {
+            var amountDue = await _stripePaymentGateway.PreviewUpgradeProrationAsync(
+                activeSubscription.StripeCustomerId, 
+                activeSubscription.StripeSubscriptionId, 
+                newStripePriceId);
+
+            return ApiResponse<decimal>.SuccessResponse(amountDue, "Success");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<decimal>.FailureResponse($"Failed to preview proration: {ex.Message}");
+        }
+    }
 }

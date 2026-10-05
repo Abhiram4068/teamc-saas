@@ -27,4 +27,6 @@ public interface ISubscriptionService
     Task<ApiResponse<string>> UpgradeSubscriptionImmediatelyAsync(int tenantId, int planId, SaaS.Domain.Enums.BillingCycle billingCycle);
     
     Task<ApiResponse<string>> ScheduleSubscriptionUpgradeAsync(int tenantId, int planId, SaaS.Domain.Enums.BillingCycle billingCycle);
+    
+    Task<ApiResponse<decimal>> PreviewUpgradeProrationAsync(int tenantId, int planId, SaaS.Domain.Enums.BillingCycle billingCycle);
 }

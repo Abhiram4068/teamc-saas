@@ -39,5 +39,10 @@ export const subscriptionApi = {
   scheduleSubscriptionUpgrade: async (data) => {
     const response = await axiosInstance.post('/Subscriptions/upgrade-scheduled', data);
     return response.data;
+  },
+
+  previewUpgradeProration: async (data) => {
+    const response = await axiosInstance.post('/Subscriptions/preview-proration', data);
+    return response.data;
   }
 };
