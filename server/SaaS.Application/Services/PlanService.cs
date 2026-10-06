@@ -385,7 +385,7 @@ public class PlanService : IPlanService
 
         var activeSubscription = await _subscriptionRepository.GetByTenantIdAsync(tenantId);
         
-        var availablePlans = publicPlansResponse.Data;
+        var availablePlans = publicPlansResponse.Data ?? new List<PublicPlanResponseDto>();
         
         if (activeSubscription != null)
         {

@@ -62,6 +62,42 @@ public class SubscriptionsController : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpGet("scheduled")]
+    [Authorize(Roles = "2")] 
+    public async Task<IActionResult> GetScheduledSubscription()
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("Get Scheduled Subscription failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        _logger.LogInformation("Getting scheduled subscription for Tenant: {TenantId}", tenantId);
+        var response = await _subscriptionService.GetScheduledSubscriptionAsync(tenantId);
+        
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpPost("cancel-scheduled")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> CancelScheduledSubscription([FromBody] CancelSubscriptionRequestDto request)
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("Cancel Scheduled Subscription failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        _logger.LogInformation("Canceling scheduled subscription {SubscriptionId} for Tenant: {TenantId}", request.SubscriptionId, tenantId);
+        var response = await _subscriptionService.CancelScheduledSubscriptionAsync(request.SubscriptionId, tenantId);
+        
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost("cancel")]
     [Authorize(Roles = "2")]
     public async Task<IActionResult> CancelSubscription()
@@ -74,9 +110,69 @@ public class SubscriptionsController : ControllerBase
             return Unauthorized(new { Message = "Tenant ID not found in token." });
         }
 
-        _logger.LogInformation("Canceling subscription for Tenant: {TenantId}", tenantId);
+        _logger.LogInformation("Canceling active subscription for Tenant: {TenantId}", tenantId);
         var response = await _subscriptionService.CancelSubscriptionAsync(tenantId);
         
+        return StatusCode(response.StatusCode, response);
+    }
+    
+    /// <summary>
+    /// Instantly upgrades the tenant's active subscription to a new plan and charges the prorated difference immediately.
+    /// </summary>
+    [HttpPost("upgrade-immediately")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> UpgradeSubscriptionImmediately([FromBody] UpgradeSubscriptionRequestDto request)
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("Upgrade Subscription failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        _logger.LogInformation("Upgrading immediately to Plan {PlanId} for Tenant: {TenantId}", request.PlanId, tenantId);
+        var response = await _subscriptionService.UpgradeSubscriptionImmediatelyAsync(tenantId, request.PlanId, request.BillingCycle);
+        
+        return StatusCode(response.StatusCode, response);
+    }
+    
+    /// <summary>
+    /// Schedules an upgrade to a new plan to take effect at the end of the current billing cycle.
+    /// </summary>
+    [HttpPost("upgrade-scheduled")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> ScheduleSubscriptionUpgrade([FromBody] UpgradeSubscriptionRequestDto request)
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            _logger.LogWarning("Schedule Subscription Upgrade failed: Tenant ID not found in token or invalid.");
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        _logger.LogInformation("Scheduling upgrade to Plan {PlanId} for Tenant: {TenantId}", request.PlanId, tenantId);
+        var response = await _subscriptionService.ScheduleSubscriptionUpgradeAsync(tenantId, request.PlanId, request.BillingCycle);
+        
+        return StatusCode(response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Previews the prorated amount the user will be charged if they upgrade immediately.
+    /// </summary>
+    [HttpPost("preview-proration")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> PreviewProration([FromBody] UpgradeSubscriptionRequestDto request)
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+                        
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        var response = await _subscriptionService.PreviewUpgradeProrationAsync(tenantId, request.PlanId, request.BillingCycle);
         return StatusCode(response.StatusCode, response);
     }
 }

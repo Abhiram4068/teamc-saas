@@ -28,7 +28,7 @@ public class WebhooksController : ControllerBase
     public async Task<IActionResult> StripeWebhook()
     {
         var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
-
+         
         try
         {
             var stripeEvent = EventUtility.ConstructEvent(
@@ -48,7 +48,8 @@ public class WebhooksController : ControllerBase
                     var result = await _subscriptionService.CompleteCheckoutAsync(
                         session.Id, 
                         session.CustomerId, 
-                        session.SubscriptionId);
+                        session.SubscriptionId,
+                        session.InvoiceId);
                     
                     if (result.Success)
                     {
@@ -58,6 +59,28 @@ public class WebhooksController : ControllerBase
                     {
                         _logger.LogError("Failed to complete checkout for session {SessionId}: {Message}", session.Id, result.Message);
                     }
+                }
+            }
+            else if (stripeEvent.Type == "customer.subscription.deleted")
+            {
+                var subscription = stripeEvent.Data.Object as global::Stripe.Subscription;
+                if (subscription != null)
+                {
+                    _logger.LogInformation("Processing canceled subscription: {SubscriptionId}", subscription.Id);
+                    await _subscriptionService.HandleSubscriptionCanceledAsync(subscription.Id);
+                }
+            }
+            else if (stripeEvent.Type == "refund.created" || stripeEvent.Type == "refund.updated" || stripeEvent.Type == "refund.failed")
+            {
+                var refund = stripeEvent.Data.Object as global::Stripe.Refund;
+                
+                // We now save the Payment Intent ID (pi_...) in the DB, so we should look for that!
+                var transactionId = refund?.PaymentIntentId;
+
+                if (refund != null && !string.IsNullOrEmpty(transactionId))
+                {
+                    _logger.LogInformation("Processing refund {RefundId} for Transaction {TransactionId} with status {Status}", refund.Id, transactionId, refund.Status);
+                    await _subscriptionService.HandleRefundUpdatedAsync(transactionId, refund.Status);
                 }
             }
             else

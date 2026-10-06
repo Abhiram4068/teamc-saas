@@ -83,6 +83,7 @@ export const authApi = {
       console.error("Failed to fetch user profile", error);
       return null;
     }
+
   },
 
   logout: () => {

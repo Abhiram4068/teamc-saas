@@ -22,26 +22,32 @@ export default function PaymentSuccess() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg text-center">
+    <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB]">
+      <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 text-center mx-4">
         <div className="flex justify-center mb-6">
-          <CheckCircle className="w-20 h-20 text-green-500" />
+          <div className="rounded-full p-4">
+            <CheckCircle className="w-12 h-12 text-green-600" strokeWidth={1.5} />
+          </div>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Payment Successful!</h1>
-        <p className="text-gray-600 mb-8">
-          Thank you for subscribing. Your account has been upgraded and your new features are now available.
+        
+        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight mb-3">
+          Payment successful
+        </h1>
+        
+        <p className="text-gray-500 text-sm leading-relaxed mb-8">
+          Thank you for subscribing. Your account has been upgraded and all premium features are now unlocked for your team.
         </p>
         
-        <div className="text-sm text-gray-500 mb-6">
-          Redirecting to your dashboard in {countdown} seconds...
-        </div>
-
         <button
           onClick={() => navigate('/tenant/dashboard')}
-          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-colors"
+          className="w-full flex items-center justify-center py-2.5 px-4 rounded-lg text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 shadow-sm"
         >
-          Go to Dashboard Now
+          Go to dashboard
         </button>
+        
+        <p className="mt-6 text-xs text-gray-400 font-medium">
+          Redirecting automatically in {countdown}s
+        </p>
       </div>
     </div>
   );

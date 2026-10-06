@@ -30,6 +30,7 @@ export default function TenantSidebar() {
         { label: 'Change Plan', to: '/tenant/plans' },
         { label: 'Payments', to: '/tenant/payments' },
         { label: 'Invoices', to: '/tenant/invoices' },
+        { label: 'Scheduled Subscription', to: '/tenant/scheduled-subscription' },
 
       ],
     },
@@ -38,7 +39,7 @@ export default function TenantSidebar() {
       icon: 'fa-solid fa-headset',
       subItems: [
         { label: 'Manage Tickets', to: '/tickets/', target: '_blank' },
-        { label: 'Contact Support', to: '/tenant/contact-support' },
+        { label: 'Contact Support', to: '/tickets/my-tickets', target: '_blank' },
       ],
     }
   ];

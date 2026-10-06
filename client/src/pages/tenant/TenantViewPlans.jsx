@@ -15,6 +15,9 @@ export default function TenantViewPlans() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isScheduledModalOpen, setIsScheduledModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [proratedAmount, setProratedAmount] = useState(null);
   const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState(null);
 
   const { showToast } = useToast();
@@ -52,7 +55,7 @@ export default function TenantViewPlans() {
     }
   }
 
-  const handlePlanSelect = (plan) => {
+  const handlePlanSelect = async (plan) => {
     if (currentSubscription?.hasScheduledSubscription) {
       setIsScheduledModalOpen(true);
       return;
@@ -61,7 +64,23 @@ export default function TenantViewPlans() {
     // Only show the warning modal if they are on a paid plan (rank > 1)
     if (hasActiveSubscription && currentPlanObj && currentPlanObj.rank > 1) {
       setSelectedPlanForCheckout(plan);
+      setProratedAmount(null);
       setIsModalOpen(true);
+      
+      try {
+        setIsPreviewing(true);
+        const res = await subscriptionApi.previewUpgradeProration({
+          planId: plan.id,
+          billingCycle: currentSubscription?.billingCycle || 1
+        });
+        if (res?.success) {
+          setProratedAmount(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch proration preview:", err);
+      } finally {
+        setIsPreviewing(false);
+      }
     } else {
       navigate(`/checkout/${plan.id}?billing=yearly`);
     }
@@ -231,42 +250,135 @@ export default function TenantViewPlans() {
         })}
       </div>
 
-      {/* Confirmation Modal */}
+      {/* Upgrade Options Modal */}
       {isModalOpen && selectedPlanForCheckout && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-md shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
-            <div className="flex items-start gap-4 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  Important Notice
+                <h3 className="text-xl font-extrabold text-brand-800 tracking-tight">
+                  Choose Upgrade Path
                 </h3>
-                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
-                  Before you proceed with a new subscription, make sure to cancel your current one. Else, the new subscription will only become active after your next billing date.
+                <p className="text-sm text-gray-500 mt-0.5">
+                  You are upgrading to <span className="font-bold text-gray-700">{selectedPlanForCheckout.name}</span>
+                </p>
+              </div>
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                disabled={isUpgrading}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-full hover:bg-gray-100"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            
+            {/* Warning / Info Box (Full width) */}
+            <div className="py-3 px-6 sm:px-8 bg-yellow-50 border-b border-yellow-200 flex items-start">
+              <i className="fa-solid fa-circle-info text-yellow-600 mt-0.5 mr-3"></i>
+              <div className="flex-1">
+                <p className="text-xs text-yellow-800 leading-snug text-justify">
+                  <strong>Important:</strong> Immediate upgrades apply a prorated charge for the remainder of your current billing cycle. Scheduled upgrades incur no immediate charges and will automatically activate on your next billing date.
                 </p>
               </div>
             </div>
+            
+            <div className="p-6 sm:p-8 bg-gray-50/50">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch max-w-lg mx-auto md:max-w-none">
+                
+                {/* Option 1: Immediate (Dark Card) */}
+                <div className="bg-[#141842] rounded-lg shadow-[0_0_20px_rgba(20,24,66,0.3)] p-8 md:scale-105 flex flex-col relative z-10 text-white border border-[#141842] transition-transform duration-200">
+                  <div className="absolute top-0 right-0 px-3 py-1 rounded-bl-lg rounded-tr-xl text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
+                    Recommended
+                  </div>
+                  
+                  <h4 className="font-bold text-lg mb-2 mt-1">Upgrade Immediately</h4>
+                  <p className="text-gray-300 text-xs mb-5 flex-1 leading-relaxed">
+                    Instantly unlock {selectedPlanForCheckout.name} features for your workspace today.
+                  </p>
+                  
+                  <div className="mb-6 border-t border-gray-700 pt-4">
+                    <div className="text-gray-400 text-[10px] font-bold mb-1 uppercase tracking-wider">Due Today (Prorated)</div>
+                    {isPreviewing ? (
+                      <div className="flex items-center text-gray-300 text-sm h-8">
+                        <div className="w-4 h-4 border-2 border-white/40 border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Calculating...
+                      </div>
+                    ) : proratedAmount !== null ? (
+                      <div className="text-3xl font-extrabold tracking-tight">₹{Number(proratedAmount).toLocaleString()}</div>
+                    ) : (
+                      <div className="text-sm text-gray-500 h-8">-</div>
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={async () => {
+                      try {
+                        setIsUpgrading(true);
+                        const res = await subscriptionApi.upgradeSubscriptionImmediately({ 
+                          planId: selectedPlanForCheckout.id, 
+                          billingCycle: currentSubscription?.billingCycle || 1 
+                        });
+                        if (res?.success) {
+                          showToast("Plan upgraded successfully!", "success");
+                          setIsModalOpen(false);
+                          navigate("/tenant/subscription-summary");
+                        } else {
+                          showToast(res?.message || "Upgrade failed.", "error");
+                        }
+                      } catch (err) {
+                        showToast(err.response?.data?.message || "Error upgrading plan.", "error");
+                      } finally {
+                        setIsUpgrading(false);
+                      }
+                    }}
+                    disabled={isUpgrading}
+                    className="w-full py-2.5 px-4 bg-white hover:bg-gray-100 text-[#141842] text-sm font-bold rounded-md transition-colors shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30"
+                  >
+                    Pay & Upgrade Now
+                  </button>
+                </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
-              >
-                Go Back
-              </button>
-              <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  navigate(
-                    `/checkout/${selectedPlanForCheckout.id}?billing=yearly`,
-                  );
-                }}
-                className="px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm"
-              >
-                Proceed with{" "}
-                {selectedPlanForCheckout.rank > currentPlanObj?.rank
-                  ? "Upgrade"
-                  : "Downgrade"}
-              </button>
+                {/* Option 2: Schedule (White Card) */}
+                <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8 flex flex-col mt-4 md:mt-0 hover:shadow-lg transition duration-200">
+                  <h4 className="font-bold text-brand-800 text-lg mb-2 mt-1">Next Billing Date</h4>
+                  <p className="text-gray-500 text-xs mb-5 flex-1 leading-relaxed">
+                    Continue with {currentPlanObj?.name}. The new plan activates when your billing cycle ends.
+                  </p>
+                  
+                  <div className="mb-6 border-t border-gray-100 pt-4">
+                    <div className="text-gray-400 text-[10px] font-bold mb-1 uppercase tracking-wider">Due Today</div>
+                    <div className="text-3xl font-extrabold text-brand-800 tracking-tight">₹0</div>
+                  </div>
+                  
+                  <button
+                    onClick={async () => {
+                      try {
+                        setIsUpgrading(true);
+                        const res = await subscriptionApi.scheduleSubscriptionUpgrade({ 
+                          planId: selectedPlanForCheckout.id, 
+                          billingCycle: currentSubscription?.billingCycle || 1 
+                        });
+                        if (res?.success) {
+                          showToast("Plan scheduled successfully!", "success");
+                          setIsModalOpen(false);
+                          navigate("/tenant/scheduled-subscription");
+                        } else {
+                          showToast(res?.message || "Scheduling failed.", "error");
+                        }
+                      } catch (err) {
+                        showToast(err.response?.data?.message || "Error scheduling plan.", "error");
+                      } finally {
+                        setIsUpgrading(false);
+                      }
+                    }}
+                    disabled={isUpgrading}
+                    className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-md transition-colors shadow-sm focus:outline-none focus:ring-4 focus:ring-slate-200"
+                  >
+                    Schedule Upgrade
+                  </button>
+                </div>
+                
+              </div>
             </div>
           </div>
         </div>
@@ -325,13 +437,19 @@ export default function TenantViewPlans() {
                 </p>
               </div>
             </div>
-            <div className="flex justify-end mt-6">
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setIsScheduledModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
               >
                 Close
               </button>
+              <Link
+                to="/tenant/scheduled-subscription"
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+              >
+                View Scheduled Plan
+              </Link>
             </div>
           </div>
         </div>

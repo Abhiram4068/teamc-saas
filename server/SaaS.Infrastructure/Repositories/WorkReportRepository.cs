@@ -68,10 +68,14 @@ public class WorkReportRepository : IWorkReportRepository
 
     public async Task<bool> HasSubmittedReportAsync(long userId, long tenantId, DateTime date)
     {
+        var targetDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
+        var nextDate = targetDate.AddDays(1);
+        
         return await _context.WorkReports.AnyAsync(r => 
             r.UserId == userId && 
             r.TenantId == tenantId && 
-            r.WorkDate.Date == date.Date && 
+            r.WorkDate >= targetDate && 
+            r.WorkDate < nextDate && 
             r.Status == SaaS.Domain.Enums.WorkReportStatus.Submitted);
     }
 

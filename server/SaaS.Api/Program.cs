@@ -138,6 +138,9 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
+builder.Services.AddScoped<ISuperAdminDashboardRepository, SuperAdminDashboardRepository>();
+builder.Services.AddScoped<ISuperAdminDashboardService, SuperAdminDashboardService>();
+
 builder.Services.AddHostedService<SubscriptionTransitionJob>();
 
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, FeaturePolicyProvider>();

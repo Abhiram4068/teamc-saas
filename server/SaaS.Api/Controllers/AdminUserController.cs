@@ -15,18 +15,29 @@ public class AdminUserController : ControllerBase
     private readonly ITenantFeatureService _tenantFeatureService;
     private readonly IAuthService _authService;
     private readonly ITenantAdminService _tenantAdminService;
+    private readonly ISuperAdminDashboardService _dashboardService;
     private readonly ILogger<AdminUserController> _logger;
 
     public AdminUserController(
         ITenantFeatureService tenantFeatureService,
         IAuthService authService,
         ITenantAdminService tenantAdminService,
+        ISuperAdminDashboardService dashboardService,
         ILogger<AdminUserController> logger)
     {
         _tenantFeatureService = tenantFeatureService;
         _authService = authService;
         _tenantAdminService = tenantAdminService;
+        _dashboardService = dashboardService;
         _logger = logger;
+    }
+
+    [HttpGet("dashboard")]
+    [Authorize(Roles="1")]
+    public async Task<IActionResult> GetDashboard()
+    {
+        var result = await _dashboardService.GetDashboardAsync();
+        return StatusCode(result.StatusCode, result);
     }
 
     [HttpPost("tenant/add-tenantadmin")]

@@ -1,4 +1,4 @@
-﻿namespace SaaS.Domain.Enums;
+namespace SaaS.Domain.Enums;
 
 public enum PaymentStatus
 {
@@ -6,5 +6,7 @@ public enum PaymentStatus
     Succeeded = 2,
     Failed = 3,
     Refunded = 4,
-    PartiallyRefunded = 5
+    PartiallyRefunded = 5,
+    RefundPending = 6,
+    RefundFailed = 7
 }
