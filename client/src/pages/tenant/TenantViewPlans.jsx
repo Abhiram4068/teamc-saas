@@ -19,6 +19,9 @@ export default function TenantViewPlans() {
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [proratedAmount, setProratedAmount] = useState(null);
   const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState(null);
+  const [savedCards, setSavedCards] = useState([]);
+  const [selectedCardId, setSelectedCardId] = useState("");
+  const [isFetchingCards, setIsFetchingCards] = useState(false);
 
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -69,17 +72,30 @@ export default function TenantViewPlans() {
       
       try {
         setIsPreviewing(true);
-        const res = await subscriptionApi.previewUpgradeProration({
-          planId: plan.id,
-          billingCycle: currentSubscription?.billingCycle || 1
-        });
-        if (res?.success) {
-          setProratedAmount(res.data);
+        setIsFetchingCards(true);
+        const [prorationRes, cardsRes] = await Promise.all([
+          subscriptionApi.previewUpgradeProration({
+            planId: plan.id,
+            billingCycle: currentSubscription?.billingCycle || 1
+          }).catch(() => null),
+          subscriptionApi.getSavedCards().catch(() => null)
+        ]);
+
+        if (prorationRes?.success) {
+          setProratedAmount(prorationRes.data);
+        }
+        
+        if (cardsRes?.success && Array.isArray(cardsRes.data)) {
+          setSavedCards(cardsRes.data);
+          if (cardsRes.data.length > 0) {
+            setSelectedCardId(cardsRes.data[0].paymentMethodId);
+          }
         }
       } catch (err) {
-        console.error("Failed to fetch proration preview:", err);
+        console.error("Failed to fetch proration preview or cards:", err);
       } finally {
         setIsPreviewing(false);
+        setIsFetchingCards(false);
       }
     } else {
       navigate(`/checkout/${plan.id}?billing=yearly`);
@@ -309,14 +325,53 @@ export default function TenantViewPlans() {
                       <div className="text-sm text-gray-500 h-8">-</div>
                     )}
                   </div>
+                    {/* Card Selection UI */}
+                    <div className="mt-4 mb-6">
+                      <div className="text-gray-400 text-[10px] font-bold mb-2 uppercase tracking-wider">Payment Method</div>
+                      {isFetchingCards ? (
+                         <div className="text-sm text-gray-400">Loading cards...</div>
+                      ) : savedCards.length > 0 ? (
+                        <div className="space-y-2">
+                          {savedCards.map(card => (
+                            <label key={card.paymentMethodId} className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${selectedCardId === card.paymentMethodId ? 'border-brand-500 bg-brand-500/10' : 'border-gray-600 bg-gray-800/50 hover:bg-gray-700/50'}`}>
+                              <input 
+                                type="radio" 
+                                name="paymentCard" 
+                                value={card.paymentMethodId}
+                                checked={selectedCardId === card.paymentMethodId}
+                                onChange={(e) => setSelectedCardId(e.target.value)}
+                                className="hidden"
+                              />
+                              <div className={`w-4 h-4 rounded-full border flex items-center justify-center mr-3 ${selectedCardId === card.paymentMethodId ? 'border-brand-500' : 'border-gray-500'}`}>
+                                {selectedCardId === card.paymentMethodId && <div className="w-2 h-2 rounded-full bg-brand-500"></div>}
+                              </div>
+                              <div className="flex-1 text-sm">
+                                <div className="font-semibold text-gray-200 capitalize">{card.brand}</div>
+                                <div className="text-gray-400 text-xs">**** **** **** {card.last4}</div>
+                              </div>
+                              <div className="text-gray-400 text-xs">
+                                {card.expMonth.toString().padStart(2, '0')}/{card.expYear.toString().slice(2)}
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      ) : (
+                         <div className="text-sm text-gray-400">No saved cards found.</div>
+                      )}
+                    </div>
                   
                   <button
                     onClick={async () => {
+                      if (!selectedCardId) {
+                        showToast("Please select a payment method", "error");
+                        return;
+                      }
                       try {
                         setIsUpgrading(true);
-                        const res = await subscriptionApi.upgradeSubscriptionImmediately({ 
+                        const res = await subscriptionApi.upgradeSubscriptionImmediatelyWithCard({ 
                           planId: selectedPlanForCheckout.id, 
-                          billingCycle: currentSubscription?.billingCycle || 1 
+                          billingCycle: currentSubscription?.billingCycle || 1,
+                          paymentMethodId: selectedCardId
                         });
                         if (res?.success) {
                           showToast("Plan upgraded successfully!", "success");
@@ -331,8 +386,8 @@ export default function TenantViewPlans() {
                         setIsUpgrading(false);
                       }
                     }}
-                    disabled={isUpgrading}
-                    className="w-full py-2.5 px-4 bg-white hover:bg-gray-100 text-[#141842] text-sm font-bold rounded-md transition-colors shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30"
+                    disabled={isUpgrading || !selectedCardId}
+                    className={`w-full py-2.5 px-4 bg-white hover:bg-gray-100 text-[#141842] text-sm font-bold rounded-md transition-colors shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30 ${(isUpgrading || !selectedCardId) ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     Pay & Upgrade Now
                   </button>

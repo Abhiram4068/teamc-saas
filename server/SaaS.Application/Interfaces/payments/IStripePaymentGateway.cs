@@ -18,9 +18,15 @@ public interface IStripePaymentGateway
     
     Task<string?> GetLatestPaymentIntentIdForCustomerAsync(string customerId);
     
-    Task<bool> UpgradeSubscriptionImmediatelyAsync(string stripeSubscriptionId, string newStripePriceId);
+    
+
+    Task<bool> UpgradeSubscriptionImmediatelyWithCardAsync(string stripeCustomerId, string stripeSubscriptionId, string newStripePriceId, string paymentMethodId);
     
     Task<bool> ScheduleSubscriptionUpgradeAsync(string stripeSubscriptionId, string newStripePriceId);
     
     Task<decimal> PreviewUpgradeProrationAsync(string stripeCustomerId, string stripeSubscriptionId, string newStripePriceId);
+    
+    Task<List<SavedCardDto>> GetSavedPaymentMethodsAsync(string stripeCustomerId);
+    
+    Task<string> CreateSetupIntentAsync(string stripeCustomerId);
 }

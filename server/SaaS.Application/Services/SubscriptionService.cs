@@ -565,50 +565,7 @@ public class SubscriptionService : ISubscriptionService
         }
     }
     
-    /// <summary>
-    /// Upgrades the tenant's subscription immediately and calls stripe for prorated invoice 
-    /// and updates the subscription in DB with new subscription record.
-    /// </summary>
-    public async Task<ApiResponse<string>> UpgradeSubscriptionImmediatelyAsync(int tenantId, int planId, BillingCycle billingCycle)
-    {
-        var activeSubscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
-        if (activeSubscription == null || string.IsNullOrEmpty(activeSubscription.StripeSubscriptionId))
-        {
-            return ApiResponse<string>.FailureResponse("You dont have an active Stripe subscription to upgrade.");
-        }
 
-        var newPlan = await _planRepository.GetByIdAsync(planId);
-        if (newPlan == null || newPlan.Status != PlanStatus.Active)
-        {
-            return ApiResponse<string>.FailureResponse("Selected plan was not found.");
-        }
-
-        string? newStripePriceId = billingCycle == BillingCycle.Monthly 
-            ? newPlan.StripeMonthlyPriceId 
-            : newPlan.StripeYearlyPriceId;
-
-        if (string.IsNullOrEmpty(newStripePriceId))
-        {
-            return ApiResponse<string>.FailureResponse("The selected plan is missing pricing information.");
-        }
-
-        // Calls the function to update the subscription in stripe and also charges the prorated difference immediately.
-        var success = await _stripePaymentGateway.UpgradeSubscriptionImmediatelyAsync(activeSubscription.StripeSubscriptionId, newStripePriceId);
-        if (!success)
-        {
-            return ApiResponse<string>.FailureResponse("Failed to update subscription in Stripe.");
-        }
-
-        // Update local DB
-        activeSubscription.PlanId = newPlan.Id;
-        activeSubscription.BillingCycle = billingCycle;
-        activeSubscription.UpdatedAt = DateTime.UtcNow;
-        
-        await _subscriptionRepository.UpdateAsync(activeSubscription);
-        await _subscriptionRepository.SaveChangesAsync();
-
-        return ApiResponse<string>.SuccessResponse("Subscription upgraded successfully.", "Success");
-    }
 
     /// <summary>
     /// Schedules a subscription upgrade to take effect at the end of the current billing cycle.
@@ -700,6 +657,95 @@ public class SubscriptionService : ISubscriptionService
         catch (Exception ex)
         {
             return ApiResponse<decimal>.FailureResponse($"Failed to preview proration: {ex.Message}");
+        }
+    }
+
+    public async Task<ApiResponse<List<SaaS.Application.DTOs.Payements.SavedCardDto>>> GetSavedPaymentMethodsAsync(int tenantId)
+    {
+        var activeSubscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
+        if (activeSubscription == null || string.IsNullOrEmpty(activeSubscription.StripeCustomerId))
+        {
+            return ApiResponse<List<SaaS.Application.DTOs.Payements.SavedCardDto>>.FailureResponse("No active Stripe customer found.");
+        }
+
+        try
+        {
+            var cards = await _stripePaymentGateway.GetSavedPaymentMethodsAsync(activeSubscription.StripeCustomerId);
+            return ApiResponse<List<SaaS.Application.DTOs.Payements.SavedCardDto>>.SuccessResponse(cards, "Success");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<List<SaaS.Application.DTOs.Payements.SavedCardDto>>.FailureResponse($"Failed to fetch cards: {ex.Message}");
+        }
+    }
+
+    public async Task<ApiResponse<string>> CreateSetupIntentAsync(int tenantId)
+    {
+        var activeSubscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
+        if (activeSubscription == null || string.IsNullOrEmpty(activeSubscription.StripeCustomerId))
+        {
+            return ApiResponse<string>.FailureResponse("No active Stripe customer found.");
+        }
+
+        try
+        {
+            var clientSecret = await _stripePaymentGateway.CreateSetupIntentAsync(activeSubscription.StripeCustomerId);
+            return ApiResponse<string>.SuccessResponse(clientSecret, "Success");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<string>.FailureResponse($"Failed to create setup intent: {ex.Message}");
+        }
+    }
+
+    public async Task<ApiResponse<string>> UpgradeSubscriptionImmediatelyWithCardAsync(int tenantId, int planId, BillingCycle billingCycle, string paymentMethodId)
+    {
+        var activeSubscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
+        if (activeSubscription == null || string.IsNullOrEmpty(activeSubscription.StripeSubscriptionId) || string.IsNullOrEmpty(activeSubscription.StripeCustomerId))
+        {
+            return ApiResponse<string>.FailureResponse("You dont have an active Stripe subscription.");
+        }
+
+        var newPlan = await _planRepository.GetByIdAsync(planId);
+        if (newPlan == null || newPlan.Status != PlanStatus.Active)
+        {
+            return ApiResponse<string>.FailureResponse("Selected plan was not found.");
+        }
+
+        string? newStripePriceId = billingCycle == BillingCycle.Monthly 
+            ? newPlan.StripeMonthlyPriceId 
+            : newPlan.StripeYearlyPriceId;
+
+        if (string.IsNullOrEmpty(newStripePriceId))
+        {
+            return ApiResponse<string>.FailureResponse("The selected plan is missing pricing information.");
+        }
+
+        try 
+        {
+            var success = await _stripePaymentGateway.UpgradeSubscriptionImmediatelyWithCardAsync(
+                activeSubscription.StripeCustomerId, 
+                activeSubscription.StripeSubscriptionId, 
+                newStripePriceId,
+                paymentMethodId);
+
+            if (!success)
+            {
+                return ApiResponse<string>.FailureResponse("Failed to update subscription in Stripe.");
+            }
+
+            activeSubscription.PlanId = newPlan.Id;
+            activeSubscription.BillingCycle = billingCycle;
+            activeSubscription.UpdatedAt = DateTime.UtcNow;
+            
+            await _subscriptionRepository.UpdateAsync(activeSubscription);
+            await _subscriptionRepository.SaveChangesAsync();
+
+            return ApiResponse<string>.SuccessResponse("Subscription upgraded successfully.", "Success");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<string>.FailureResponse($"Failed to upgrade subscription: {ex.Message}");
         }
     }
 }
