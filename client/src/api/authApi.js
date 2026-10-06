@@ -83,36 +83,7 @@ export const authApi = {
       console.error("Failed to fetch user profile", error);
       return null;
     }
-<<<<<<< Updated upstream
-=======
 
-    try {
-      const response = await axiosClient.get('/auth/profile');
-      if (response.data && response.data.success) {
-        const profile = response.data.data;
-        const fName = profile.firstName || '';
-        const lName = profile.lastName || '';
-        
-        let initials = '';
-        if (fName || lName) {
-          initials = `${fName.charAt(0)}${lName.charAt(0)}`.toUpperCase();
-        } else {
-          const email = profile.email || '';
-          initials = email ? email.charAt(0).toUpperCase() : 'U';
-        }
-
-        return {
-          ...decoded,
-          ...profile,
-          initials
-        };
-      }
-      return null;
-    } catch (error) {
-      console.error("Failed to fetch user profile", error);
-      return null;
-    }
->>>>>>> Stashed changes
   },
 
   logout: () => {
