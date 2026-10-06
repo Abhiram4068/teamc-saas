@@ -116,27 +116,7 @@ public class SubscriptionsController : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
     
-    /// <summary>
-    /// Instantly upgrades the tenant's active subscription to a new plan and charges the prorated difference immediately.
-    /// </summary>
-    [HttpPost("upgrade-immediately")]
-    [Authorize(Roles = "2")]
-    public async Task<IActionResult> UpgradeSubscriptionImmediately([FromBody] UpgradeSubscriptionRequestDto request)
-    {
-        var tenantIdString = User.FindFirst("TenantId")?.Value;
-                        
-        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
-        {
-            _logger.LogWarning("Upgrade Subscription failed: Tenant ID not found in token or invalid.");
-            return Unauthorized(new { Message = "Tenant ID not found in token." });
-        }
 
-        _logger.LogInformation("Upgrading immediately to Plan {PlanId} for Tenant: {TenantId}", request.PlanId, tenantId);
-        var response = await _subscriptionService.UpgradeSubscriptionImmediatelyAsync(tenantId, request.PlanId, request.BillingCycle);
-        
-        return StatusCode(response.StatusCode, response);
-    }
-    
     /// <summary>
     /// Schedules an upgrade to a new plan to take effect at the end of the current billing cycle.
     /// </summary>
@@ -173,6 +153,49 @@ public class SubscriptionsController : ControllerBase
         }
 
         var response = await _subscriptionService.PreviewUpgradeProrationAsync(tenantId, request.PlanId, request.BillingCycle);
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpGet("saved-cards")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> GetSavedCards()
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        var response = await _subscriptionService.GetSavedPaymentMethodsAsync(tenantId);
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpPost("setup-intent")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> CreateSetupIntent()
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        var response = await _subscriptionService.CreateSetupIntentAsync(tenantId);
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpPost("upgrade-immediately-with-card")]
+    [Authorize(Roles = "2")]
+    public async Task<IActionResult> UpgradeSubscriptionImmediatelyWithCard([FromBody] UpgradeSubscriptionWithCardRequestDto request)
+    {
+        var tenantIdString = User.FindFirst("TenantId")?.Value;
+        if (string.IsNullOrEmpty(tenantIdString) || !int.TryParse(tenantIdString, out var tenantId))
+        {
+            return Unauthorized(new { Message = "Tenant ID not found in token." });
+        }
+
+        _logger.LogInformation("Upgrading immediately with card to Plan {PlanId} for Tenant: {TenantId}", request.PlanId, tenantId);
+        var response = await _subscriptionService.UpgradeSubscriptionImmediatelyWithCardAsync(tenantId, request.PlanId, request.BillingCycle, request.PaymentMethodId);
         return StatusCode(response.StatusCode, response);
     }
 }

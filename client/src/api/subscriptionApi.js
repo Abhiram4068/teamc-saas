@@ -31,11 +31,6 @@ export const subscriptionApi = {
     return response.data;
   },
 
-  upgradeSubscriptionImmediately: async (data) => {
-    const response = await axiosInstance.post('/Subscriptions/upgrade-immediately', data);
-    return response.data;
-  },
-
   scheduleSubscriptionUpgrade: async (data) => {
     const response = await axiosInstance.post('/Subscriptions/upgrade-scheduled', data);
     return response.data;
@@ -43,6 +38,21 @@ export const subscriptionApi = {
 
   previewUpgradeProration: async (data) => {
     const response = await axiosInstance.post('/Subscriptions/preview-proration', data);
+    return response.data;
+  },
+
+  getSavedCards: async () => {
+    const response = await axiosInstance.get('/Subscriptions/saved-cards');
+    return response.data;
+  },
+
+  createSetupIntent: async () => {
+    const response = await axiosInstance.post('/Subscriptions/setup-intent');
+    return response.data;
+  },
+
+  upgradeSubscriptionImmediatelyWithCard: async (data) => {
+    const response = await axiosInstance.post('/Subscriptions/upgrade-immediately-with-card', data);
     return response.data;
   }
 };

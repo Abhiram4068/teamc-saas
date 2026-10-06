@@ -137,7 +137,8 @@ public class StripePaymentGateway : IStripePaymentGateway
         }
     }
 
-    public async Task<bool> UpgradeSubscriptionImmediatelyAsync(string stripeSubscriptionId, string newStripePriceId)
+
+    public async Task<bool> UpgradeSubscriptionImmediatelyWithCardAsync(string stripeCustomerId, string stripeSubscriptionId, string newStripePriceId, string paymentMethodId)
     {
         if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
         {
@@ -146,38 +147,41 @@ public class StripePaymentGateway : IStripePaymentGateway
         
         global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
 
-        var service = new global::Stripe.SubscriptionService();
+        // 1. First, set the selected payment method as the default for the customer
+        var customerService = new global::Stripe.CustomerService();
+        var customerOptions = new global::Stripe.CustomerUpdateOptions
+        {
+            InvoiceSettings = new global::Stripe.CustomerInvoiceSettingsOptions
+            {
+                DefaultPaymentMethod = paymentMethodId
+            }
+        };
+        await customerService.UpdateAsync(stripeCustomerId, customerOptions);
 
-        // Fetch the user's current subscription from Stripe.
+        var service = new global::Stripe.SubscriptionService();
         var subscription = await service.GetAsync(stripeSubscriptionId);
         
-        // Terminate if the subscription does not exist or has no active items.
         if (subscription == null || subscription.Items.Data.Count == 0)
         {
             return false;
         }
 
-        // Prepare the configuration to modify the subscription plan.
         var options = new global::Stripe.SubscriptionUpdateOptions
         {
             Items = new List<global::Stripe.SubscriptionItemOptions>
             {
                 new global::Stripe.SubscriptionItemOptions
                 {
-                    // Target the existing subscription item to be updated.
                     Id = subscription.Items.Data[0].Id,
-                    // Provide the Price ID for the new plan.
                     Price = newStripePriceId,
                 }
             },
-            // Instruct Stripe to immediately calculate prorations, generate an invoice, and process the charge.
+            DefaultPaymentMethod = paymentMethodId, // Ensure it's used for this subscription
             ProrationBehavior = "always_invoice"
         };
 
-        // Submit the update request to Stripe.
         var updatedSubscription = await service.UpdateAsync(stripeSubscriptionId, options);
         
-        // Return true if the updated subscription status is active.
         return updatedSubscription.Status == "active";
     }
 
@@ -289,5 +293,54 @@ public class StripePaymentGateway : IStripePaymentGateway
 
         // AmountDue is in the smallest currency unit (e.g. cents/paise)
         return (decimal)upcomingInvoice.AmountDue / 100m;
+    }
+
+    public async Task<List<SavedCardDto>> GetSavedPaymentMethodsAsync(string stripeCustomerId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+        
+        var options = new global::Stripe.PaymentMethodListOptions
+        {
+            Customer = stripeCustomerId,
+            Type = "card"
+        };
+        
+        var service = new global::Stripe.PaymentMethodService();
+        var paymentMethods = await service.ListAsync(options);
+        
+        return paymentMethods.Select(pm => new SavedCardDto
+        {
+            PaymentMethodId = pm.Id,
+            Brand = pm.Card.Brand,
+            Last4 = pm.Card.Last4,
+            ExpMonth = pm.Card.ExpMonth,
+            ExpYear = pm.Card.ExpYear
+        }).ToList();
+    }
+
+    public async Task<string> CreateSetupIntentAsync(string stripeCustomerId)
+    {
+        if (string.IsNullOrEmpty(_stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException("Stripe SecretKey is missing from configuration!");
+        }
+        
+        global::Stripe.StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
+        
+        var options = new global::Stripe.SetupIntentCreateOptions
+        {
+            Customer = stripeCustomerId,
+            PaymentMethodTypes = new List<string> { "card" },
+        };
+        
+        var service = new global::Stripe.SetupIntentService();
+        var setupIntent = await service.CreateAsync(options);
+        
+        return setupIntent.ClientSecret;
     }
 }
