@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^7.0.0",
+    "@stripe/stripe-js": "^10.0.0",
     "axios": "^1.7.9",
     "html2pdf.js": "^0.14.0",
     "lucide-react": "^0.475.0",
