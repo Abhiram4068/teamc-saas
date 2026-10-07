@@ -675,10 +675,9 @@ public class SubscriptionService : ISubscriptionService
         }
         catch (Exception ex)
         {
-            return ApiResponse<List<SaaS.Application.DTOs.Payements.SavedCardDto>>.FailureResponse($"Failed to fetch cards: {ex.Message}");
+            return ApiResponse<List<DTOs.Payements.SavedCardDto>>.FailureResponse($"Failed to fetch cards: {ex.Message}");
         }
     }
-
     public async Task<ApiResponse<string>> CreateSetupIntentAsync(int tenantId)
     {
         var activeSubscription = await _subscriptionRepository.GetActiveByTenantIdAsync(tenantId);
@@ -697,6 +696,7 @@ public class SubscriptionService : ISubscriptionService
             return ApiResponse<string>.FailureResponse($"Failed to create setup intent: {ex.Message}");
         }
     }
+
 
     public async Task<ApiResponse<string>> UpgradeSubscriptionImmediatelyWithCardAsync(int tenantId, int planId, BillingCycle billingCycle, string paymentMethodId)
     {
