@@ -22,7 +22,7 @@ export default function TenantViewPlans() {
   const [savedCards, setSavedCards] = useState([]);
   const [selectedCardId, setSelectedCardId] = useState("");
   const [isFetchingCards, setIsFetchingCards] = useState(false);
-  const [isCardDropdownOpen, setIsCardDropdownOpen] = useState(true);
+  const [isCardDropdownOpen, setIsCardDropdownOpen] = useState(false);
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
 
   const { showToast } = useToast();
@@ -85,7 +85,7 @@ export default function TenantViewPlans() {
         ]);
 
         if (prorationRes?.success) {
-          setProratedAmount(prorationRes.data.proratedAmount || 0);
+          setProratedAmount(prorationRes.data || 0);
         } else {
           setProratedAmount(0);
         }
